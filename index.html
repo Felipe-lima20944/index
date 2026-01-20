@@ -39,7 +39,7 @@
             --danger-gradient: linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%);
             --danger-gradient-hover: linear-gradient(135deg, #6a1b9a 0%, #4a148c 100%);
             
-            --bg-main: linear-gradient(135deg, #ffff00 0%, #ffed4e 100%);
+            --bg-main: #ffffff;
             --bg-secondary: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             --bg-chat: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%);
             
@@ -128,8 +128,6 @@
         font-family: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             letter-spacing: 0.3px;
             background: var(--bg-main);
-            background-image: radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px);
-            background-size: 20px 20px;
             color: var(--text-primary);
             line-height: 1.6;
             overflow: auto;
@@ -1376,8 +1374,8 @@
 
         /* Mensagem para usuários não donos */
         .owner-message-notice {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid rgba(255, 193, 7, 0.2);
+            background: white;
+            border: 1px solid #ddd;
             border-radius: 12px;
             padding: 1rem;
             text-align: center;
@@ -1386,13 +1384,13 @@
 
         .owner-message-notice p {
             margin: 0 0 0.75rem 0;
-            color: #856404;
+            color: #333;
             font-weight: 500;
         }
 
         .create-own-btn {
-            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
-            color: #212529;
+            background: linear-gradient(135deg, #8a2be2 0%, #7b1fa2 100%);
+            color: white;
             border: none;
             padding: 0.5rem 1rem;
             border-radius: 8px;
@@ -1403,7 +1401,7 @@
 
         .create-own-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+            box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
         }
 
         /* Responsividade */
@@ -1604,8 +1602,8 @@
         }
 
         .owner-message-notice {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid rgba(255, 193, 7, 0.2);
+            background: white;
+            border: 1px solid #ddd;
             border-radius: 12px;
             padding: 1rem;
             text-align: center;
@@ -1614,12 +1612,12 @@
 
         .owner-message-notice p {
             margin: 0 0 0.75rem 0;
-            color: #856404;
+            color: #333;
             font-weight: 500;
         }
 
         .owner-message-notice p strong, .owner-message-notice #chat-owner-name {
-            color: #8e24aa;
+            color: #8a2be2;
             font-weight: 700;
         }
 
@@ -1630,13 +1628,13 @@
             border: none;
             cursor: pointer;
             font-weight: 600;
-            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
-            color: #212529;
+            background: linear-gradient(135deg, #8a2be2 0%, #7b1fa2 100%);
+            color: white;
         }
 
         .owner-message-notice .create-own-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+            box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
         }
 
         /* Barra de ferramentas (aprimorada) */
@@ -3824,7 +3822,7 @@
             --warning-gradient: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
             --danger-gradient: linear-gradient(135deg, #6a1b9a 0%, #4a148c 100%);
 
-            --bg-main: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
+            --bg-main: #ffffff;
             --bg-secondary: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
             --bg-chat: linear-gradient(135deg, rgba(30,30,30,0.95) 0%, rgba(46,46,46,0.95) 100%);
 
@@ -3968,7 +3966,7 @@
             --warning-gradient: linear-gradient(135deg, #ffaa00 0%, #ff6600 100%);
             --danger-gradient: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
 
-            --bg-main: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+            --bg-main: #ffffff;
             --bg-secondary: linear-gradient(135deg, #0f1419 0%, #1a2332 100%);
             --bg-chat: linear-gradient(135deg, rgba(10, 10, 15, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%);
 
@@ -4752,7 +4750,7 @@
 
         <!-- Mensagem para usuários não donos da conversa -->
         <div id="chat-owner-message" class="owner-message-notice" style="display: none;">
-            <p>Essa conversa é de <strong id="chat-owner-name"></strong>. Crie as suas para interagir.</p>
+            <p id="chat-owner-message-text">Esta conversa pertence a <strong id="chat-owner-name"></strong>. Que tal criar a sua própria para interagir com a IA?</p>
             <button id="create-conversation-btn" class="create-own-btn">Criar minha conversa</button>
         </div>
     </div>
@@ -5597,7 +5595,7 @@
                             if (createConversationSection) createConversationSection.style.display = 'block';
                             chatOwnerMessage.style.display = 'flex';
                             const ownerText = document.getElementById('chat-owner-message-text');
-                            if (ownerText) ownerText.textContent = `Powered by Dark Duck Intelligence™ - Esta conversa foi criada por ${data.usuario_dono || 'um usuário anônimo'}. Crie a sua própria conversa.`;
+                            if (ownerText) ownerText.textContent = `Esta conversa pertence a ${data.usuario_dono || 'um usuário anônimo'}. Que tal criar a sua própria para interagir com a IA?`;
                             chatOwnerMessage.setAttribute('aria-hidden', 'false');
                             // Esconder o crédito também (já está escondido acima, mas garantir)
                             // const geminiCredit = document.querySelector('.gemini-credit');
@@ -5815,7 +5813,7 @@
                                 if (createConversationSection) createConversationSection.style.display = 'block';
                                 chatOwnerMessage.style.display = 'flex';
                                 const ownerText = document.getElementById('chat-owner-message-text');
-                                if (ownerText) ownerText.textContent = `Essa conversa é de ${data.usuario_dono || 'um usuário anônimo'}.`;
+                                if (ownerText) ownerText.textContent = `Esta conversa pertence a ${data.usuario_dono || 'um usuário anônimo'}. Que tal criar a sua própria para interagir com a IA?`;
                                 chatOwnerMessage.setAttribute('aria-hidden', 'false');
                             }
                         }
