@@ -790,7 +790,7 @@
         /* ==================================== */
 
         .chat-input-area {
-            padding: 1rem 2rem;
+            padding: 0.5rem 1rem;
             background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%);
             backdrop-filter: blur(10px);
             border-top: 1px solid rgba(218, 220, 224, 0.3);
@@ -821,14 +821,14 @@
         .gemini-chat-input {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.5rem;
         }
 
         .input-toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.5rem 0;
+            padding: 0.25rem 0;
         }
 
         .toolbar-left, .toolbar-right {
@@ -841,12 +841,12 @@
             display: flex;
             align-items: center;
             gap: 0.25rem;
-            padding: 0.5rem 0.75rem;
+            padding: 0.25rem 0.5rem;
             background: rgba(255, 255, 255, 0.8);
             border: 1px solid rgba(218, 220, 224, 0.5);
             border-radius: 20px;
             color: var(--text-secondary);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -889,8 +889,8 @@
             background: rgba(255, 255, 255, 0.9);
             border: 2px solid rgba(218, 220, 224, 0.4);
             border-radius: 25px;
-            padding: 1rem 1.5rem;
-            gap: 1rem;
+            padding: 0.5rem 1rem;
+            gap: 0.5rem;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
             backdrop-filter: blur(5px);
@@ -906,8 +906,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
+            width: 28px;
+            height: 28px;
             border: none;
             background: transparent;
             color: var(--text-secondary);
@@ -925,16 +925,16 @@
 
         .message-textarea {
             flex: 1;
-            min-height: 24px;
-            max-height: 120px;
+            min-height: 20px;
+            max-height: 100px;
             border: none;
             outline: none;
             background: transparent;
             color: var(--text-primary);
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 400;
             resize: none;
-            line-height: 1.5;
+            line-height: 1.4;
             font-family: inherit;
             padding: 0;
         }
@@ -975,11 +975,11 @@
 
         .gemini-credit {
             text-align: center;
-            margin-top: 0.5rem;
+            margin-top: 0.25rem;
         }
 
         .gemini-credit span {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
             opacity: 0.7;
         }
@@ -987,17 +987,17 @@
         /* Responsividade */
         @media (max-width: 768px) {
             .chat-input-area {
-                padding: 0.75rem 1rem;
+                padding: 0.25rem 0.5rem;
             }
 
             .input-field {
-                padding: 0.75rem 1rem;
-                gap: 0.75rem;
+                padding: 0.5rem 0.75rem;
+                gap: 0.5rem;
             }
 
             .toolbar-icon-btn {
-                padding: 0.4rem 0.6rem;
-                font-size: 0.8rem;
+                padding: 0.25rem 0.4rem;
+                font-size: 0.75rem;
             }
 
             .input-toolbar {
@@ -2514,7 +2514,7 @@
                 max-width: 100%;
             }
             .chat-input-area {
-                padding: 3rem 1rem 4rem 1rem;
+                padding: 1rem 0.5rem 2rem 0.5rem;
             }
             .input-and-buttons {
                 flex-direction: column;
@@ -2592,14 +2592,14 @@
                 margin-top: 2.5rem;
             }
             .chat-input-area {
-                padding: 1rem 2rem 1rem 2rem;
+                padding: 0.5rem 1rem 0.5rem 1rem;
             }
             .chat-input-container {
-                padding: 1rem 1.5rem;
+                padding: 0.5rem 1rem;
             }
             #mensagem-input {
-                min-height: 60px;
-                font-size: 1.1rem;
+                min-height: 40px;
+                font-size: 0.9rem;
             }
             .modal-content {
                 max-width: 350px;
@@ -4137,9 +4137,18 @@
             border-radius: 4px;
         }
 
+    @media (max-width: 768px) {
+        #desktop-block {
+            display: none !important;
+        }
+    }
+
     </style>
 </head>
 <body data-theme="black-red">
+    <div id="desktop-block" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; color: black; display: flex; align-items: center; justify-content: center; z-index: 9999; font-size: 1.5rem;">
+        <p>Este aplicativo está disponível apenas em dispositivos móveis.</p>
+    </div>
     <div class="chat-wrapper">
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -4248,25 +4257,6 @@
 
                     <!-- Design inspirado no Gemini -->
                     <div class="gemini-chat-input">
-                        <!-- Barra de ferramentas superior -->
-                        <div class="input-toolbar">
-                            <div class="toolbar-left">
-                                <button id="personalidade-btn" class="toolbar-icon-btn" title="Modelos">
-                                    <img id="personalidade-avatar" src="" alt="Avatar do modelo" class="personality-avatar-small">
-                                    <span id="personalidade-name">DUCK-PRO-02</span>
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                                <button id="busca-web-btn" class="toolbar-icon-btn" title="Busca na web">
-                                    <i class="fas fa-globe"></i>
-                                    <span class="btn-label">Web</span>
-                                </button>
-                                <button id="clear-chat-btn" class="toolbar-icon-btn" title="Limpar conversa">
-                                    <i class="fas fa-trash-alt"></i>
-                                    <span class="btn-label">Limpar</span>
-                                </button>
-                            </div>
-                        </div>
-
                         <!-- Campo de input principal -->
                         <div class="input-field-container">
                             <form id="chat-form" class="chat-form">
@@ -4302,9 +4292,24 @@
                         </div>
                     </div>
 
-                    <!-- Crédito abaixo -->
-                    <div class="gemini-credit">
-                        <span>Powered by Dark Duck Intelligence™</span>
+                        <!-- Barra de ferramentas inferior -->
+                        <div class="input-toolbar">
+                            <div class="toolbar-left">
+                                <button id="personalidade-btn" class="toolbar-icon-btn" title="Modelos">
+                                    <img id="personalidade-avatar" src="" alt="Avatar do modelo" class="personality-avatar-small">
+                                    <span id="personalidade-name">DUCK-PRO-02</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <button id="busca-web-btn" class="toolbar-icon-btn" title="Busca na web">
+                                    <i class="fas fa-globe"></i>
+                                    <span class="btn-label">Web</span>
+                                </button>
+                                <button id="clear-chat-btn" class="toolbar-icon-btn" title="Limpar conversa">
+                                    <i class="fas fa-trash-alt"></i>
+                                    <span class="btn-label">Limpar</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Mensagem para usuários não donos da conversa -->
@@ -4589,6 +4594,26 @@
     <input type="hidden" name="csrfmiddlewaretoken" id="csrf-token-input" value="<input type="hidden" name="csrfmiddlewaretoken" value="G2fPnZfR8IKmME8T8W1dZAPJsZtpDJNE3p7JERoiEkRfydQ3cheQ2nDdZCh2G16P">">
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            function isMobile() {
+                return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            }
+            if (!isMobile()) {
+                const blockDiv = document.getElementById('desktop-block');
+                if (blockDiv) blockDiv.style.display = 'flex';
+                const chatWrapper = document.querySelector('.chat-wrapper');
+                if (chatWrapper) chatWrapper.style.display = 'none';
+            }
+            window.addEventListener('resize', () => {
+                const blockDiv = document.getElementById('desktop-block');
+                const chatWrapper = document.querySelector('.chat-wrapper');
+                if (isMobile()) {
+                    if (blockDiv) blockDiv.style.display = 'none';
+                    if (chatWrapper) chatWrapper.style.display = 'block';
+                } else {
+                    if (blockDiv) blockDiv.style.display = 'flex';
+                    if (chatWrapper) chatWrapper.style.display = 'none';
+                }
+            });
             const sidebar = document.getElementById('sidebar');
             const sidebarOverlay = document.getElementById('sidebar-overlay');
             const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
@@ -5144,6 +5169,8 @@
                             // if (geminiCredit) geminiCredit.style.display = 'none';
                         } else {
                             if (chatInputArea) chatInputArea.style.display = 'block';
+                            const geminiChatInput = chatInputArea ? chatInputArea.querySelector('.gemini-chat-input') : null;
+                            if (geminiChatInput) geminiChatInput.style.display = 'block';
                             if (chatForm) chatForm.style.display = 'block';
                             if (toolbarSection) toolbarSection.style.display = 'block';
                             if (createConversationSection) createConversationSection.style.display = 'none';
@@ -5163,6 +5190,13 @@
                             mensagemInput.placeholder = "Você não pode enviar mensagens nesta conversa";
                             mensagemInput.style.opacity = "0.5";
                         }
+                    }
+                    
+                    // Focar o input se for dono da conversa
+                    if (isConversationOwner && mensagemInput) {
+                        setTimeout(() => {
+                            mensagemInput.focus();
+                        }, 100);
                     }
                     
                     // Desabilitar também o botão de enviar
