@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -558,7 +559,7 @@
         }
         .chat-messages {
             flex-grow: 1;
-            padding: 2rem 2rem 2rem 2rem;
+            padding: 2rem 2rem 8rem 2rem;
             overflow-y: auto;
             max-width: 1000px;
             margin: 0 auto;
@@ -797,8 +798,11 @@
             backdrop-filter: blur(10px);
             border-top: 1px solid rgba(218, 220, 224, 0.3);
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-            position: relative;
-            z-index: 20;
+            position: fixed;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            z-index: 1000;
         }
 
         .input-section {
@@ -990,6 +994,10 @@
         @media (max-width: 768px) {
             .chat-input-area {
                 padding: 0.25rem 0.5rem;
+                position: fixed;
+                bottom: 10px;
+                left: 0;
+                right: 0;
             }
 
             .input-field {
@@ -2512,11 +2520,15 @@
                 box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
             }
             .chat-messages {
-                padding: 1rem;
+                padding: 1rem 1rem 8rem 1rem;
                 max-width: 100%;
             }
             .chat-input-area {
                 padding: 1rem 0.5rem 2rem 0.5rem;
+                position: fixed;
+                bottom: 10px;
+                left: 0;
+                right: 0;
             }
             .input-and-buttons {
                 flex-direction: column;
@@ -2582,7 +2594,7 @@
             }
             .chat-messages {
                 max-width: 1200px;
-                padding: 2.5rem;
+                padding: 2.5rem 2.5rem 8rem 2.5rem;
             }
             .chat-header-desktop {
                 padding: 2rem 2.5rem;
@@ -2595,6 +2607,10 @@
             }
             .chat-input-area {
                 padding: 0.5rem 1rem 0.5rem 1rem;
+                position: fixed;
+                bottom: 10px;
+                left: 0;
+                right: 0;
             }
             .chat-input-container {
                 padding: 0.5rem 1rem;
