@@ -940,8 +940,9 @@
         /* Message Styles */
         .message {
             display: flex;
-            gap: var(--space-3);
+            gap: var(--space-2); /* Reduzido de var(--space-3) para aproximar mais */
             animation: fadeInUp var(--transition-base) ease-out;
+            margin-bottom: var(--space-1); /* Adicionado margem inferior menor */
         }
 
         .message--user {
@@ -982,7 +983,7 @@
         }
 
         .message__bubble {
-            padding: var(--space-4);
+            padding: var(--space-3); /* Reduzido de var(--space-4) */
             border-radius: var(--radius-lg);
             line-height: 1.7;
             word-wrap: break-word;
@@ -2051,14 +2052,7 @@
                             <p class="welcome__subtitle">Como posso ajudar você hoje?</p>
                             
                             <div class="welcome__suggestions">
-                                <button class="welcome__suggestion" data-suggestion="Explique conceitos de programação">
-                                    <div class="welcome__suggestion-icon">
-                                        <i class="fas fa-code"></i>
-                                    </div>
-                                    <div class="welcome__suggestion-title">Programação</div>
-                                    <div class="welcome__suggestion-desc">Aprenda conceitos e resolva problemas de código</div>
-                                </button>
-
+   
 
 
 
@@ -2133,10 +2127,7 @@
                            
                         </div>
 
-                        <!-- Brand -->
-                        <div class="input__brand">
-                            Powered by <span class="input__brand-name">Dark Duck Intelligence™</span>
-                        </div>
+
                     </div>
                 </footer>
             </div>
@@ -2511,13 +2502,6 @@
                 return this.fetch(`/api/conversa/${id}/`);
             },
             
-            async createConversation(data) {
-                return this.fetch('/api/nova-conversa/', {
-                    method: 'POST',
-                    body: JSON.stringify(data),
-                });
-            },
-            
             async deleteConversation(id) {
                 return this.fetch(`/api/conversa/${id}/cancelar/`, {
                     method: 'POST',
@@ -2542,7 +2526,9 @@
                 const formData = new FormData();
                 formData.append('mensagem', message);
                 formData.append('busca_web', webSearch ? 'true' : 'false');
-                formData.append('conversa_id', conversationId);
+                if (conversationId) {
+                    formData.append('conversa_id', conversationId);
+                }
                 formData.append('personalidade', AppState.currentPersonality?.nome || '');
                 
                 files.forEach(file => {
@@ -2772,20 +2758,8 @@
             },
             
             async createNewConversation() {
-                try {
-                    const data = await API.createConversation({
-                        personalidade_id: AppState.currentPersonality?.id,
-                    });
-                    
-                    if (data.conversa_id) {
-                        await this.loadConversations();
-                        Chat.loadConversation(data.conversa_id);
-                        Toast.success('Nova conversa criada!');
-                    }
-                } catch (error) {
-                    console.error('Error creating conversation:', error);
-                    Toast.error('Erro ao criar conversa');
-                }
+                // Apenas redirecionar para a página inicial
+                window.location.href = '/';
             },
             
             confirmDelete(conversationId) {
@@ -3052,11 +3026,11 @@
                 if (!message && AppState.attachedFiles.length === 0) return;
                 if (AppState.isLoading) return;
                 
-                // Create conversation if needed
-                if (!AppState.currentConversationId) {
-                    await Sidebar.createNewConversation();
-                    if (!AppState.currentConversationId) return;
-                }
+                // Don't create conversation here - let the backend handle it
+                // if (!AppState.currentConversationId) {
+                //     await Sidebar.createNewConversation();
+                //     if (!AppState.currentConversationId) return;
+                // }
                 
                 try {
                     AppState.isLoading = true;
@@ -3078,9 +3052,9 @@
                     // Show loading indicator
                     this.showLoadingIndicator();
                     
-                    // Send message
+                    // Send message (backend will create conversation if needed)
                     const response = await API.sendMessage(
-                        AppState.currentConversationId,
+                        AppState.currentConversationId, // Can be null
                         message,
                         AppState.attachedFiles,
                         AppState.webSearchEnabled
@@ -3149,6 +3123,8 @@
                                     fullText += data;
                                     
                                     if (!aiMessageDiv) {
+                                        // Remover o loading e criar a mensagem da IA no mesmo lugar
+                                        this.removeLoadingIndicator();
                                         aiMessageDiv = this.addMessageToUI({
                                             papel: 'model',
                                             texto_raw: '',
@@ -3164,6 +3140,8 @@
                                     // Atualizar ID da mensagem e conversa
                                     if (data.conversa_id) {
                                         AppState.currentConversationId = data.conversa_id;
+                                        // Atualizar lista de conversas se for uma nova conversa
+                                        Sidebar.loadConversations();
                                     }
                                     if (aiMessageDiv && data.mensagem_id) {
                                         aiMessageDiv.dataset.id = data.mensagem_id;
@@ -3302,6 +3280,12 @@
             },
             
             showLoadingIndicator() {
+                // Remover espaçador temporariamente para que o loading apareça logo após a última mensagem
+                const existingSpacer = DOM.messagesList.querySelector('.messages-spacer');
+                if (existingSpacer) {
+                    existingSpacer.remove();
+                }
+                
                 const personalityImg = AppState.currentPersonality?.imagem || '/static/logo1.jpg';
                 const personalityName = AppState.currentPersonality?.nome || 'Dark Duck';
                 const loadingHTML = `
@@ -3329,6 +3313,9 @@
             removeLoadingIndicator() {
                 const loading = document.getElementById('loadingMessage');
                 if (loading) loading.remove();
+                
+                // Readicionar o espaçador após remover o loading
+                this.ensureSpacerAtEnd();
             },
             
             cancelResponse() {
