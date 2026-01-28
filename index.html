@@ -1240,6 +1240,11 @@
             color: white;
             border-radius: var(--radius-full);
             box-shadow: var(--shadow-md);
+            display: none;
+        }
+
+        .input__btn--send:not(.hidden) {
+            display: flex;
         }
 
         .input__btn--send:hover {
@@ -1251,6 +1256,24 @@
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .input__btn--cancel {
+            background: var(--color-error);
+            color: white;
+            border-radius: var(--radius-full);
+            box-shadow: var(--shadow-md);
+            display: none;
+        }
+
+        .input__btn--cancel.is-visible {
+            display: flex;
+        }
+
+        .input__btn--cancel:hover {
+            background: var(--color-error-hover);
+            transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
         }
 
         /* Toolbar */
@@ -2025,14 +2048,11 @@
 
                     <div class="header__center">
                         <h1 class="header__title" id="conversationTitle" title="Clique para editar">
-                            Selecione uma Conversa
+                            Começe uma conversa
                         </h1>
                     </div>
 
                     <div class="header__right">
-                        <button class="header__action header__action--cancel" id="cancelResponseBtn" aria-label="Cancelar resposta">
-                            <i class="fas fa-stop"></i>
-                        </button>
                         <button class="header__action header__action--share hidden" id="shareBtn" aria-label="Compartilhar">
                             <i class="fas fa-share-alt"></i>
                         </button>
@@ -2094,6 +2114,10 @@
                                 rows="1"
                                 maxlength="10000"
                             ></textarea>
+
+                            <button class="input__btn input__btn--cancel" id="cancelResponseBtn" type="button" aria-label="Cancelar resposta">
+                                <i class="fas fa-stop"></i>
+                            </button>
 
                             <button class="input__btn input__btn--voice" id="voiceBtn" type="button" aria-label="Gravar áudio">
                                 <i class="fas fa-microphone"></i>
@@ -2803,7 +2827,11 @@
                 // Message input
                 DOM.messageInput.addEventListener('input', () => {
                     Utils.autoResize(DOM.messageInput);
+                    this.updateInputButtons();
                 });
+                
+                // Inicializar estado dos botões
+                this.updateInputButtons();
                 
                 DOM.messageInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -3034,6 +3062,7 @@
                 
                 try {
                     AppState.isLoading = true;
+                    this.updateInputButtons();
                     DOM.cancelResponseBtn.classList.add('is-visible');
                     
                     // Add user message to UI immediately with unique ID
@@ -3072,6 +3101,7 @@
                     this.removeLoadingIndicator();
                 } finally {
                     AppState.isLoading = false;
+                    this.updateInputButtons();
                     DOM.cancelResponseBtn.classList.remove('is-visible');
                 }
             },
@@ -3321,9 +3351,34 @@
             cancelResponse() {
                 // TODO: Implement cancel logic with AbortController
                 AppState.isLoading = false;
+                this.updateInputButtons();
                 DOM.cancelResponseBtn.classList.remove('is-visible');
                 this.removeLoadingIndicator();
                 Toast.info('Resposta cancelada');
+            },
+            
+            updateInputButtons() {
+                const hasText = DOM.messageInput.value.trim().length > 0;
+                const hasFiles = AppState.attachedFiles.length > 0;
+                const shouldShowButtons = hasText || hasFiles;
+                const isLoading = AppState.isLoading;
+                
+                if (shouldShowButtons && !isLoading) {
+                    DOM.sendBtn.classList.remove('hidden');
+                    DOM.voiceBtn.classList.add('hidden');
+                } else if (!isLoading) {
+                    DOM.sendBtn.classList.add('hidden');
+                    DOM.voiceBtn.classList.remove('hidden');
+                }
+                
+                // Mostrar botão de cancelar apenas quando está carregando
+                if (isLoading) {
+                    DOM.cancelResponseBtn.classList.add('is-visible');
+                    DOM.sendBtn.classList.add('hidden');
+                    DOM.voiceBtn.classList.add('hidden');
+                } else {
+                    DOM.cancelResponseBtn.classList.remove('is-visible');
+                }
             },
             
             showWelcome() {
