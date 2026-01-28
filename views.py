@@ -27,6 +27,24 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.utils import timezone
 from django.urls import reverse
+import markdown2
+import aiohttp
+from asgiref.sync import sync_to_async, async_to_sync
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.http import require_POST, require_GET
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotFound
+from django.db import transaction, models
+from django.db.models import OuterRef, Subquery
+from django.views.decorators.csrf import csrf_exempt
+from django.views import View
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
+from django.utils import timezone
+from django.urls import reverse
 
 # Módulos para leitura de arquivos, garantindo compatibilidade com o Gemini.
 try:
@@ -42,6 +60,74 @@ except ImportError as e:
     docx = None
     BeautifulSoup = None
     chardet = None
+
+# --- API para Ramificar Conversa a partir de uma Mensagem ---
+@require_POST
+@csrf_exempt
+def ramificar_conversa_api(request, conversa_id, mensagem_id):
+    """Cria uma nova conversa a partir de uma mensagem de interação (ramificação)."""
+    try:
+        # Autenticação/sessão
+        user = request.user if request.user.is_authenticated else None
+        if not request.user.is_authenticated:
+            session_id = request.session.session_key
+            if not session_id:
+                request.session.create()
+                session_id = request.session.session_key
+            user_filter = {'usuario__isnull': True, 'session_id': session_id}
+        else:
+            user_filter = {'usuario': user}
+
+        # Obter conversa original
+        conversa_original = get_object_or_404(Conversa, id=conversa_id, **user_filter, excluida=False)
+
+        # Obter mensagem de ramificação
+        mensagem_base = get_object_or_404(Mensagem, id=mensagem_id, conversa=conversa_original, excluida=False)
+
+        # Criar nova conversa (copia metadados principais)
+        nova_conversa = Conversa.objects.create(
+            usuario=conversa_original.usuario,
+            session_id=conversa_original.session_id,
+            personalidade=conversa_original.personalidade,
+            titulo=f"Ramificação de: {conversa_original.titulo}",
+            temperatura=conversa_original.temperatura,
+            personalidade_inicial=conversa_original.personalidade_inicial,
+            categoria=conversa_original.categoria,
+            tags=conversa_original.tags,
+            configuracoes_personalizadas=conversa_original.configuracoes_personalizadas,
+        )
+
+        # Copiar mensagens até a mensagem_base (inclusive)
+        mensagens = list(conversa_original.mensagens.filter(
+            ordem__lte=mensagem_base.ordem, excluida=False
+        ).order_by('ordem'))
+        nova_ordem = 1
+        for msg in mensagens:
+            Mensagem.objects.create(
+                conversa=nova_conversa,
+                papel=msg.papel,
+                tipo_conteudo=msg.tipo_conteudo,
+                texto=msg.texto,
+                dados_conteudo=msg.dados_conteudo,
+                tokens_utilizados=msg.tokens_utilizados,
+                custo_estimado=msg.custo_estimado,
+                metadados=msg.metadados,
+                ordem=nova_ordem,
+                criado_em=msg.criado_em,
+                status=msg.status,
+            )
+            nova_ordem += 1
+        nova_conversa.total_mensagens = len(mensagens)
+        nova_conversa.save()
+
+        return JsonResponse({
+            'success': True,
+            'nova_conversa_id': str(nova_conversa.id),
+            'titulo': nova_conversa.titulo,
+        })
+    except Exception as e:
+        logger.error(f"Erro ao ramificar conversa: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 # Importa todos os modelos necessários.
 from .models import (
@@ -1185,53 +1271,6 @@ class ConversaDetailView(View):
         }
 
         return render(request, "conversa.html", context)
-
-# --- API para Criar Nova Conversa ---
-@require_POST
-@csrf_exempt
-def criar_nova_conversa_api(request):
-    """Endpoint para criar uma nova conversa via API."""
-    try:
-        dados = json.loads(request.body) if request.body else {}
-        personalidade_identificador = dados.get('personalidade_id') or dados.get('personalidade_nome')
-        
-        user = request.user if request.user.is_authenticated else None
-        if not request.user.is_authenticated:
-            request.session['anonymous'] = True
-            session_id = request.session.session_key
-            if not session_id:
-                request.session.create()
-                session_id = request.session.session_key
-        else:
-            session_id = None
-        
-        # Obter personalidade (por ID ou nome)
-        personalidade_obj = None
-        if personalidade_identificador:
-            personalidade_obj = PersonalidadeService.obter_personalidade_sync(personalidade_identificador)
-        
-        # Se não encontrou, usar padrão
-        if not personalidade_obj:
-            personalidade_obj = async_to_sync(PersonalidadeService.obter_personalidade_padrao)()
-        
-        # Criar conversa
-        conversa = Conversa.objects.create(
-            usuario=user,
-            session_id=session_id if not user else None,
-            personalidade=personalidade_obj,
-            titulo="Nova Conversa",
-        )
-        
-        logger.info(f"Nova conversa criada: {conversa.id}")
-        return JsonResponse({
-            'success': True,
-            'conversa_id': str(conversa.id),
-            'titulo': conversa.titulo,
-            'personalidade': personalidade_obj.nome if personalidade_obj else 'assistente',
-        })
-    except Exception as e:
-        logger.error(f"Erro ao criar nova conversa: {str(e)}")
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 # --- API para Limpar Conversa (deletar mensagens) ---
 @require_POST
