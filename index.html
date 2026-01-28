@@ -819,6 +819,12 @@
             gap: var(--space-6);
         }
 
+        /* Messages Spacer */
+        .messages-spacer {
+            height: 120px;
+            flex-shrink: 0;
+        }
+
         /* Welcome State */
         .welcome {
             display: flex;
@@ -909,6 +915,26 @@
         .welcome__suggestion-desc {
             font-size: var(--text-sm);
             color: var(--color-text-muted);
+        }
+
+        /* Anonymous Notice */
+        .anonymous-notice {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: var(--space-4);
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            text-align: center;
+            color: var(--color-text-muted);
+            font-size: var(--text-sm);
+            margin-top: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+
+        .anonymous-notice i {
+            margin-right: var(--space-2);
+            color: var(--color-accent-primary);
         }
 
         /* Message Styles */
@@ -2032,10 +2058,10 @@
                                     <div class="welcome__suggestion-title">Programação</div>
                                     <div class="welcome__suggestion-desc">Aprenda conceitos e resolva problemas de código</div>
                                 </button>
-                                
 
 
-                                
+
+
                                 <button class="welcome__suggestion" data-suggestion="Tire minhas dúvidas">
                                     <div class="welcome__suggestion-icon">
                                         <i class="fas fa-lightbulb"></i>
@@ -2045,6 +2071,12 @@
                                 </button>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Anonymous Notice -->
+                    <div class="anonymous-notice" id="anonymousNotice" style="display: none;">
+                        <i class="fas fa-info-circle"></i>
+                        Esta conversa é de um usuário anônimo. Você pode visualizá-la, mas não pode responder.
                     </div>
                 </div>
 
@@ -2470,10 +2502,9 @@
             
             // Conversations
             async getConversations(filter = 'my') {
-                const endpoint = filter === 'anonymous' 
-                    ? '/api/conversas/anonimas/' 
-                    : '/api/conversas/';
-                return this.fetch(endpoint);
+                // Usar query parameter para filtrar
+                const onlyMine = filter === 'my' ? 'true' : 'false';
+                return this.fetch(`/api/conversas/?only_mine=${onlyMine}`);
             },
             
             async getConversation(id) {
@@ -2510,13 +2541,16 @@
             async sendMessage(conversationId, message, files = [], webSearch = false) {
                 const formData = new FormData();
                 formData.append('mensagem', message);
-                formData.append('busca_web', webSearch);
+                formData.append('busca_web', webSearch ? 'true' : 'false');
+                formData.append('conversa_id', conversationId);
+                formData.append('personalidade', AppState.currentPersonality?.nome || '');
                 
                 files.forEach(file => {
                     formData.append('arquivos', file);
                 });
                 
-                return fetch(`/api/conversa/${conversationId}/mensagem/`, {
+                // Usar o endpoint de streaming
+                return fetch('/api/chat/stream/', {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': AppState.csrfToken,
@@ -2526,7 +2560,7 @@
             },
             
             async deleteMessage(conversationId, messageId) {
-                return this.fetch(`/api/conversa/${conversationId}/mensagem/${messageId}/excluir/`, {
+                return this.fetch(`/api/mensagem/${messageId}/excluir/`, {
                     method: 'POST',
                 });
             },
@@ -2866,7 +2900,26 @@
                     if (data.personalidade) {
                         this.setPersonality(data.personalidade);
                     }
-                    
+
+                    // --- NOVO: esconder input se não for dono ou se cancelada ---
+                    const inputArea = document.getElementById('inputArea');
+                    if (inputArea) {
+                        if (!data.is_owner || data.excluida) {
+                            inputArea.style.display = 'none';
+                        } else {
+                            inputArea.style.display = '';
+                        }
+                    }
+
+                    // --- NOVO: mostrar aviso se não for dono ---
+                    const anonymousNotice = document.getElementById('anonymousNotice');
+                    if (anonymousNotice) {
+                        if (!data.is_owner) {
+                            anonymousNotice.style.display = 'block';
+                        } else {
+                            anonymousNotice.style.display = 'none';
+                        }
+                    }
                 } catch (error) {
                     console.error('Error loading conversation:', error);
                     Toast.error('Erro ao carregar conversa');
@@ -2879,6 +2932,7 @@
             renderMessages(messages) {
                 DOM.welcomeState.classList.add('hidden');
                 
+                // Mostrar welcome state se não há mensagens (página inicial ou conversa vazia)
                 if (messages.length === 0) {
                     DOM.messagesList.innerHTML = '';
                     DOM.welcomeState.classList.remove('hidden');
@@ -2887,6 +2941,12 @@
                 }
                 
                 DOM.messagesList.innerHTML = messages.map(msg => this.createMessageHTML(msg)).join('');
+                
+                // Garantir que o espaçador esteja sempre no final
+                this.ensureSpacerAtEnd();
+                
+                // Scroll to bottom
+                this.scrollToBottom();
                 
                 // Scroll to bottom
                 this.scrollToBottom();
@@ -2942,9 +3002,6 @@
                                     </button>
                                     <button class="message__action message__action--dislike" title="Não gostei">
                                         <i class="fas fa-thumbs-down"></i>
-                                    </button>
-                                    <button class="message__action message__action--tts" title="Ouvir">
-                                        <i class="fas fa-volume-up"></i>
                                     </button>
                                 ` : ''}
                                 ${AppState.isConversationOwner ? `
@@ -3005,8 +3062,10 @@
                     AppState.isLoading = true;
                     DOM.cancelResponseBtn.classList.add('is-visible');
                     
-                    // Add user message to UI
-                    this.addMessageToUI({
+                    // Add user message to UI immediately with unique ID
+                    const userMessageId = 'user-msg-' + Date.now();
+                    const userMessage = this.addMessageToUI({
+                        id: userMessageId,
                         papel: 'user',
                         texto_raw: message,
                         criado_em: new Date().toISOString(),
@@ -3048,6 +3107,7 @@
                 const decoder = new TextDecoder();
                 let aiMessageDiv = null;
                 let fullText = '';
+                let buffer = '';
                 
                 this.removeLoadingIndicator();
                 
@@ -3056,52 +3116,78 @@
                         const { done, value } = await reader.read();
                         if (done) break;
                         
-                        const chunk = decoder.decode(value, { stream: true });
-                        const lines = chunk.split('\n');
+                        buffer += decoder.decode(value, { stream: true });
+                        const events = buffer.split('\n\n');
+                        buffer = events.pop() || '';  // Manter o último evento incompleto no buffer
                         
-                        for (const line of lines) {
-                            if (line.startsWith('data: ')) {
-                                try {
-                                    const data = JSON.parse(line.slice(6));
-                                    
-                                    if (data.error) {
-                                        Toast.error(data.error);
-                                        return;
-                                    }
-                                    
-                                    if (data.text) {
-                                        fullText += data.text;
-                                        
-                                        if (!aiMessageDiv) {
-                                            aiMessageDiv = this.addMessageToUI({
-                                                papel: 'model',
-                                                texto_raw: fullText,
-                                                criado_em: new Date().toISOString(),
-                                            }, true);
-                                        } else {
-                                            const bubble = aiMessageDiv.querySelector('.message__bubble');
-                                            bubble.innerHTML = this.formatMessage(fullText);
-                                        }
-                                        
-                                        this.scrollToBottom();
-                                    }
-                                    
-                                    if (data.done) {
-                                        // Process code blocks after message is complete
-                                        this.processCodeBlocks();
-                                        this.bindMessageActions();
-                                        
-                                        // Update token count
-                                        if (data.tokens) {
-                                            DOM.tokenCount.textContent = `${data.tokens} tokens`;
-                                        }
-                                        
-                                        // Refresh sidebar
-                                        Sidebar.loadConversations();
-                                    }
-                                } catch (e) {
-                                    // Skip invalid JSON
+                        for (const event of events) {
+                            if (!event.trim()) continue;
+                            
+                            const lines = event.split('\n');
+                            let eventType = '';
+                            let eventData = '';
+                            
+                            for (const line of lines) {
+                                if (line.startsWith('event: ')) {
+                                    eventType = line.slice(7);
+                                } else if (line.startsWith('data: ')) {
+                                    eventData = line.slice(6);
                                 }
+                            }
+                            
+                            if (!eventData) continue;
+                            
+                            try {
+                                const data = JSON.parse(eventData);
+                                
+                                if (eventType === 'error') {
+                                    Toast.error(typeof data === 'string' ? data : data.message || 'Erro desconhecido');
+                                    return;
+                                }
+                                
+                                if (eventType === 'chunk' && typeof data === 'string') {
+                                    fullText += data;
+                                    
+                                    if (!aiMessageDiv) {
+                                        aiMessageDiv = this.addMessageToUI({
+                                            papel: 'model',
+                                            texto_raw: '',
+                                            criado_em: new Date().toISOString(),
+                                        }, true);
+                                    }
+                                    
+                                    // Processar linha por linha para melhor imersão
+                                    await this.typeTextLineByLine(aiMessageDiv, data);
+                                }
+                                
+                                if (eventType === 'done' && typeof data === 'object') {
+                                    // Atualizar ID da mensagem e conversa
+                                    if (data.conversa_id) {
+                                        AppState.currentConversationId = data.conversa_id;
+                                    }
+                                    if (aiMessageDiv && data.mensagem_id) {
+                                        aiMessageDiv.dataset.id = data.mensagem_id;
+                                    }
+                                    
+                                    // Atualizar título se necessário
+                                    if (data.titulo) {
+                                        DOM.conversationTitle.textContent = data.titulo;
+                                    }
+                                    
+                                    // Processar blocos de código após mensagem completa
+                                    this.processCodeBlocks();
+                                    this.bindMessageActions();
+                                    
+                                    // Atualizar contagem de tokens
+                                    if (data.tokens_utilizados) {
+                                        DOM.tokenCount.textContent = `${data.tokens_utilizados} tokens`;
+                                    }
+                                    
+                                    // Mostrar botão de compartilhar
+                                    DOM.shareBtn.classList.remove('hidden');
+                                }
+                            } catch (e) {
+                                console.warn('Failed to parse SSE data:', eventData, e);
                             }
                         }
                     }
@@ -3109,6 +3195,56 @@
                     console.error('Streaming error:', error);
                     Toast.error('Erro na resposta');
                 }
+            },
+            
+            async typeTextLineByLine(messageDiv, newText) {
+                const bubble = messageDiv.querySelector('.message__bubble');
+                const currentText = bubble.textContent || '';
+                const fullNewText = currentText + newText;
+                const lines = newText.split('\n');
+                
+                let currentDisplayText = currentText;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const isLastLine = i === lines.length - 1;
+                    
+                    // Adicionar linha completa com efeito de fade-in
+                    const lineStartIndex = currentDisplayText.length;
+                    currentDisplayText += line + (isLastLine ? '' : '\n');
+                    
+                    // Criar span para a nova linha com opacidade inicial 0
+                    const lineSpan = document.createElement('span');
+                    lineSpan.textContent = line;
+                    lineSpan.style.opacity = '0';
+                    lineSpan.style.transition = 'opacity 0.5s ease-in';
+                    
+                    // Adicionar quebra de linha se necessário
+                    if (bubble.innerHTML) {
+                        bubble.appendChild(document.createElement('br'));
+                    }
+                    bubble.appendChild(lineSpan);
+                    
+                    // Trigger fade-in
+                    await this.delay(100);
+                    lineSpan.style.opacity = '1';
+                    
+                    // Delay entre linhas
+                    if (!isLastLine) {
+                        await this.delay(300);
+                    }
+                    
+                    // Rolar suavemente para o final
+                    this.scrollToBottom();
+                }
+                
+                // Aplicar formatação final após todas as linhas
+                await this.delay(500);
+                bubble.innerHTML = this.formatMessage(fullNewText);
+            },
+            
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
             },
             
             addMessageToUI(msg, isStreaming = false) {
@@ -3119,10 +3255,26 @@
                 const messageHTML = this.createMessageHTML(msg);
                 DOM.messagesList.insertAdjacentHTML('beforeend', messageHTML);
                 
-                const messageDiv = DOM.messagesList.lastElementChild;
+                // Garantir que o espaçador esteja sempre no final
+                this.ensureSpacerAtEnd();
+                
+                const messageDiv = DOM.messagesList.lastElementChild.previousElementSibling; // O espaçador é o último
                 this.scrollToBottom();
                 
                 return messageDiv;
+            },
+            
+            ensureSpacerAtEnd() {
+                // Remover espaçador existente se houver
+                const existingSpacer = DOM.messagesList.querySelector('.messages-spacer');
+                if (existingSpacer) {
+                    existingSpacer.remove();
+                }
+                
+                // Adicionar novo espaçador no final
+                const spacer = document.createElement('div');
+                spacer.className = 'messages-spacer';
+                DOM.messagesList.appendChild(spacer);
             },
             
             formatMessage(text) {
@@ -3198,7 +3350,27 @@
             },
             
             scrollToBottom() {
-                DOM.messagesContainer.scrollTop = DOM.messagesContainer.scrollHeight;
+                // Delay para garantir que os elementos foram renderizados
+                setTimeout(() => {
+                    const container = DOM.messagesContainer;
+                    const inputArea = document.getElementById('inputArea');
+                    
+                    // Calcular altura disponível considerando a área de input
+                    const inputHeight = inputArea ? inputArea.offsetHeight : 0;
+                    const availableHeight = container.clientHeight - inputHeight - 50; // Margem de segurança
+                    
+                    // Rolar para mostrar mais conteúdo, mas deixar espaço para input
+                    const targetScrollTop = Math.max(0, container.scrollHeight - availableHeight);
+                    container.scrollTop = targetScrollTop;
+                    
+                    // Verificação adicional
+                    setTimeout(() => {
+                        const newTargetScrollTop = Math.max(0, container.scrollHeight - availableHeight);
+                        if (Math.abs(container.scrollTop - newTargetScrollTop) > 30) {
+                            container.scrollTop = newTargetScrollTop;
+                        }
+                    }, 100);
+                }, 50);
             },
             
             processCodeBlocks() {
