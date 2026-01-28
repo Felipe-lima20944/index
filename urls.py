@@ -13,7 +13,6 @@ urlpatterns = [
     # Rotas de API da sua aplicação
     path('api/chat/stream/', views.StreamingChatView.as_view(), name='streaming_chat'),
     path('api/conversas/', views.listar_conversas, name='listar_conversas'),
-    path('api/nova-conversa/', views.criar_nova_conversa_api, name='criar_nova_conversa'),
     path('api/conversa/<uuid:conversa_id>/', views.carregar_conversa, name='carregar_conversa_api'),
     path('api/conversa/<uuid:conversa_id>/limpar/', views.limpar_conversa_api, name='limpar_conversa_api'),
     path('api/conversa/<uuid:conversa_id>/cancelar/', views.cancelar_conversa_api, name='cancelar_conversa_api'),
@@ -28,6 +27,9 @@ urlpatterns = [
     path('api/mensagem/<uuid:mensagem_id>/excluir/', views.excluir_mensagem_api, name='excluir_mensagem_api'),
     path('api/mensagem/<uuid:mensagem_id>/editar/', views.editar_mensagem_api, name='editar_mensagem_api'),
     path('api/chat/reprocessar/', views.reprocessar_conversa_api, name='reprocessar_conversa_api'),
+
+    # Rota para ramificar conversa a partir de uma mensagem
+    path('api/conversa/<uuid:conversa_id>/ramificar/<uuid:mensagem_id>/', views.ramificar_conversa_api, name='ramificar_conversa_api'),
 
     # --- ROTAS DE COMPARTILHAMENTO CORRIGIDAS ---
     # Rota da API para o frontend solicitar o link de compartilhamento.
