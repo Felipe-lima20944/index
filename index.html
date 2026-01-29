@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -83,7 +83,7 @@
             --radius-full: 9999px;
             
             /* Typography */
-            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-sans: 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
             
             --text-xs: 0.75rem;
@@ -807,6 +807,7 @@
         .main__messages {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: var(--space-6);
             padding-bottom: calc(var(--input-height) + var(--space-8));
         }
@@ -821,7 +822,7 @@
 
         /* Messages Spacer */
         .messages-spacer {
-            height: 120px;
+            height: 200px;
             flex-shrink: 0;
         }
 
@@ -861,6 +862,18 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: var(--space-2);
+        }
+
+        .welcome__name {
+            color: var(--color-accent-primary);
+            font-weight: 900;
+        }
+
+        .welcome__tokens {
+            font-size: var(--text-sm);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-4);
+            font-weight: 600;
         }
 
         .welcome__subtitle {
@@ -975,7 +988,7 @@
             max-width: 80%;
             display: flex;
             flex-direction: column;
-            gap: var(--space-2);
+            gap: 0;
         }
 
         .message--user .message__content {
@@ -1001,6 +1014,42 @@
             border: 1px solid var(--color-border);
             color: var(--color-text-primary);
             border-bottom-left-radius: var(--radius-sm);
+        }
+
+        /* Code styling in messages */
+        .message__bubble pre {
+            background: var(--color-surface);
+            padding: var(--space-2);
+            border-radius: var(--radius-md);
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+            margin: var(--space-2) 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .message__bubble code {
+            background: var(--color-surface);
+            padding: 2px 4px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+        }
+
+        .message__bubble pre code {
+            background: none;
+            padding: 0;
+        }
+
+        /* Links in messages */
+        .message__bubble a {
+            color: var(--color-accent-primary);
+            text-decoration: underline;
+        }
+
+        .message--user .message__bubble a {
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .message__actions {
@@ -1049,6 +1098,68 @@
         .message__timestamp {
             font-size: var(--text-xs);
             color: var(--color-text-muted);
+            margin-top: 0;
+        }
+
+        .message--ai .message__timestamp {
+            text-align: left;
+        }
+
+        .message--user .message__timestamp {
+            text-align: right;
+        }
+
+        /* Code blocks */
+        .code-block {
+            margin: var(--space-2) 0;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--color-border);
+        }
+
+        .code-block__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--color-bg-secondary);
+            padding: var(--space-1) var(--space-2);
+            border-bottom: 1px solid var(--color-border);
+            font-size: var(--text-xs);
+            color: var(--color-text-muted);
+        }
+
+        .code-block__language {
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .code-block__copy {
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            padding: var(--space-1);
+            border-radius: var(--radius-sm);
+            transition: var(--transition-fast);
+            font-size: var(--text-sm);
+        }
+
+        .code-block__copy:hover {
+            background: var(--color-surface-hover);
+            color: var(--color-text-primary);
+        }
+
+        .code-block__content {
+            background: var(--color-surface);
+            overflow: hidden;
+        }
+
+        .code-block__content pre {
+            margin: 0;
+            padding: var(--space-2);
+            overflow-x: auto;
+            font-size: var(--text-sm);
+            line-height: 1.5;
         }
 
         /* Message - Deleted State */
@@ -1095,6 +1206,15 @@
         .loading-indicator__text {
             font-size: var(--text-sm);
             color: var(--color-text-secondary);
+        }
+
+        .loading-avatar {
+            animation: glow 2s ease-in-out infinite;
+            border-radius: 50%;
+        }
+
+        .loading-avatar img {
+            border-radius: 50%;
         }
 
         /* ============================================
@@ -1834,6 +1954,7 @@
 
             .header__title {
                 max-width: none;
+                font-size: var(--text-base);
             }
 
             .main__input {
@@ -1858,6 +1979,11 @@
 
             .welcome__suggestions {
                 grid-template-columns: 1fr;
+                gap: var(--space-3);
+            }
+
+            .welcome__suggestion {
+                padding: var(--space-3);
             }
 
             .modal {
@@ -1897,7 +2023,11 @@
 
             .message__bubble {
                 padding: var(--space-3);
-                font-size: var(--text-sm);
+                font-size: var(--text-base);
+            }
+
+            .message__content {
+                max-width: 95%;
             }
 
             .input__field {
@@ -1906,13 +2036,31 @@
             }
 
             .input__btn {
-                width: 36px;
-                height: 36px;
+                width: 44px;
+                height: 44px;
+            }
+
+            .header__action {
+                width: 44px;
+                height: 44px;
             }
 
             .toolbar__btn {
-                padding: var(--space-2);
-                font-size: 10px;
+                padding: var(--space-3);
+                font-size: var(--text-sm);
+            }
+
+            .welcome__logo {
+                width: 100px;
+                height: 100px;
+            }
+
+            .welcome__title {
+                font-size: var(--text-2xl);
+            }
+
+            .welcome__subtitle {
+                font-size: var(--text-base);
             }
         }
 
@@ -2041,7 +2189,7 @@
                         <div class="header__status">
                             <span class="header__token-count" id="tokenCount">
                                 <i class="fas fa-coins"></i>
-                                <span id="tokenCountValue">0 tokens</span>
+                                <span id="tokenCountValue">Ilimitado</span>
                             </span>
                         </div>
                     </div>
@@ -2068,8 +2216,9 @@
                         <!-- Welcome State -->
                         <div class="welcome" id="welcomeState">
                             <img src="/static/logo1.jpg" alt="Dark Duck" class="welcome__logo">
-                            <h2 class="welcome__title">Olá! Sou o Dark Duck</h2>
+                            <h2 class="welcome__title">Olá! Sou o <span class="welcome__name">Dark Duck</span></h2>
                             <p class="welcome__subtitle">Como posso ajudar você hoje?</p>
+                            <p class="welcome__tokens">Tokens: Ilimitado</p>
                             
                             <div class="welcome__suggestions">
    
@@ -2441,18 +2590,12 @@
             // Format date
             formatDate(dateString) {
                 const date = new Date(dateString);
-                const now = new Date();
-                const diff = now - date;
-                
-                if (diff < 60000) return 'Agora';
-                if (diff < 3600000) return `${Math.floor(diff / 60000)}min`;
-                if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`;
-                if (diff < 604800000) return `${Math.floor(diff / 86400000)}d`;
-                
-                return date.toLocaleDateString('pt-BR', {
-                    day: '2-digit',
+                return date.toLocaleString('pt-BR', {
+                    year: 'numeric',
                     month: '2-digit',
-                    year: '2-digit'
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
                 });
             },
             
@@ -2742,7 +2885,7 @@
                         <div class="conversation-item__content">
                             <h3 class="conversation-item__title">${Utils.escapeHtml(conv.titulo || 'Nova Conversa')}</h3>
                             <p class="conversation-item__preview">${Utils.escapeHtml(Utils.truncate(conv.ultima_mensagem || '', 50))}</p>
-                            <span class="conversation-item__meta">${Utils.formatDate(conv.atualizado_em)}</span>
+                            <span class="conversation-item__meta">${Utils.formatDate(conv.atualizado_em)} • ${conv.token_count ? `${conv.token_count} tokens` : 'Ilimitado'}</span>
                         </div>
                         <button class="conversation-item__delete" data-id="${conv.id}" title="Excluir">
                             <i class="fas fa-trash-alt"></i>
@@ -2889,7 +3032,7 @@
                     // Update UI
                     DOM.conversationTitle.textContent = data.titulo || 'Nova Conversa';
                     DOM.shareBtn.classList.remove('hidden');
-                    DOM.tokenCount.textContent = `${data.token_count || 0} tokens`;
+                    DOM.tokenCount.textContent = data.token_count ? `${data.token_count} tokens` : 'Ilimitado';
                     
                     // Render messages
                     this.renderMessages(data.mensagens || []);
@@ -2944,6 +3087,26 @@
                 
                 DOM.messagesList.innerHTML = messages.map(msg => this.createMessageHTML(msg)).join('');
                 
+                // Wrap code blocks for existing messages
+                DOM.messagesList.querySelectorAll('pre').forEach(pre => {
+                    if (pre.querySelector('code') && !pre.closest('.code-block')) {
+                        const code = pre.querySelector('code');
+                        const lang = code.className.match(/language-(\w+)/)?.[1] || 'code';
+                        const codeBlock = document.createElement('div');
+                        codeBlock.className = 'code-block';
+                        codeBlock.innerHTML = `
+                            <div class="code-block__header">
+                                <span class="code-block__language">${lang.toUpperCase()}</span>
+                                <button class="code-block__copy" title="Copiar código"><i class="fas fa-copy"></i></button>
+                            </div>
+                            <div class="code-block__content">
+                                ${pre.outerHTML}
+                            </div>
+                        `;
+                        pre.replaceWith(codeBlock);
+                    }
+                });
+                
                 // Garantir que o espaçador esteja sempre no final
                 this.ensureSpacerAtEnd();
                 
@@ -2977,7 +3140,6 @@
                                 <div class="message__bubble">
                                     <i class="fas fa-trash-alt"></i> Esta mensagem foi excluída
                                 </div>
-                                <span class="message__timestamp">${timestamp}</span>
                             </div>
                         </div>
                     `;
@@ -3153,13 +3315,32 @@
                                     fullText += data;
                                     
                                     if (!aiMessageDiv) {
-                                        // Remover o loading e criar a mensagem da IA no mesmo lugar
-                                        this.removeLoadingIndicator();
-                                        aiMessageDiv = this.addMessageToUI({
-                                            papel: 'model',
-                                            texto_raw: '',
-                                            criado_em: new Date().toISOString(),
-                                        }, true);
+                                        // Transform the loading indicator into the AI message
+                                        const loadingMessage = document.getElementById('loadingMessage');
+                                        if (loadingMessage) {
+                                            const contentDiv = loadingMessage.querySelector('.message__content');
+                                            if (contentDiv) {
+                                                contentDiv.innerHTML = '<div class="message__bubble"></div>';
+                                                aiMessageDiv = loadingMessage;
+                                                aiMessageDiv.removeAttribute('id'); // Remove loading id
+                                            } else {
+                                                // Fallback: remove loading and add new message
+                                                this.removeLoadingIndicator();
+                                                aiMessageDiv = this.addMessageToUI({
+                                                    papel: 'model',
+                                                    texto_raw: '',
+                                                    criado_em: new Date().toISOString(),
+                                                }, true);
+                                            }
+                                        } else {
+                                            // Fallback
+                                            this.removeLoadingIndicator();
+                                            aiMessageDiv = this.addMessageToUI({
+                                                papel: 'model',
+                                                texto_raw: '',
+                                                criado_em: new Date().toISOString(),
+                                            }, true);
+                                        }
                                     }
                                     
                                     // Processar linha por linha para melhor imersão
@@ -3291,7 +3472,7 @@
                 
                 // Code blocks
                 html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-                    return `<div class="code-block"><div class="code-block__header"><span class="code-block__language">${lang || 'code'}</span></div><div class="code-block__content"><pre><code class="language-${lang || 'text'}">${code.trim()}</code></pre></div></div>`;
+                    return `<div class="code-block"><div class="code-block__header"><span class="code-block__language">${lang || 'code'}</span><button class="code-block__copy" title="Copiar código"><i class="fas fa-copy"></i></button></div><div class="code-block__content"><pre><code class="language-${lang || 'text'}">${code.trim()}</code></pre></div></div>`;
                 });
                 
                 // Inline code
@@ -3316,28 +3497,28 @@
                     existingSpacer.remove();
                 }
                 
-                const personalityImg = AppState.currentPersonality?.imagem || '/static/logo1.jpg';
+                const personalityImg = '/static/WMDx.gif';
                 const personalityName = AppState.currentPersonality?.nome || 'Dark Duck';
                 const loadingHTML = `
                     <div class="message message--ai" id="loadingMessage">
-                        <div class="message__avatar">
+                        <div class="message__avatar loading-avatar">
                             <img src="${personalityImg}" alt="${personalityName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                         </div>
                         <div class="message__content">
                             <div class="loading-indicator">
-                                <div class="loading-indicator__dots">
-                                    <span class="loading-indicator__dot"></span>
-                                    <span class="loading-indicator__dot"></span>
-                                    <span class="loading-indicator__dot"></span>
-                                </div>
-                                <span class="loading-indicator__text">${personalityName} está pensando...</span>
+                                <!-- Empty for now -->
                             </div>
                         </div>
                     </div>
                 `;
                 
                 DOM.messagesList.insertAdjacentHTML('beforeend', loadingHTML);
-                this.scrollToBottom();
+                
+                // Ensure the thinking indicator is visible by scrolling it into view
+                const loadingElement = document.getElementById('loadingMessage');
+                if (loadingElement) {
+                    loadingElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }
             },
             
             removeLoadingIndicator() {
@@ -3385,7 +3566,7 @@
                 AppState.currentConversationId = null;
                 DOM.conversationTitle.textContent = 'Selecione uma Conversa';
                 DOM.shareBtn.classList.add('hidden');
-                DOM.tokenCount.textContent = '0 tokens';
+                DOM.tokenCount.textContent = 'Ilimitado';
                 DOM.messagesList.innerHTML = '';
                 DOM.welcomeState.classList.remove('hidden');
                 DOM.messagesList.appendChild(DOM.welcomeState);
@@ -3395,23 +3576,12 @@
                 // Delay para garantir que os elementos foram renderizados
                 setTimeout(() => {
                     const container = DOM.messagesContainer;
-                    const inputArea = document.getElementById('inputArea');
                     
-                    // Calcular altura disponível considerando a área de input
-                    const inputHeight = inputArea ? inputArea.offsetHeight : 0;
-                    const availableHeight = container.clientHeight - inputHeight - 50; // Margem de segurança
-                    
-                    // Rolar para mostrar mais conteúdo, mas deixar espaço para input
-                    const targetScrollTop = Math.max(0, container.scrollHeight - availableHeight);
-                    container.scrollTop = targetScrollTop;
-                    
-                    // Verificação adicional
-                    setTimeout(() => {
-                        const newTargetScrollTop = Math.max(0, container.scrollHeight - availableHeight);
-                        if (Math.abs(container.scrollTop - newTargetScrollTop) > 30) {
-                            container.scrollTop = newTargetScrollTop;
-                        }
-                    }, 100);
+                    // Rolar suavemente para o final completo
+                    container.scrollTo({
+                        top: container.scrollHeight,
+                        behavior: 'smooth'
+                    });
                 }, 50);
             },
             
@@ -3419,6 +3589,16 @@
                 DOM.messagesList.querySelectorAll('pre code:not(.highlighted)').forEach(block => {
                     Prism.highlightElement(block);
                     block.classList.add('highlighted');
+                });
+                
+                // Bind copy buttons for code blocks
+                DOM.messagesList.querySelectorAll('.code-block__copy').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const codeBlock = e.target.closest('.code-block');
+                        const code = codeBlock.querySelector('code').textContent;
+                        navigator.clipboard.writeText(code);
+                        Toast.success('Código copiado!');
+                    });
                 });
             },
             
