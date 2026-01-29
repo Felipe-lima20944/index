@@ -1693,7 +1693,7 @@ def carregar_conversa(request, conversa_id):
                     ),
                     tags=['p', 'br', 'strong', 'em', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'span'],
                     attributes={'pre': ['class'], 'a': ['href', 'title'], 'img': ['src', 'alt', 'title'], 'div': ['class'], 'span': ['class']}
-                ),
+                ) + ('<div class="message__disclaimer">A Duck Inteligente pode conter respostas erradas.</div>' if mensagem.papel == 'assistant' else ''),
                 'texto_raw': mensagem.texto,
                 'criado_em': mensagem.criado_em.isoformat(),
                 'feedback': mensagem.feedback,
