@@ -2446,8 +2446,8 @@
                             <!-- capa/fallback chain for alta section -->
                             <img :src="track.thumb || track.capa || track.thumbnail || '/static/classicacapa.jpg'" loading="lazy" alt="">
                             <div class="s-title" x-text="track.title || track.titulo"></div>
-                            <!-- artist name may be under artist or artista_nome -->
-                            <div class="s-sub" x-text="track.artist || track.artista_nome"></div>
+                            <!-- artist name may be under several possible keys; use helper to resolve -->
+                            <div class="s-sub" x-text="resolveArtist(track)"></div>
                             <button class="scroll-add-btn" @click.stop="showAddToPlaylistModal(track)" title="Adicionar à playlist">
                                 <i class="fa-solid fa-plus"></i>
                             </button>
@@ -3440,8 +3440,10 @@
     // UTILITIES
     // ═══════════════════════════════════════════════════════════════
     function resolveArtist(t, fallback = 'Artista desconhecido') {
-        if (t.artist)       return t.artist;
-        if (t.artista_nome) return t.artista_nome;
+        // various keys may hold the artist name depending on source
+        if (t.artist)        return t.artist;
+        if (t.artista)       return t.artista;          // local JSON field
+        if (t.artista_nome)  return t.artista_nome;
         const r = t.artists;
         if (!r) return fallback;
         if (Array.isArray(r)) return r.map(a => (typeof a === 'object' ? a.name : a) || '').filter(Boolean).join(', ');
