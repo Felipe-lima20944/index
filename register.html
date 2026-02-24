@@ -31,9 +31,8 @@
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         html, body {
-            width: 100%; height: 100%;
+            width: 100%;
             min-height: 100dvh;
-            overflow: hidden;
         }
 
         body {
@@ -45,8 +44,10 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding-top: clamp(36px, 7vh, 72px);
+            padding-top: clamp(20px, 4vh, 40px);
+            padding-bottom: clamp(20px, 4vh, 40px);
             position: relative;
+            overflow-x: hidden;
         }
 
         /* Malha de pontos */
@@ -132,30 +133,26 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            margin-bottom: 36px;
+            margin-bottom: clamp(20px, 4vh, 36px);
             animation: fadeUp 0.5s var(--ease-out) both;
         }
 
         .brand-icon {
-            width: 48px; height: 48px;
+            width: clamp(40px, 10vw, 48px);
+            height: clamp(40px, 10vw, 48px);
             border-radius: 14px;
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.25rem;
+            font-size: clamp(1rem, 2vw, 1.25rem);
             color: #fff;
             box-shadow: 0 8px 28px var(--accent-glow);
             flex-shrink: 0;
             animation: iconPulse 4s ease-in-out infinite;
         }
 
-        @keyframes iconPulse {
-            0%,100% { box-shadow: 0 8px 28px var(--accent-glow); }
-            50%      { box-shadow: 0 8px 40px rgba(255,60,110,0.55); }
-        }
-
         .brand-text .name {
             font-family: var(--font-display);
-            font-size: 1.35rem;
+            font-size: clamp(1.1rem, 3vw, 1.35rem);
             font-weight: 800;
             letter-spacing: -0.04em;
             background: linear-gradient(130deg, #fff 40%, rgba(255,255,255,0.5));
@@ -166,19 +163,24 @@
         }
 
         .brand-text .sub {
-            font-size: 0.75rem;
+            font-size: clamp(0.65rem, 1.5vw, 0.75rem);
             color: var(--txt-3);
+        }
+
+        @keyframes iconPulse {
+            0%,100% { box-shadow: 0 8px 28px var(--accent-glow); }
+            50%      { box-shadow: 0 8px 40px rgba(255,60,110,0.55); }
         }
 
         /* Título */
         .page-heading {
-            margin-bottom: 28px;
+            margin-bottom: clamp(16px, 3vh, 28px);
             animation: fadeUp 0.5s var(--ease-out) 0.07s both;
         }
 
         .page-heading h1 {
             font-family: var(--font-display);
-            font-size: clamp(2rem, 5vw, 2.8rem);
+            font-size: clamp(1.6rem, 5vw, 2.8rem);
             font-weight: 800;
             letter-spacing: -0.05em;
             line-height: 1.05;
@@ -193,7 +195,7 @@
         }
 
         .page-heading p {
-            font-size: 0.87rem;
+            font-size: clamp(0.75rem, 2vw, 0.87rem);
             color: var(--txt-2);
         }
 
@@ -207,26 +209,44 @@
             background: rgba(12,12,16,0.85);
             border: 1px solid rgba(255,255,255,0.07);
             border-radius: 24px;
-            padding: 28px;
+            padding: clamp(18px, 4vw, 28px);
             backdrop-filter: blur(40px);
             -webkit-backdrop-filter: blur(40px);
             box-shadow:
                 0 30px 70px rgba(0,0,0,0.5),
                 0 0 0 1px rgba(255,255,255,0.03) inset;
             animation: fadeUp 0.55s var(--ease-out) 0.12s both;
+            max-height: 75vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar customizado */
+        .form-card::-webkit-scrollbar {
+            width: 6px;
+        }
+        .form-card::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .form-card::-webkit-scrollbar-thumb {
+            background: rgba(255, 60, 110, 0.3);
+            border-radius: 3px;
+        }
+        .form-card::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 60, 110, 0.5);
         }
 
         /* Erro */
         .error-banner {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: clamp(8px, 2vw, 10px);
             background: rgba(255,60,110,0.09);
             border: 1px solid rgba(255,60,110,0.25);
             border-radius: 12px;
-            padding: 11px 14px;
-            margin-bottom: 20px;
-            font-size: 0.82rem;
+            padding: clamp(9px, 2vh, 11px) clamp(12px, 2.5vw, 14px);
+            margin-bottom: clamp(14px, 2vh, 20px);
+            font-size: clamp(0.7rem, 1.8vw, 0.82rem);
             color: #ff7a97;
             animation: shakeErr 0.4s var(--ease-bounce);
         }
@@ -241,7 +261,7 @@
         .step {
             display: none;
             flex-direction: column;
-            gap: 14px;
+            gap: clamp(10px, 2vw, 14px);
             animation: stepIn 0.32s var(--ease-out) both;
         }
 
@@ -256,7 +276,7 @@
         .step-dots {
             display: flex;
             gap: 5px;
-            margin-bottom: 16px;
+            margin-bottom: clamp(12px, 2vh, 16px);
         }
 
         .step-dot {
@@ -273,27 +293,26 @@
             box-shadow: 0 0 8px var(--accent-glow);
         }
 
-        /* Step heading */
         .step-heading h2 {
             font-family: var(--font-display);
-            font-size: 1.15rem;
+            font-size: clamp(1rem, 3vw, 1.15rem);
             font-weight: 700;
             letter-spacing: -0.03em;
             margin-bottom: 2px;
         }
 
         .step-heading p {
-            font-size: 0.8rem;
+            font-size: clamp(0.7rem, 1.8vw, 0.8rem);
             color: var(--txt-2);
         }
 
         .step-heading .highlight { color: var(--accent); font-weight: 600; }
 
         /* Field */
-        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field { display: flex; flex-direction: column; gap: clamp(4px, 1vh, 6px); }
 
         .field label {
-            font-size: 0.72rem;
+            font-size: clamp(0.65rem, 1.5vw, 0.72rem);
             font-weight: 600;
             color: var(--txt-2);
             letter-spacing: 0.05em;
@@ -308,7 +327,7 @@
             top: 50%;
             transform: translateY(-50%);
             color: var(--txt-3);
-            font-size: 0.85rem;
+            font-size: clamp(0.75rem, 1.8vw, 0.85rem);
             transition: color 0.2s;
             pointer-events: none;
             z-index: 1;
@@ -316,13 +335,13 @@
 
         .input-wrap input {
             width: 100%;
-            padding: 12px 42px;
+            padding: clamp(10px, 2.5vw, 12px) clamp(36px, 8vw, 42px);
             background: rgba(18,18,24,0.9);
             border: 1px solid rgba(255,255,255,0.07);
             border-radius: 12px;
             color: var(--txt-1);
             font-family: var(--font-body);
-            font-size: 15px;
+            font-size: clamp(14px, 3.5vw, 15px);
             outline: none;
             transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
             -webkit-appearance: none;
@@ -364,7 +383,7 @@
 
         /* Password strength */
         .pwd-strength {
-            display: flex; align-items: center; gap: 6px; margin-top: 2px; opacity: 0; transition: opacity 0.3s;
+            display: flex; align-items: center; gap: clamp(4px, 1vw, 6px); margin-top: 2px; opacity: 0; transition: opacity 0.3s;
         }
 
         .pwd-strength-bars {
@@ -382,28 +401,28 @@
         .pwd-bar.strong { background: var(--success); }
 
         .pwd-strength-label {
-            font-size: 0.6rem; color: var(--txt-3);
+            font-size: clamp(0.55rem, 1.2vw, 0.6rem); color: var(--txt-3);
             font-weight: 600; letter-spacing: 0.04em;
-            min-width: 35px; text-align: right;
+            min-width: 30px; text-align: right;
             transition: color 0.2s;
         }
 
         /* Field hint */
         .field-hint {
-            font-size: 0.6rem; color: var(--txt-3);
+            font-size: clamp(0.55rem, 1.2vw, 0.6rem); color: var(--txt-3);
             margin-top: -2px; padding-left: 2px;
         }
 
         /* Botão */
         .btn-primary {
             width: 100%;
-            padding: 13px;
+            padding: clamp(11px, 2.5vh, 13px);
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
             border: none;
             border-radius: 12px;
             color: #fff;
             font-family: var(--font-display);
-            font-size: 0.92rem;
+            font-size: clamp(0.85rem, 2vw, 0.92rem);
             font-weight: 700;
             letter-spacing: -0.01em;
             cursor: pointer;
@@ -434,12 +453,12 @@
             border: none;
             color: var(--txt-2);
             font-family: var(--font-body);
-            font-size: 0.84rem;
+            font-size: clamp(0.75rem, 2vw, 0.84rem);
             cursor: pointer;
             padding: 4px 0;
             transition: color 0.15s, transform 0.12s;
             width: fit-content;
-            margin-bottom: 6px;
+            margin-bottom: clamp(4px, 1vh, 6px);
         }
 
         .btn-back i { font-size: 0.8rem; transition: transform 0.12s; }
@@ -450,21 +469,21 @@
         .email-chip {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: clamp(8px, 2vw, 10px);
             background: var(--accent-dim);
             border: 1px solid var(--border-accent);
             border-radius: 12px;
-            padding: 10px 13px;
+            padding: clamp(8px, 2vh, 10px) clamp(10px, 2.5vw, 13px);
             cursor: pointer;
             transition: background 0.15s;
-            margin-bottom: 8px;
+            margin-bottom: clamp(6px, 1.5vh, 8px);
         }
 
         .email-chip:hover { background: rgba(255,60,110,0.16); }
-        .email-chip > i { color: var(--accent); font-size: 0.82rem; flex-shrink: 0; }
+        .email-chip > i { color: var(--accent); font-size: clamp(0.75rem, 1.8vw, 0.82rem); flex-shrink: 0; }
 
         .email-chip span {
-            font-size: 0.86rem;
+            font-size: clamp(0.75rem, 2vw, 0.86rem);
             font-weight: 600;
             flex: 1;
             overflow: hidden;
@@ -472,26 +491,10 @@
             white-space: nowrap;
         }
 
-        /* Footer */
-        .form-footer {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 0.8rem;
-            color: var(--txt-2);
-        }
-
-        .form-footer a {
-            color: var(--accent);
-            font-weight: 700;
-            text-decoration: none;
-        }
-
-        .form-footer a:hover { opacity: 0.8; }
-
         /* Terms */
         .terms-check {
             display: flex; align-items: flex-start; gap: 8px;
-            padding: 8px 10px;
+            padding: clamp(6px, 1.5vh, 8px) clamp(8px, 2vw, 10px);
             background: rgba(255,255,255,0.03);
             border: 1px solid var(--border);
             border-radius: 10px;
@@ -534,10 +537,26 @@
         }
 
         .terms-text {
-            font-size: 0.7rem; color: var(--txt-2); line-height: 1.4;
+            font-size: clamp(0.65rem, 1.6vw, 0.7rem); color: var(--txt-2); line-height: 1.4;
         }
 
         .terms-text a { color: var(--accent); font-weight: 600; text-decoration: none; }
+
+        /* Footer */
+        .form-footer {
+            margin-top: clamp(14px, 2vh, 20px);
+            text-align: center;
+            font-size: clamp(0.7rem, 1.8vw, 0.8rem);
+            color: var(--txt-2);
+        }
+
+        .form-footer a {
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .form-footer a:hover { opacity: 0.8; }
 
         /* ══════════════════════════════════════
            SUCCESS OVERLAY
@@ -616,14 +635,14 @@
 
         .success-text h2 {
             font-family: var(--font-display);
-            font-size: clamp(1.6rem, 4vw, 2.2rem);
+            font-size: clamp(1.4rem, 4vw, 2.2rem);
             font-weight: 800;
             letter-spacing: -0.04em;
-            margin-bottom: 10px;
+            margin-bottom: clamp(8px, 1.5vh, 10px);
         }
 
         .success-text p {
-            font-size: 0.9rem;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
             color: var(--txt-2);
             line-height: 1.6;
             max-width: 280px;
@@ -694,10 +713,36 @@
 
         /* Mobile */
         @media (max-width: 480px) {
-            body { padding-top: clamp(20px, 5vh, 40px); }
-            .page-content { padding: 0 16px; }
-            .page-heading h1 { font-size: 1.85rem; }
-            .form-card { padding: 22px 18px; }
+            .page-content { 
+                padding: 0 clamp(12px, 3vw, 16px); 
+            }
+
+            .form-card { 
+                padding: 16px;
+                border-radius: 20px;
+            }
+
+            .step-dots {
+                margin-bottom: 12px;
+            }
+
+            .field {
+                gap: 4px;
+            }
+
+            .input-wrap input {
+                padding: 10px 38px;
+            }
+
+            .btn-primary {
+                padding: 11px;
+                margin-top: 2px;
+            }
+
+            .pwd-strength-label {
+                min-width: 30px;
+                font-size: 0.55rem;
+            }
         }
     </style>
 </head>
