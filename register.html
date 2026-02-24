@@ -311,6 +311,17 @@
         /* Field */
         .field { display: flex; flex-direction: column; gap: clamp(4px, 1vh, 6px); }
 
+        /* Field Grid - 2 colunas */
+        .field-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(6px, 2vw, 12px);
+        }
+
+        .field-grid .field {
+            gap: clamp(3px, 0.8vh, 5px);
+        }
+
         .field label {
             font-size: clamp(0.65rem, 1.5vw, 0.72rem);
             font-weight: 600;
@@ -730,8 +741,13 @@
                 gap: 4px;
             }
 
+            .field-grid {
+                gap: clamp(5px, 1.5vw, 8px);
+            }
+
             .input-wrap input {
                 padding: 10px 38px;
+                font-size: 14px;
             }
 
             .btn-primary {
@@ -902,7 +918,7 @@
 
                 <div class="step-heading">
                     <h2>Seus dados</h2>
-                    <p>Informações pessoais e de cobrança</p>
+                    <p>Informações pessoais</p>
                 </div>
 
                 <div class="field">
@@ -921,19 +937,21 @@
                     </div>
                 </div>
 
-                <div class="field">
-                    <label for="inp-phone">Telefone</label>
-                    <div class="input-wrap">
-                        <i class="fa fa-phone icon-left"></i>
-                        <input type="tel" id="inp-phone" placeholder="(11) 3000-0000" maxlength="14">
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="inp-phone">Telefone</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-phone icon-left"></i>
+                            <input type="tel" id="inp-phone" placeholder="(11) 3000-0000" maxlength="14">
+                        </div>
                     </div>
-                </div>
 
-                <div class="field">
-                    <label for="inp-mobile">Celular</label>
-                    <div class="input-wrap">
-                        <i class="fa fa-mobile icon-left"></i>
-                        <input type="tel" id="inp-mobile" placeholder="(11) 90000-0000" maxlength="15">
+                    <div class="field">
+                        <label for="inp-mobile">Celular</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-mobile icon-left"></i>
+                            <input type="tel" id="inp-mobile" placeholder="(11) 90000-0000" maxlength="15">
+                        </div>
                     </div>
                 </div>
 
@@ -971,35 +989,39 @@
                     </div>
                 </div>
 
-                <div class="field">
-                    <label for="inp-city">Cidade</label>
-                    <div class="input-wrap">
-                        <i class="fa fa-city icon-left"></i>
-                        <input type="text" id="inp-city" placeholder="São Paulo" readonly>
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="inp-number">Número</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-hashtag icon-left"></i>
+                            <input type="text" id="inp-number" placeholder="123">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="inp-complement">Complemento</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-plus icon-left"></i>
+                            <input type="text" id="inp-complement" placeholder="Apto, Bloco…">
+                        </div>
                     </div>
                 </div>
 
-                <div class="field">
-                    <label for="inp-state">Estado</label>
-                    <div class="input-wrap">
-                        <i class="fa fa-map icon-left"></i>
-                        <input type="text" id="inp-state" placeholder="SP" readonly maxlength="2">
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="inp-city">Cidade</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-city icon-left"></i>
+                            <input type="text" id="inp-city" placeholder="São Paulo" readonly>
+                        </div>
                     </div>
-                </div>
 
-                <div class="field">
-                    <label for="inp-number">Número</label>
-                    <div class="input-wrap">
-                        <i class="fa fa-hashtag icon-left"></i>
-                        <input type="text" id="inp-number" placeholder="123">
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label for="inp-complement">Complemento</label>
-                    <div class="input-wrap">
-                        <i class="fa fa-plus icon-left"></i>
-                        <input type="text" id="inp-complement" placeholder="Apto, Bloco…">
+                    <div class="field">
+                        <label for="inp-state">Estado</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-map icon-left"></i>
+                            <input type="text" id="inp-state" placeholder="SP" readonly maxlength="2">
+                        </div>
                     </div>
                 </div>
 
