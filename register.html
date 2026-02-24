@@ -979,11 +979,15 @@
                 <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
                     <div class="email-chip" style="cursor:default">
                         <i class="fa-regular fa-user"></i>
-                        <span id="resumeUserText" style="font-size:.85rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+                        <span id="resumeUserText" style="font-size:.85rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span>
+                    </div>
+                    <div class="email-chip" style="cursor:default">
+                        <i class="fa-solid fa-id-card"></i>
+                        <span id="resumeFullNameText" style="font-size:.85rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span>
                     </div>
                     <div class="email-chip" style="cursor:default">
                         <i class="fa-regular fa-envelope"></i>
-                        <span id="resumeEmailText" style="font-size:.85rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+                        <span id="resumeEmailText" style="font-size:.85rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span>
                     </div>
                 </div>
 
@@ -1089,6 +1093,7 @@
 
         const realForm = document.getElementById('realForm');
         const resumeUserText = document.getElementById('resumeUserText');
+        const resumeFullNameText = document.getElementById('resumeFullNameText');
         const resumeEmailText = document.getElementById('resumeEmailText');
         const successOverlay = document.getElementById('successOverlay');
         const successUsername = document.getElementById('successUsername');
@@ -1279,6 +1284,11 @@
             if (!cep) { shake(inpCep); return; }
             if (!address) { shake(inpAddress); return; }
             if (!number) { shake(inpNumber); return; }
+            
+            // Preenche resumo
+            resumeUserText.textContent = inpUser.value.trim();
+            resumeFullNameText.textContent = inpFullname.value.trim();
+            resumeEmailText.textContent = inpEmail.value.trim();
             
             goTo(5);
         });
