@@ -2970,13 +2970,26 @@ def streaming_download_api(request):
             logger.error('não foi possível extrair stream_url', extra={'video_id': video_id})
             return HttpResponse('não foi possível obter stream', status=502)
 
-        # proxy request: disable any system HTTP proxy to avoid failures like 127.0.0.1:8888
-        r = requests.get(stream_url, stream=True, headers={'User-Agent': request.META.get('HTTP_USER_AGENT', '')}, timeout=30,
-                         proxies={"http": None, "https": None})
-        logger.debug('requisição ao stream_url retornou', extra={'status_code': r.status_code})
+        # configure request proxies – match whatever we used for yt-dlp earlier
+        proxy_setting = 'http://127.0.0.1:8888'  # same hardcoded proxy as in _extract_stream_url
+        proxies = None
+        if proxy_setting:
+            proxies = {"http": proxy_setting, "https": proxy_setting}
+            logger.debug('usando proxy para requisição de download', extra={'proxy': proxy_setting})
+
+        r = requests.get(stream_url, stream=True,
+                         headers={'User-Agent': request.META.get('HTTP_USER_AGENT', '')},
+                         timeout=30,
+                         proxies=proxies)
+        logger.debug('requisição ao stream_url retornou', extra={'status_code': r.status_code, 'url': stream_url})
         if r.status_code != 200:
-            logger.error('erro HTTP ao buscar conteúdo de stream_url', extra={'status_code': r.status_code})
-            return HttpResponse('erro ao buscar conteúdo', status=502)
+            body_snippet = ''
+            try:
+                body_snippet = r.text[:500]
+            except Exception:
+                pass
+            logger.error('erro HTTP ao buscar conteúdo de stream_url', extra={'status_code': r.status_code, 'body': body_snippet})
+            return HttpResponse(f'erro ao buscar conteúdo ({r.status_code})', status=502)
         # decidir se converte para mp3 com base em parâmetro GET (format=mp3)
         want_mp3 = request.GET.get('format', '').lower() == 'mp3'
         if want_mp3:
