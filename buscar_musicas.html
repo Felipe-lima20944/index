@@ -598,6 +598,16 @@
         .track-artist { font-size: 0.72rem; color: var(--txt-2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .expanded-track-panel { position: fixed; inset: 0; z-index: 3000; background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: stretch; }
         .expanded-inner { background: var(--surface-1); border-radius: 0; padding: 0 0 calc(var(--safe-b) + 24px); width: 100%; height: 100%; max-height: 100vh; overflow-y: auto; display: flex; flex-direction: column; border-top: none; -webkit-overflow-scrolling: touch; padding-top: calc(var(--safe-t) + 8px); }
+        .close-expanded-btn {
+            position: fixed;
+            top: calc(var(--safe-t, 0px) + 8px);
+            right: 12px;
+            width: 34px;
+            height: 34px;
+            z-index: 3100;
+            background: rgba(0,0,0,0.6);
+            color: white;
+        }
         .panel-drag-handle { display: none; }
         .panel-art-section { padding: 20px 20px 0; display: flex; justify-content: center; }
         .panel-art-wrap { position: relative; width: min(72vw, 300px); height: min(72vw, 300px); }
@@ -858,10 +868,18 @@
     </div>
 
     <!-- Bottom Sheet (Expanded Player) -->
-    <div class="bottom-sheet" :class="{ 'active': bottomSheetActive, 'dragging': sheetDragging }" 
-         x-ref="bottomSheet" @touchstart="sheetTouchStart" @touchmove="sheetTouchMove" @touchend="sheetTouchEnd">
-        <div class="sheet-handle"></div>
-        <div class="sheet-content">
+   <div class="bottom-sheet" :class="{ 'active': bottomSheetActive, 'dragging': sheetDragging }" 
+     x-ref="bottomSheet" @touchstart="sheetTouchStart" @touchmove="sheetTouchMove" @touchend="sheetTouchEnd">
+    <div style="position:relative; display:flex; align-items:center; justify-content:center; padding-top:12px; padding-bottom:4px;">
+        <div class="sheet-handle" style="margin:0;"></div>
+        <button class="panel-icon-btn ripple-host"
+                @click.stop="bottomSheetActive = false; addRipple($event)"
+                title="Fechar"
+                style="position:absolute; right:16px; top:50%; transform:translateY(-50%);">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    <div class="sheet-content">
             <div style="text-align:center; margin-bottom:20px;">
                 <img :src="currentTrack?.thumb || ''" 
                      style="width: min(80vw, 280px); height: min(80vw, 280px); border-radius: 20px; object-fit: cover; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
@@ -1016,19 +1034,20 @@
                  class="expanded-track-panel" x-cloak
                  @click.self="closeTrackDetail()"
                  x-effect="document.body.style.overflow = trackDetailOpen ? 'hidden' : ''">
+
+            <!-- close button fixed top-right -->
+            <button class="panel-icon-btn ripple-host close-expanded-btn" 
+                    @click.stop="closeTrackDetail(); addRipple($event)" 
+                    title="Fechar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
             <div class="expanded-inner" role="dialog" aria-modal="true"
                  x-transition:enter="transition ease-out duration-350"
                  x-transition:enter-start="transform translate-y-full"
                  x-transition:enter-end="transform translate-y-0">
 
                 <div class="panel-drag-handle"></div>
-
-                <!-- Botão fechar no topo -->
-                <div style="display:flex;justify-content:flex-end;padding:4px 16px 0;">
-                    <button class="panel-icon-btn ripple-host" @click.stop="closeTrackDetail(); addRipple($event)" title="Fechar" style="width:34px;height:34px;">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
 
                 <div class="panel-art-section">
                     <div class="panel-art-wrap">
