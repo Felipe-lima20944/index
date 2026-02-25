@@ -3088,8 +3088,9 @@ def streaming_download_api(request):
                 tmp = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
                 try:
                     ydl_opts = {
-        'proxy': 'http://127.0.0.1:8888',           # <-- ADICIONADO
-        'cookiefile': _get_cookiefile_path(),      # <-- ADICIONADO
+        # proxy and cookies support added for residential tunnel
+        'proxy': 'http://127.0.0.1:8888',
+        'cookiefile': _get_cookiefile_path(),
         'format': 'bestaudio',
         'outtmpl': tmp.name,
         'quiet': True,
@@ -3101,6 +3102,8 @@ def streaming_download_api(request):
         }],
         'cachedir': False,
     }
+                    # replicate the same js-runtime adjustments used elsewhere
+                    ydl_opts = _build_ydl_opts_js_runtime(ydl_opts)
                     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                         # force yt-dlp to ignore proxies by clearing environment vars
                         env = os.environ.copy()
