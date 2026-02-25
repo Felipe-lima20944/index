@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Melodya · Entrar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --accent:      #ff3c6e;
+            --accent-2:    #ff8a00;
+            --accent-glow: rgba(255, 60, 110, 0.4);
+            --accent-dim:  rgba(255, 60, 110, 0.10);
+            --border:      rgba(255,255,255,0.07);
+            --border-accent: rgba(255,60,110,0.28);
+            --txt-1: #f0f0f4;
+            --txt-2: #7a7a90;
+            --txt-3: #44445a;
+            --font-display: 'Syne', sans-serif;
+            --font-body:    'DM Sans', sans-serif;
+            --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100%; height: 100%;
+            min-height: 100dvh;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: var(--font-body);
+            -webkit-font-smoothing: antialiased;
+            background: #07070a;
+            color: var(--txt-1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: clamp(36px, 7vh, 72px);
+            position: relative;
+        }
+
+        /* Malha de pontos */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Grain */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0.028;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* Orbs */
+        .bg-orbs {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            animation: orbDrift 10s ease-in-out infinite;
+        }
+
+        .orb-a {
+            width: 600px; height: 400px;
+            background: rgba(255,60,110,0.11);
+            top: -120px; left: -100px;
+            animation-delay: 0s;
+        }
+
+        .orb-b {
+            width: 500px; height: 500px;
+            background: rgba(255,138,0,0.07);
+            bottom: -200px; right: -120px;
+            animation-delay: -5s;
+        }
+
+        .orb-c {
+            width: 300px; height: 300px;
+            background: rgba(90,50,200,0.07);
+            top: 40%; left: 55%;
+            animation-delay: -3s;
+        }
+
+        @keyframes orbDrift {
+            0%,100% { transform: translate(0,0); }
+            33%      { transform: translate(30px,-40px); }
+            66%      { transform: translate(-20px,25px); }
+        }
+
+        /* ══════════════════════════════
+           CONTEÚDO
+        ══════════════════════════════ */
+        .page-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 440px;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Marca */
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 36px;
+            animation: fadeUp 0.5s var(--ease-out) both;
+        }
+
+        .brand-icon {
+            width: 48px; height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem;
+            color: #fff;
+            box-shadow: 0 8px 28px var(--accent-glow);
+            flex-shrink: 0;
+            animation: iconPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%,100% { box-shadow: 0 8px 28px var(--accent-glow); }
+            50%      { box-shadow: 0 8px 40px rgba(255,60,110,0.55); }
+        }
+
+        .brand-text .name {
+            font-family: var(--font-display);
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            background: linear-gradient(130deg, #fff 40%, rgba(255,255,255,0.5));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+        }
+
+        .brand-text .sub {
+            font-size: 0.75rem;
+            color: var(--txt-3);
+        }
+
+        /* Título */
+        .page-heading {
+            margin-bottom: 28px;
+            animation: fadeUp 0.5s var(--ease-out) 0.07s both;
+        }
+
+        .page-heading h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            line-height: 1.05;
+            margin-bottom: 8px;
+        }
+
+        .page-heading h1 span {
+            background: linear-gradient(100deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-heading p {
+            font-size: 0.87rem;
+            color: var(--txt-2);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card do form */
+        .form-card {
+            background: rgba(12,12,16,0.85);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 24px;
+            padding: 28px;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            box-shadow:
+                0 30px 70px rgba(0,0,0,0.5),
+                0 0 0 1px rgba(255,255,255,0.03) inset;
+            animation: fadeUp 0.55s var(--ease-out) 0.12s both;
+        }
+
+        /* Erro */
+        .error-banner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,60,110,0.09);
+            border: 1px solid rgba(255,60,110,0.25);
+            border-radius: 12px;
+            padding: 11px 14px;
+            margin-bottom: 20px;
+            font-size: 0.82rem;
+            color: #ff7a97;
+            animation: shakeErr 0.4s var(--ease-bounce);
+        }
+
+        @keyframes shakeErr {
+            0%,100% { transform: translateX(0); }
+            25%      { transform: translateX(-5px); }
+            75%      { transform: translateX(5px); }
+        }
+
+        /* Steps */
+        .step {
+            display: none;
+            flex-direction: column;
+            gap: 14px;
+            animation: stepIn 0.32s var(--ease-out) both;
+        }
+
+        .step.active { display: flex; }
+
+        @keyframes stepIn {
+            from { opacity: 0; transform: translateX(14px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Dots */
+        .step-dots {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 16px;
+        }
+
+        .step-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--txt-3);
+            transition: all 0.3s var(--ease-bounce);
+        }
+
+        .step-dot.active {
+            background: var(--accent);
+            width: 20px;
+            border-radius: 3px;
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        /* Step heading */
+        .step-heading h2 {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 2px;
+        }
+
+        .step-heading p {
+            font-size: 0.8rem;
+            color: var(--txt-2);
+        }
+
+        .step-heading .highlight { color: var(--accent); font-weight: 600; }
+
+        /* Field */
+        .field { display: flex; flex-direction: column; gap: 6px; }
+
+        .field label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--txt-2);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .input-wrap { position: relative; }
+
+        .input-wrap > i.icon-left {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--txt-3);
+            font-size: 0.85rem;
+            transition: color 0.2s;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .input-wrap input {
+            width: 100%;
+            padding: 12px 42px;
+            background: rgba(18,18,24,0.9);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 12px;
+            color: var(--txt-1);
+            font-family: var(--font-body);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
+            -webkit-appearance: none;
+        }
+
+        .input-wrap input::placeholder { color: var(--txt-3); }
+
+        .input-wrap input:focus {
+            border-color: var(--accent);
+            background: rgba(22,18,26,0.98);
+            box-shadow: 0 0 0 3px rgba(255,60,110,0.13);
+        }
+
+        .input-wrap:focus-within > i.icon-left { color: var(--accent); }
+
+        .input-wrap .icon-right {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--txt-3);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            z-index: 1;
+        }
+
+        .input-wrap .icon-right:hover { color: var(--txt-1); }
+
+        /* Email chip */
+        .email-chip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--accent-dim);
+            border: 1px solid var(--border-accent);
+            border-radius: 12px;
+            padding: 10px 13px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .email-chip:hover { background: rgba(255,60,110,0.16); }
+        .email-chip > i { color: var(--accent); font-size: 0.82rem; flex-shrink: 0; }
+
+        .email-chip span {
+            font-size: 0.86rem;
+            font-weight: 600;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chip-change {
+            font-size: 0.7rem;
+            color: var(--accent);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* Botão */
+        .btn-primary {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            cursor: pointer;
+            box-shadow: 0 6px 22px var(--accent-glow);
+            transition: transform 0.18s var(--ease-bounce), box-shadow 0.18s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            -webkit-tap-highlight-color: transparent;
+            margin-top: 4px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 32px var(--accent-glow);
+        }
+
+        .btn-primary:active { transform: scale(0.97); }
+
+        /* Voltar */
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: none;
+            border: none;
+            color: var(--txt-2);
+            font-family: var(--font-body);
+            font-size: 0.84rem;
+            cursor: pointer;
+            padding: 4px 0;
+            transition: color 0.15s, transform 0.12s;
+            width: fit-content;
+        }
+
+        .btn-back i { font-size: 0.8rem; transition: transform 0.12s; }
+        .btn-back:hover { color: var(--txt-1); transform: translateX(-3px); }
+        .btn-back:hover i { transform: translateX(-2px); }
+
+        /* Footer */
+        .form-footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--txt-2);
+        }
+
+        .form-footer a {
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .form-footer a:hover { opacity: 0.8; }
+
+        /* Linha deco abaixo */
+        .deco-line {
+            position: relative;
+            z-index: 1;
+            margin-top: 32px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            animation: fadeUp 0.6s var(--ease-out) 0.2s both;
+        }
+
+        .deco-line::before,
+        .deco-line::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.07), transparent);
+        }
+
+        .deco-features {
+            display: flex;
+            gap: 24px;
+        }
+
+        .deco-feat {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.74rem;
+            color: var(--txt-3);
+            white-space: nowrap;
+        }
+
+        .deco-feat i { color: var(--accent); font-size: 0.7rem; opacity: 0.7; }
+
+        /* ══════════════════════════════
+           SUCCESS STATE — Personalizando
+        ══════════════════════════════ */
+        .success-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            background: #07070a;
+            animation: overlayIn 0.5s var(--ease-out) both;
+        }
+
+        .success-overlay.active { display: flex; }
+
+        @keyframes overlayIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        /* Ícone central animado */
+        .success-icon-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 36px;
+        }
+
+        .success-icon-ring {
+            position: absolute;
+            width: 110px; height: 110px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255,60,110,0.25);
+            animation: ringPulse 2s ease-in-out infinite;
+        }
+
+        .success-icon-ring-2 {
+            position: absolute;
+            width: 140px; height: 140px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,60,110,0.10);
+            animation: ringPulse 2s ease-in-out 0.3s infinite;
+        }
+
+        @keyframes ringPulse {
+            0%,100% { transform: scale(1); opacity: 1; }
+            50%      { transform: scale(1.08); opacity: 0.5; }
+        }
+
+        .success-icon-box {
+            width: 80px; height: 80px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem;
+            color: #fff;
+            box-shadow: 0 16px 48px var(--accent-glow);
+            animation: iconPopIn 0.6s var(--ease-bounce) 0.2s both;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes iconPopIn {
+            from { transform: scale(0.4) rotate(-12deg); opacity: 0; }
+            to   { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .success-text {
+            text-align: center;
+            animation: fadeUp 0.5s var(--ease-out) 0.4s both;
+        }
+
+        .success-text h2 {
+            font-family: var(--font-display);
+            font-size: clamp(1.6rem, 4vw, 2.2rem);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            margin-bottom: 10px;
+        }
+
+        .success-text p {
+            font-size: 0.9rem;
+            color: var(--txt-2);
+            line-height: 1.6;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        .success-text .username-highlight {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* Barra de progresso */
+        .success-progress {
+            margin-top: 40px;
+            width: 200px;
+            animation: fadeUp 0.5s var(--ease-out) 0.55s both;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 3px;
+            border-radius: 2px;
+            background: rgba(255,255,255,0.07);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            box-shadow: 0 0 10px var(--accent-glow);
+            width: 0%;
+            animation: progressGrow 1.6s var(--ease-out) 0.5s forwards;
+        }
+
+        @keyframes progressGrow {
+            from { width: 0%; }
+            to   { width: 100%; }
+        }
+
+        .progress-label {
+            margin-top: 10px;
+            font-size: 0.74rem;
+            color: var(--txt-3);
+            text-align: center;
+            letter-spacing: 0.04em;
+            animation: fadeUp 0.4s var(--ease-out) 0.7s both;
+        }
+
+        /* Partículas de música decorativas */
+        .music-particles {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            font-size: 1.1rem;
+            opacity: 0;
+            animation: particleFloat 3s ease-out forwards;
+        }
+
+        @keyframes particleFloat {
+            0%   { opacity: 0; transform: translateY(0) scale(0.5); }
+            20%  { opacity: 0.6; }
+            100% { opacity: 0; transform: translateY(-180px) scale(1.2) rotate(20deg); }
+        }
+
+        /* Mobile */
+        @media (max-width: 480px) {
+            body { padding-top: clamp(20px, 5vh, 40px); }
+            .page-content { padding: 0 16px; }
+            .page-heading h1 { font-size: 1.85rem; }
+            .form-card { padding: 22px 18px; }
+            .deco-line { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-orbs" aria-hidden="true">
+        <div class="orb orb-a"></div>
+        <div class="orb orb-b"></div>
+        <div class="orb orb-c"></div>
+    </div>
+
+    <div class="page-content">
+
+        <div class="brand-header">
+            <div class="brand-icon"><i class="fa-solid fa-music"></i></div>
+            <div class="brand-text">
+                <div class="name">Melodya</div>
+                <div class="sub">Sua música, em todo lugar</div>
+            </div>
+        </div>
+
+        <div class="page-heading">
+            <h1>Bem-vindo<br>de <span>volta.</span></h1>
+            <p>Acesse sua conta para continuar ouvindo</p>
+        </div>
+
+        <div class="form-card">
+
+            {% if form.errors %}
+            <div class="error-banner">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                Usuário ou senha incorretos. Tente novamente.
+            </div>
+            {% endif %}
+
+            <form id="realForm" method="post" action="{% url 'login' %}" style="display:none;">
+                {% csrf_token %}
+                <input type="hidden" id="f-next"     name="next"     value="{{ next }}">
+                <input type="hidden" id="f-username" name="username">
+                <input type="hidden" id="f-password" name="password">
+            </form>
+
+            <div class="step-dots">
+                <div class="step-dot active" id="dot1"></div>
+                <div class="step-dot"        id="dot2"></div>
+            </div>
+
+            <div class="step active" id="step1">
+                <div class="step-heading">
+                    <h2>Identificação</h2>
+                    <p>E-mail ou nome de usuário</p>
+                </div>
+                <div class="field">
+                    <label for="inp-email">E-mail ou usuário</label>
+                    <div class="input-wrap">
+                        <i class="fa-regular fa-user icon-left"></i>
+                        <input type="text" id="inp-email"
+                               placeholder="seuemail@exemplo.com"
+                               autocomplete="username"
+                               autocapitalize="none"
+                               spellcheck="false">
+                    </div>
+                </div>
+                <button class="btn-primary" type="button" id="btnContinuar">
+                    Continuar <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <div class="step" id="step2">
+                <button class="btn-back" type="button" id="btnVoltar">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar
+                </button>
+                <div class="step-heading">
+                    <h2>Senha</h2>
+                    <p>Entrando como <span class="highlight" id="emailDisplay"></span></p>
+                </div>
+                <div class="email-chip" id="emailChip">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span id="chipEmail"></span>
+                    <span class="chip-change">Trocar</span>
+                </div>
+                <div class="field">
+                    <label for="inp-password">Senha</label>
+                    <div class="input-wrap">
+                        <i class="fa-solid fa-lock icon-left"></i>
+                        <input type="password" id="inp-password"
+                               placeholder="••••••••"
+                               autocomplete="current-password">
+                        <i class="fa-regular fa-eye icon-right" id="togglePwd"></i>
+                    </div>
+                </div>
+                <button class="btn-primary" type="button" id="btnEntrar">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Entrar
+                </button>
+            </div>
+
+            <div class="form-footer">
+                Não tem conta? <a href="/register">Criar conta</a>
+            </div>
+
+        </div>
+
+        <div class="deco-line">
+            <div class="deco-features">
+                <div class="deco-feat"><i class="fa-solid fa-bolt"></i> Alta qualidade</div>
+                <div class="deco-feat"><i class="fa-solid fa-list-music"></i> Playlists</div>
+                <div class="deco-feat"><i class="fa-solid fa-headphones"></i> Offline</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════
+         SUCCESS OVERLAY — Personalizando
+    ══════════════════════════════════════ -->
+    <div class="success-overlay" id="successOverlay">
+        <div class="music-particles" id="musicParticles"></div>
+
+        <div class="success-icon-wrap">
+            <div class="success-icon-ring-2"></div>
+            <div class="success-icon-ring"></div>
+            <div class="success-icon-box">
+                <i class="fa-solid fa-music"></i>
+            </div>
+        </div>
+
+        <div class="success-text">
+            <h2>Tudo certo<span style="color:var(--accent)">!</span></h2>
+            <p>Olá, <span class="username-highlight" id="successUsername"></span>. Estamos personalizando sua experiência…</p>
+        </div>
+
+        <div class="success-progress">
+            <div class="progress-track">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="progress-label">PERSONALIZANDO EXPERIÊNCIA</div>
+        </div>
+    </div>
+
+
+    <script>
+    (() => {
+        const step1    = document.getElementById('step1');
+        const step2    = document.getElementById('step2');
+        const dot1     = document.getElementById('dot1');
+        const dot2     = document.getElementById('dot2');
+        const inpEmail = document.getElementById('inp-email');
+        const inpPwd   = document.getElementById('inp-password');
+        const emailDisplay = document.getElementById('emailDisplay');
+        const chipEmail    = document.getElementById('chipEmail');
+        const emailChip    = document.getElementById('emailChip');
+        const btnCont  = document.getElementById('btnContinuar');
+        const btnBack  = document.getElementById('btnVoltar');
+        const btnEnter = document.getElementById('btnEntrar');
+        const togglePwd = document.getElementById('togglePwd');
+        const realForm = document.getElementById('realForm');
+        const fUser    = document.getElementById('f-username');
+        const fPwd     = document.getElementById('f-password');
+        const fNext    = document.getElementById('f-next');
+
+        inpEmail.focus();
+
+        function goStep2() {
+            const val = inpEmail.value.trim();
+            if (!val) { shake(inpEmail); inpEmail.focus(); return; }
+            emailDisplay.textContent = val;
+            chipEmail.textContent    = val;
+            step1.style.animation = 'stepOut 0.22s ease-in both';
+            setTimeout(() => {
+                step1.classList.remove('active');
+                step1.style.animation = '';
+                dot1.classList.remove('active');
+                dot2.classList.add('active');
+                step2.classList.add('active');
+                inpPwd.focus();
+            }, 200);
+        }
+
+        function goStep1() {
+            step2.classList.remove('active');
+            dot2.classList.remove('active');
+            dot1.classList.add('active');
+            step1.classList.add('active');
+            inpPwd.value = '';
+            setTimeout(() => inpEmail.focus(), 50);
+        }
+
+        function shake(el) {
+            const wrap = el.closest('.input-wrap') || el.parentElement;
+            wrap.style.animation = 'none';
+            wrap.offsetHeight;
+            wrap.style.animation = 'shakeErr 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+            el.style.borderColor = 'var(--accent)';
+            setTimeout(() => { el.style.borderColor = ''; }, 800);
+        }
+
+        function submitLogin() {
+            const pwd = inpPwd.value;
+            if (!pwd) { shake(inpPwd); inpPwd.focus(); return; }
+
+            fUser.value = inpEmail.value.trim();
+            fPwd.value  = pwd;
+            if (!fNext.value || !fNext.value.trim()) fNext.value = '/';
+
+            // Nome de exibição: parte antes do @ se for email, ou o texto todo
+            const raw = inpEmail.value.trim();
+            const username = raw.includes('@') ? raw.split('@')[0] : raw;
+            document.getElementById('successUsername').textContent = username;
+
+            // Partículas
+            spawnParticles();
+
+            // Fade out do conteúdo principal
+            const pageContent = document.querySelector('.page-content');
+            pageContent.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            pageContent.style.opacity    = '0';
+            pageContent.style.transform  = 'translateY(-20px)';
+
+            // Exibe overlay após fade
+            setTimeout(() => {
+                document.getElementById('successOverlay').classList.add('active');
+            }, 300);
+
+            // Submete após animação da barra de progresso
+            setTimeout(() => realForm.submit(), 2300);
+        }
+
+        function spawnParticles() {
+            const container = document.getElementById('musicParticles');
+            const emojis = ['♪', '♫', '♬', '♩', '🎵', '🎶'];
+            for (let i = 0; i < 14; i++) {
+                setTimeout(() => {
+                    const p = document.createElement('span');
+                    p.className = 'particle';
+                    p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    p.style.left             = (Math.random() * 90 + 5) + '%';
+                    p.style.bottom           = (15 + Math.random() * 35) + '%';
+                    p.style.animationDelay   = (Math.random() * 0.6) + 's';
+                    p.style.animationDuration = (2 + Math.random() * 1.5) + 's';
+                    p.style.fontSize         = (0.9 + Math.random() * 0.9) + 'rem';
+                    container.appendChild(p);
+                    setTimeout(() => p.remove(), 4500);
+                }, i * 90);
+            }
+        }
+
+        btnCont.addEventListener('click', goStep2);
+        inpEmail.addEventListener('keydown', e => { if (e.key === 'Enter') goStep2(); });
+        btnBack.addEventListener('click', goStep1);
+        emailChip.addEventListener('click', goStep1);
+        btnEnter.addEventListener('click', submitLogin);
+        inpPwd.addEventListener('keydown', e => { if (e.key === 'Enter') submitLogin(); });
+
+        togglePwd.addEventListener('click', () => {
+            const isPassword = inpPwd.type === 'password';
+            inpPwd.type = isPassword ? 'text' : 'password';
+            togglePwd.classList.remove('fa-eye', 'fa-eye-slash');
+            togglePwd.classList.add(isPassword ? 'fa-eye-slash' : 'fa-eye');
+        });
+
+        // Keyframe de saída do step
+        const s = document.createElement('style');
+        s.textContent = `
+            @keyframes stepOut {
+                from { opacity:1; transform:translateX(0); }
+                to   { opacity:0; transform:translateX(-14px); }
+            }
+            @keyframes shakeErr {
+                0%,100% { transform:translateX(0); }
+                25%      { transform:translateX(-6px); }
+                75%      { transform:translateX(6px); }
+            }
+        `;
+        document.head.appendChild(s);
+    })();
+    </script>
+
+</body>
+</html>
