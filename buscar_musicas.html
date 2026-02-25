@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="/static/icone.ico" type="image/x-icon">
 
     <style>
         /* ═══════════════════════════════════════════════════════════════
@@ -1709,6 +1710,11 @@
             flex-direction: column;
             align-items: center;
             gap: 6px;
+            /* Ensure no shadow or overlay affects the card */
+            box-shadow: none !important;
+            filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            backdrop-filter: none !important;
         }
         .profile-sub-card .plan-name {
             font-weight: 700;
@@ -2033,6 +2039,12 @@
             justify-content: center;
             gap: 8px;
         }
+        .inline-loader {
+            display: flex; justify-content: center; align-items: center;
+            padding: 10px 0;
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
 
         .notification::before {
             content: '';
@@ -2207,7 +2219,7 @@
         <header class="search-bar">
             <div class="search-input-wrapper">
                 <input type="text" x-model="query"
-                       @input.debounce.500ms="search(query)"
+                       @input.debounce.1500ms="search(query)"
                        @focus="activeNav = 'search'"
                        placeholder="Buscar músicas, artistas, álbuns…">
                 <i class="fa-solid fa-magnifying-glass si-icon"></i>
@@ -2363,8 +2375,8 @@
                     </div>
 
                     <div class="panel-action-row">
-                        <button class="panel-act-btn ripple-host" @click.stop="activeNav='library'; closeTrackDetail(); addRipple($event)">
-                            <i class="fa-solid fa-list"></i> Fila
+                        <button class="panel-act-btn ripple-host" @click.stop="shareCurrentTrack(); addRipple($event)">
+                            <i class="fa-solid fa-share-alt"></i> Compartilhar
                         </button>
                         <button class="panel-act-btn ripple-host" @click.stop="openAlbumForCurrentTrack(); addRipple($event)">
                             <i class="fa-solid fa-compact-disc"></i> Álbum
@@ -2520,6 +2532,10 @@
                 </div>
 
                 <div class="music-list">
+                    <!-- inline loader when results are being fetched -->
+                    <div class="inline-loader" x-show="loading" x-cloak>
+                        <i class="fa fa-microphone fa-pulse"></i>
+                    </div>
                     <template x-if="loading && !searchResults.songs?.length">
                         <template x-for="i in 6" :key="'skel-' + i">
                             <div class="list-item skeleton" style="height:58px;"></div>
@@ -2553,6 +2569,7 @@
                     </template>
                 </div>
             </div>
+
 
             <!-- ÁLBUNS -->
             <template x-if="query.trim() !== '' && Array.isArray(searchResults.albums) && searchResults.albums.filter(a => a && (a.title || a.id || a.thumb)).length">
@@ -2653,8 +2670,8 @@
                         <span class="queue-index" x-text="index + 1"></span>
                         <img :src="track.thumb || ''" class="queue-thumb" alt="">
                         <div style="min-width:0;flex:1;">
-                            <div style="font-family:var(--font-display);font-size:0.88rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.02em;" x-text="track.title"></div>
-                            <div style="font-size:0.72rem;color:var(--txt-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" x-text="track.artist"></div>
+                            <div style="font-family:var(--font-display);font-size:0.88rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.02em;" x-text="track.title || track.titulo || track.nome || ''"></div>
+                            <div style="font-size:0.72rem;color:var(--txt-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" x-text="track.artist || track.artista_nome || track.artista || ''"></div>
                         </div>
                         <div class="queue-actions">
                             <button class="ripple-host" @click="playTrackAtIndex(index); addRipple($event)"><i class="fa-solid fa-play"></i></button>
@@ -2708,8 +2725,10 @@
                 <div class="plan-end">Vigente até {{ assinatura_ativa.periodo_termina_em|date:'d/m/Y' }}</div>
             </div>
             {% else %}
-            <div id="subscription-placeholder" style="padding:16px;margin-top:12px;opacity:0.4;">
-                Clique em "Assinatura" acima para ver opções de cobrança.
+            <div id="subscription-placeholder" class="profile-sub-card" style="color:var(--txt-2);">
+                <i class="fa fa-circle-xmark plan-icon" style="color:#ff5572;"></i>
+                <div class="plan-name">Plano inativo</div>
+                <div class="plan-end">Faça upgrade em "Assinatura"</div>
             </div>
             {% endif %}
 
@@ -2925,32 +2944,8 @@
                 </div>
             </div>
 
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                    <h3 style="margin:0;font-family:var(--font-display);font-size:1rem;font-weight:800;">Curtidas</h3>
-                    <div style="display:flex;gap:8px;align-items:center;">
-                        <button class="section-link" @click="confirmClearFavorites()" x-show="favoritosList && favoritosList.length">Limpar</button>
-                        <button class="section-link" @click="openFavoritesPanel()">Ver todas</button>
-                    </div>
-                </div>
-                <div class="music-list" style="gap:6px;">
-                    <template x-for="(track, i) in favoritosList.slice(0,6)" :key="'fav-' + (track.id ? String(track.id) : i)">
-                        <div class="list-item" :class="{'now-playing': currentTrack?.id === track.id}"
-                             @click="selectTrack(track, i, favoritosList, 'favorite')">
-                            <div class="list-thumb"><img :src="track.capa || track.thumb || ''" loading="lazy" alt=""></div>
-                            <div class="list-info">
-                                <div class="list-title" x-text="track.titulo || track.title"></div>
-                                <div class="list-artist" x-text="track.artista_nome || track.artist"></div>
-                            </div>
-                            <div class="list-actions">
-                                <button class="ripple-host" @click.stop="selectTrack(track, i, favoritosList, 'favorite'); addRipple($event)"><i class="fa-solid fa-play"></i></button>
-                                <button class="ripple-host" @click.stop="toggleLike(track); addRipple($event)">
-                                    <i :class="likedTracks.includes(track.id) ? 'fa-solid fa-heart liked' : 'fa-solid fa-heart'" style="color:var(--accent);"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </div>
+                <!-- Curtidas header and action buttons removed per request -->
+                <!-- favorite section removed entirely -->
 
             <div class="profile-actions fade-up fade-up-2">
                 <a href="{% url 'profile_edit' %}" class="profile-action-btn">
@@ -3268,6 +3263,39 @@
     </div>
 </div>
 
+<!-- ─── SHARE OPTIONS MODAL ───────────── -->
+<div x-show="shareModalVisible" class="modal-overlay" x-cloak @keydown.escape.window="shareModalVisible=false" @click.self="shareModalVisible=false">
+    <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-drag-handle"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h3 style="margin:0;">Compartilhar</h3>
+            <button @click="shareModalVisible=false" class="btn-icon ripple-host" aria-label="Fechar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div style="margin:16px 0;text-align:center;">
+            <p x-text="shareModalTitle"></p>
+        </div>
+        <div class="modal-buttons" style="justify-content:center;flex-wrap:wrap;gap:16px;">
+            <a class="modal-btn secondary" href="#" target="_blank"
+               x-bind:href="'https://api.whatsapp.com/send?text=' + encodeURIComponent(shareModalTitle + ' ' + shareModalUrl)">
+                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+            </a>
+            <a class="modal-btn secondary" href="#" target="_blank"
+               x-bind:href="'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareModalTitle) + '&url=' + encodeURIComponent(shareModalUrl)">
+                <i class="fa-brands fa-twitter"></i> Twitter
+            </a>
+            <a class="modal-btn secondary" href="#" target="_blank"
+               x-bind:href="'https://www.instagram.com/?url=' + encodeURIComponent(shareModalUrl)">
+                <i class="fa-brands fa-instagram"></i> Instagram
+            </a>
+            <button class="modal-btn secondary" @click="navigator.clipboard.writeText(shareModalUrl); showNotification('Link copiado para a área de transferência','success'); shareModalVisible=false;">
+                <i class="fa-solid fa-copy"></i> Copiar link
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- ─── TOAST NOTIFICATION ──────────────────────────────────────── -->
 <div class="notification" :class="notification.type"
      x-show="notification.show"
@@ -3277,7 +3305,9 @@
      x-transition:leave="transition ease-in duration-200"
      x-transition:leave-start="opacity-100"
      x-transition:leave-end="opacity-0"
-     x-text="notification.message" x-cloak></div>
+     x-cloak>
+    <span x-text="notification.message"></span>
+</div>
 
 <audio id="main-audio" preload="auto"
        @timeupdate="updateProgress"
@@ -3440,10 +3470,15 @@
     // UTILITIES
     // ═══════════════════════════════════════════════════════════════
     function resolveArtist(t, fallback = 'Artista desconhecido') {
-        // various keys may hold the artist name depending on source
-        if (t.artist)        return t.artist;
-        if (t.artista)       return t.artista;          // local JSON field
-        if (t.artista_nome)  return t.artista_nome;
+        // backend objects often include both a numeric artist ID ("artist" or "artista")
+        // and a human-readable name in "artista_nome". prioritize actual names first.
+        if (t.artista_nome) return t.artista_nome;      // explicit name field from API
+        if (t.artist && typeof t.artist === 'string') return t.artist;
+        if (t.artista && typeof t.artista === 'string') return t.artista;          // local JSON field
+        // if we only have a numeric id, convert it to string (better than displaying
+        // nothing) but the name lookup should ideally happen on server side.
+        if (t.artist != null && typeof t.artist !== 'string') return String(t.artist);
+        if (t.artista != null && typeof t.artista !== 'string') return String(t.artista);
         const r = t.artists;
         if (!r) return fallback;
         if (Array.isArray(r)) return r.map(a => (typeof a === 'object' ? a.name : a) || '').filter(Boolean).join(', ');
@@ -3532,6 +3567,11 @@
             currentQueueIndex: -1,
 
             get currentQueueLabel() {
+                // playlists have dynamic names: last‑played or a specific user playlist
+                if (this.currentQueueType === 'playlist') {
+                    if (this.openedPlaylistName) return this.openedPlaylistName;
+                    return 'Últimas tocadas';
+                }
                 if (this.currentQueueType === 'album' && this.albumData?.title) return this.albumData.title;
                 return QUEUE_LABELS[this.currentQueueType] || '';
             },
@@ -3619,6 +3659,12 @@
             confirmModalAction: null,
             confirmModalPayload: null,
 
+            // sharing modal state
+            shareModalVisible: false,
+            shareModalUrl: '',
+            shareModalTitle: '',
+            shareModalText: '',
+
             likedTracks: [],
             favoritosList: [],
             albumData: null,
@@ -3673,6 +3719,11 @@
                 }
                 setInterval(() => { this._savePlayerState(); }, 5000);
                 window.appStore = this;
+
+                // update browser title when track changes
+                this.$watch('currentTrack', (val) => {
+                    document.title = val ? ( (val.title || '') + (val.artist ? ' - ' + val.artist : '') ) : 'Melodya';
+                });
 
                 // Receive shared playlist from the public share page and start playback
                 const _handleSharedPlaylist = (payload) => {
@@ -3729,24 +3780,44 @@
                 };
 
                 const _storageListener = (e) => {
-                    if (e.key !== 'melodya_shared_playlist') return;
-                    if (!e.newValue) return;
-                    try {
-                        const payload = JSON.parse(e.newValue);
-                        if (payload) _handleSharedPlaylist(payload);
-                        localStorage.removeItem('melodya_shared_playlist');
-                    } catch(err) { console.error('storage shared playlist parse error', err); }
+                    if (e.key === 'melodya_shared_playlist') {
+                        if (!e.newValue) return;
+                        try {
+                            const payload = JSON.parse(e.newValue);
+                            if (payload) _handleSharedPlaylist(payload);
+                            localStorage.removeItem('melodya_shared_playlist');
+                        } catch(err) { console.error('storage shared playlist parse error', err); }
+                    } else if (e.key === 'melodya_shared_track') {
+                        if (!e.newValue) return;
+                        try {
+                            const t = JSON.parse(e.newValue);
+                            if (t) {
+                                this.selectTrack(t, 0, [t], 'shared');
+                                this.trackDetailOpen = true;
+                            }
+                            localStorage.removeItem('melodya_shared_track');
+                        } catch(err) { console.error('storage shared track parse error', err); }
+                    }
                 };
 
                 window.addEventListener('message', _msgListener);
                 window.addEventListener('storage', _storageListener);
 
                 try {
-                    const pending = localStorage.getItem('melodya_shared_playlist');
+                    let pending = localStorage.getItem('melodya_shared_playlist');
                     if (pending) {
                         const payload = JSON.parse(pending);
                         if (payload) _handleSharedPlaylist(payload);
                         localStorage.removeItem('melodya_shared_playlist');
+                    }
+                    pending = localStorage.getItem('melodya_shared_track');
+                    if (pending) {
+                        const t = JSON.parse(pending);
+                        if (t) {
+                            this.selectTrack(t, 0, [t], 'shared');
+                            this.trackDetailOpen = true;
+                        }
+                        localStorage.removeItem('melodya_shared_track');
                     }
                 } catch(_) {}
             },
@@ -3778,6 +3849,11 @@
                     this.currentQueue      = (s.currentQueue || []).map(t => normalizeTrack(t)).filter(Boolean);
                     this.currentQueueType  = s.currentQueueType || 'playlist';
                     this.currentQueueIndex = s.currentQueueIndex || 0;
+                    // when restoring state we don't know if the queue was from a
+                    // user playlist; clear name so label will fall back to "Últimas
+                    // tocadas" unless a playlist is explicitly opened later.
+                    this.openedPlaylistId = null;
+                    this.openedPlaylistName = null;
                     this.volume            = 100;
                     this.shuffle           = s.shuffle || false;
                     this.repeatMode        = s.repeatMode || 'off';
@@ -3805,6 +3881,17 @@
                 } catch(e) {
                     const cached = AppCache.get('state', 'favoritos');
                     if (cached) this.favoritosList = cached;
+                }
+                // ensure there is a "Curtidas" playlist card in library
+                if (IS_AUTHENTICATED) {
+                    const idx = this.userPlaylists.findIndex(p => (p.nome || '').toLowerCase().includes('curtidas'));
+                    const favEntry = { id: '__fav__', nome: 'Curtidas', total_musicas: this.favoritosList.length };
+                    if (idx === -1) {
+                        this.userPlaylists.unshift(favEntry);
+                    } else {
+                        this.userPlaylists[idx].total_musicas = this.favoritosList.length;
+                        // keep name if DB playlist already exists
+                    }
                 }
             },
 
@@ -3913,6 +4000,10 @@
 
             // ─── ÁUDIO COM CACHE DE STREAMING URL ─────────────────────
             async _playSrc(track) {
+                // if a previous play() call is still in flight, pause to avoid AbortError
+                if (this.audio && !this.audio.paused) {
+                    try { this.audio.pause(); } catch(e) { /* ignore */ }
+                }
                 let src = null;
                 if (track.arquivo && track.arquivo.startsWith('/media/')) { src = track.arquivo; }
                 if (!src && track.audio_url) {
@@ -3953,8 +4044,22 @@
                 }
                 if (!src) { this.showNotification('Áudio não disponível para esta faixa', 'error'); return false; }
                 this.audio.src = src;
-                try { await this.audio.play(); this.isPlaying = true; return true; }
-                catch(e) { console.error('_playSrc play() error:', e); this.isPlaying = false; return false; }
+                try {
+                    await this.audio.play();
+                    this.isPlaying = true;
+                    return true;
+                } catch(e) {
+                    // AbortError often occurs when a previous play() call was still pending
+                    // or when the browser blocks autoplay. Treat it as a warning rather than
+                    // an error so the console isn't spammed with harmless messages.
+                    if (e.name === 'AbortError') {
+                        console.warn('_playSrc play() aborted:', e);
+                    } else {
+                        console.error('_playSrc play() error:', e);
+                    }
+                    this.isPlaying = false;
+                    return false;
+                }
             },
 
             // ─── NEXT / PREVIOUS ───────────────────────────────────────
@@ -4150,6 +4255,9 @@
                         if (idx !== -1) this.favoritosList.splice(idx, 1);
                     }
                     AppCache.set('state', 'favoritos', this.favoritosList);
+                    // update favorites playlist count if present
+                    const favPl = this.userPlaylists.find(p => (p.nome||'').toLowerCase().includes('curtidas'));
+                    if (favPl) favPl.total_musicas = this.favoritosList.length;
                 }).catch(err => {
                     if (i === -1) { const idx = this.likedTracks.indexOf(track.id); if (idx !== -1) this.likedTracks.splice(idx, 1); }
                     else { if (!this.likedTracks.includes(track.id)) this.likedTracks.push(track.id); }
@@ -4251,8 +4359,14 @@
                     // Se já está compartilhada e tem uuid, copia diretamente
                     if (pl && pl.is_shared && pl.share_uuid) {
                         const url = window.location.origin + '/share/' + pl.share_uuid + '/';
-                        await navigator.clipboard.writeText(url);
-                        this.showNotification('Link copiado para a área de transferência', 'success');
+                        const text = pl.nome || '';
+                        if(navigator.share){
+                            navigator.share({ title: pl.nome, text, url }).catch(()=>{
+                                this.openShareModal(url, text);
+                            });
+                        } else {
+                            this.openShareModal(url, text);
+                        }
                         return;
                     }
 
@@ -4271,8 +4385,15 @@
                         // atualizar estado local da playlist
                         const found = this.userPlaylists.find(x => x && x.id === pl.id);
                         if (found) { found.is_shared = true; found.share_uuid = found.share_uuid || (data.share_url.split('/share/')[1] || '').replace('/', ''); }
-                        await navigator.clipboard.writeText(data.share_url);
-                        this.showNotification('Link copiado para a área de transferência', 'success');
+                        const shareUrl = data.share_url;
+                        const text = pl.nome || '';
+                        if(navigator.share){
+                            navigator.share({ title: pl.nome, text, url: shareUrl }).catch(()=>{
+                                this.openShareModal(shareUrl, text);
+                            });
+                        } else {
+                            this.openShareModal(shareUrl, text);
+                        }
                     } else {
                         this.showNotification('Não foi possível gerar link', 'error');
                     }
@@ -4322,6 +4443,19 @@
 
             openPlaylist(playlistId) {
                 if (!this._checkAuth()) return;
+                // special case favorities pseudo-playlist
+                if (playlistId === '__fav__' || String(playlistId).toLowerCase().includes('curtidas')) {
+                    // populate from favoritosList
+                    const tracks = [...this.favoritosList];
+                    this.playlist = tracks;
+                    this.currentQueue = [...tracks];
+                    this.currentQueueType = 'favorite';
+                    this.currentQueueIndex = -1;
+                    this.openedPlaylistId = playlistId;
+                    this.openedPlaylistName = 'Curtidas';
+                    this.activeNav = 'library';
+                    return;
+                }
                 const cached = AppCache.get('playlist', playlistId);
                 if (cached) {
                     const tracks = (cached.musicas || [])
@@ -4682,8 +4816,8 @@
                 let html = '<div class="music-list">';
                 favs.forEach((t, idx) => {
                     const esc = v => (v || '').toString().replace(/'/g, "\\'").replace(/\"/g, '&quot;');
-                    const id = esc(t.id || ''); const title = esc(t.title || t.titulo || '');
-                    const artist = esc(t.artist || t.artista_nome || ''); const thumb = esc(t.thumb || t.capa || '');
+                    const id = esc(t.id || ''); const title = esc(t.title || t.titulo || t.nome || '');
+                    const artist = esc(t.artist || t.artista_nome || t.artista || ''); const thumb = esc(t.thumb || t.capa || '');
                     const tobj = `{id:'${id}',title:'${title}',artist:'${artist}',thumb:'${thumb}',youtube_id:'${t.youtube_id || ''}'}`;
                     html += `<div class="list-item" onclick="window.appStore.selectTrack(${tobj}, ${idx}, window.appStore.favoritosList, 'favorite');window.appStore.panelOpen=false;window.appStore.trackDetailOpen=true;">` +
                         `<div class="list-thumb"><img src="${thumb}" loading="lazy"></div>` +
@@ -4701,11 +4835,55 @@
 
             // ─── NOTIFICAÇÕES ──────────────────────────────────────────
             showNotification(msg, type = 'info') {
-                this.notification = { show: true, message: msg, type };
+                const buffering = msg && msg.toString().toLowerCase().includes('bufferiz');
+                const text = buffering ? 'Preparando áudio…' : msg;
+                this.notification = { show: true, message: text, type };
                 clearTimeout(this._nt);
-                this._nt = setTimeout(() => { this.notification.show = false; }, 3200);
+                this._nt = setTimeout(() => { this.hideNotification(); }, 3200);
             },
-            hideNotification() { this.notification.show = false; },
+            hideNotification() { 
+                this.notification.show = false; 
+            },
+            openShareModal(url, title = '', text = ''){
+                this.shareModalUrl = url;
+                this.shareModalTitle = title;
+                this.shareModalText = text;
+                this.shareModalVisible = true;
+            },
+
+            shareCurrentTrack(){
+                if(!this.currentTrack) return;
+                const t = this.currentTrack;
+                const params = new URLSearchParams({
+                    id: t.id || '',
+                    title: t.title || '',
+                    artist: t.artist || '',
+                    thumb: t.thumb || ''
+                });
+                fetch('/short/track/?' + params.toString())
+                    .then(r => r.json())
+                    .then(data => {
+                        if(data.url){
+                            const shareUrl = data.url;
+                            const shareText = `${t.title} – ${t.artist}`;
+                            if(navigator.share){
+                                // use native share sheet when available
+                                navigator.share({ title: t.title, text: shareText, url: shareUrl })
+                                    .catch(() => {
+                                        // fallback to our modal/copy
+                                        this.openShareModal(shareUrl, shareText);
+                                    });
+                            } else {
+                                this.openShareModal(shareUrl, shareText);
+                            }
+                        } else {
+                            this.showNotification('Erro ao gerar link curto', 'error');
+                        }
+                    }).catch(()=>{
+                        this.showNotification('Erro ao gerar link curto', 'error');
+                    });
+            },
+
 
             // ─── CONFIRM MODAL ─────────────────────────────────────────
             openConfirmModal(title, message, action = null, payload = null) {
@@ -4778,6 +4956,9 @@
                                     this.playlist = tracks;
                                     this.currentQueue = [...tracks];
                                     this.currentQueueType = 'playlist';
+                                    // mark as historic/last-played, not a named playlist
+                                    this.openedPlaylistId = null;
+                                    this.openedPlaylistName = null;
                                 });
                             }
                         }).catch(e => console.error('loadPlaylist fetch error:', e));
