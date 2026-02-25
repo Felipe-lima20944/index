@@ -16,6 +16,7 @@ from typing import Dict, List, Optional, Any, Tuple
 import logging
 import hashlib
 from datetime import timedelta, datetime
+import re
 
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
@@ -2848,7 +2849,6 @@ def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[st
         'no_warnings': True,
         'extract_flat': False,
         'socket_timeout': REQUEST_TIMEOUT,
-        'proxy': 'http://127.0.0.1:8888',                      # túnel HTTP local para desenvolvimento
     }
 
     if is_prefetch:
@@ -2943,7 +2943,14 @@ def streaming_download_api(request):
         return HttpResponse(status=403)
 
     video_id = request.GET.get('video_id')
-    logger.debug('video_id recebido para download', extra={'video_id': video_id})
+    title_param = request.GET.get('title')
+    if title_param:
+        try:
+            from urllib.parse import unquote
+            title_param = unquote(title_param)
+        except Exception:
+            pass
+    logger.debug('video_id recebido para download', extra={'video_id': video_id, 'title': title_param})
     if not video_id:
         logger.error('video_id ausente em streaming_download_api')
         return HttpResponseBadRequest('video_id é obrigatório')
@@ -2958,8 +2965,9 @@ def streaming_download_api(request):
             logger.error('não foi possível extrair stream_url', extra={'video_id': video_id})
             return HttpResponse('não foi possível obter stream', status=502)
 
-        # proxy request
-        r = requests.get(stream_url, stream=True, headers={'User-Agent': request.META.get('HTTP_USER_AGENT', '')}, timeout=30)
+        # proxy request: disable any system HTTP proxy to avoid failures like 127.0.0.1:8888
+        r = requests.get(stream_url, stream=True, headers={'User-Agent': request.META.get('HTTP_USER_AGENT', '')}, timeout=30,
+                         proxies={"http": None, "https": None})
         logger.debug('requisição ao stream_url retornou', extra={'status_code': r.status_code})
         if r.status_code != 200:
             logger.error('erro HTTP ao buscar conteúdo de stream_url', extra={'status_code': r.status_code})
@@ -3029,7 +3037,9 @@ def streaming_download_api(request):
                         except: pass
                         r.close()
                 content_type = 'audio/mpeg'
-                filename = f"{video_id}.mp3"
+                sanitized = title_param or video_id
+                sanitized = re.sub(r'[\\/\:\*\?"\<\>\|]', '_', sanitized)
+                filename = f"{sanitized}.mp3"
                 response = StreamingHttpResponse(stream_generator(), content_type=content_type)
                 response['Content-Disposition'] = f'attachment; filename="{filename}"'
                 logger.info('proxy mp3 (ffmpeg)', extra={'video_id': video_id, 'filename': filename})
@@ -3056,7 +3066,9 @@ def streaming_download_api(request):
                             proc2.kill()
                             r.close()
                     content_type = 'audio/mpeg'
-                    filename = f"{video_id}.mp3"
+                    sanitized = title_param or video_id
+                    sanitized = re.sub(r'[\\/\:\*\?"\<\>\|]', '_', sanitized)
+                    filename = f"{sanitized}.mp3"
                     response = StreamingHttpResponse(ytdlp_gen(), content_type=content_type)
                     response['Content-Disposition'] = f'attachment; filename="{filename}"'
                     logger.info('proxy mp3 (yt_dlp binário)', extra={'video_id': video_id, 'filename': filename})
@@ -3085,6 +3097,10 @@ def streaming_download_api(request):
         'cachedir': False,
     }
                     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        # force yt-dlp to ignore proxies by clearing environment vars
+                        env = os.environ.copy()
+                        env.pop('http_proxy', None)
+                        env.pop('https_proxy', None)
                         ydl.download([f'https://www.youtube.com/watch?v={video_id}'])
                     def file_gen():
                         try:
@@ -3098,7 +3114,9 @@ def streaming_download_api(request):
                             os.remove(tmp.name)
                             r.close()
                     content_type = 'audio/mpeg'
-                    filename = f"{video_id}.mp3"
+                    sanitized = title_param or video_id
+                    sanitized = re.sub(r'[\\/\:\*\?"\<\>\|]', '_', sanitized)
+                    filename = f"{sanitized}.mp3"
                     response = StreamingHttpResponse(file_gen(), content_type=content_type)
                     response['Content-Disposition'] = f'attachment; filename="{filename}"'
                     logger.info('proxy mp3 (yt_dlp API)', extra={'video_id': video_id, 'filename': filename})
@@ -3111,7 +3129,10 @@ def streaming_download_api(request):
             logger.warning('não foi possível converter para mp3, continuando sem conversão')
         # se não pediu mp3 ou se conversão falhou, repassa bruto
         content_type = r.headers.get('content-type', 'application/octet-stream')
-        filename = f"{video_id}." + (content_type.split('/')[-1] or 'bin')
+        sanitized = title_param or video_id
+        sanitized = re.sub(r'[\\/\:\*\?"\<\>\|]', '_', sanitized)
+        ext = content_type.split('/')[-1].split(';')[0].strip() or 'bin'
+        filename = f"{sanitized}.{ext}"
         def stream_generator():
             try:
                 for chunk in r.iter_content(chunk_size=8192):
