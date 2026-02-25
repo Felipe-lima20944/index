@@ -19,6 +19,9 @@ from datetime import timedelta, datetime
 
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
+from django.utils.html import escape
+from django.core.cache import cache
+import secrets
 from django.http import JsonResponse, HttpResponse, Http404, StreamingHttpResponse
 from django.urls import reverse
 from django.core.cache import cache
@@ -28,6 +31,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
+from .forms import CustomUserCreationForm
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.forms.models import model_to_dict
 from django.utils import timezone
@@ -45,7 +49,7 @@ from .models import (
     HistoricoReproducao, Favorito, PlaybackQueue,
     PlaybackState, Avaliacao, Genero
 )
-from .models import AsaasCustomer, Payment, Subscription
+from .models import AsaasCustomer, Payment, Subscription, Plan
 from .serializers import (
     ArtistaSerializer, AlbumSerializer, MusicaSerializer, MusicaListSerializer,
     PlaylistSerializer, PlaylistDetailSerializer, PlaylistItemSerializer, HistoricoSerializer,
@@ -1100,11 +1104,14 @@ def register(request):
     if request.user.is_authenticated:
         return redirect(settings.LOGIN_REDIRECT_URL or '/')
 
-    form = UserCreationForm(request.POST or None)
+    # use custom form to ensure email uniqueness
+    form = CustomUserCreationForm(request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
             user = form.save()
-            email = request.POST.get('email')
+            # form already includes email and has validated uniqueness
+            # but keep the explicit assignment to trigger any side-effects
+            email = form.cleaned_data.get('email') or request.POST.get('email')
             if email:
                 user.email = email
                 user.save(update_fields=['email'])
@@ -1391,11 +1398,35 @@ def assinatura(request):
     # take most recent active subscription (if any) for simple checks
     assinatura_ativa = assinaturas[0] if assinaturas else None
 
+    # fetch available plans from DB to display on the assinaturas page
+    try:
+        plans = list(Plan.objects.all().order_by('-is_active', 'price'))
+    except Exception:
+        plans = []
+
+    # if a plan slug is provided as GET param, select it for the template
+    selected_plan = None
+    sel_slug = request.GET.get('plan')
+    if sel_slug:
+        try:
+            selected_plan = Plan.objects.filter(slug=sel_slug).first()
+        except Exception:
+            selected_plan = None
+
+    selected_plan_price = str(selected_plan.price) if selected_plan else None
+    selected_plan_label = f"R$ {selected_plan.price}/mês" if selected_plan else None
+    selected_plan_name = selected_plan.name if selected_plan else None
+
     return render(request, 'core/assinatura.html', {
         'profile': profile,
         'pagamentos': pagamentos,
         'assinaturas': assinaturas,
         'assinatura_ativa': assinatura_ativa,
+        'plans': plans,
+        'selected_plan': selected_plan,
+        'SELECTED_PLAN_PRICE': selected_plan_price,
+        'SELECTED_PLAN_LABEL': selected_plan_label,
+        'SELECTED_PLAN_NAME': selected_plan_name,
         'has_pending_payment': has_pending,
         'pending_payment': pending_payment,
     })
@@ -1488,16 +1519,10 @@ def _get_local_musicas() -> List[Dict]:
                 if isinstance(mdata, dict):
                     for artista, itens in mdata.items():
                         for t in itens:
-                            # when loading from the JSON file we normally use the
-                            # key or the internal 'artista' field.  the client code
-                            # expects a simple `artist` string in many places, so we
-                            # preserve both forms here to avoid having to patch the
-                            # javascript everywhere.
                             track = {
                                 'id': t.get('videoId') or t.get('id') or '',
                                 'title': t.get('titulo') or t.get('title') or '',
                                 'artists': t.get('artista') or artista,
-                                'artist': t.get('artista') or artista,
                                 'thumb': t.get('capa') or t.get('thumbnail') or '',
                                 'duration': t.get('duracao') or t.get('duration') or '',
                                 'country': t.get('pais') or 'br'
@@ -1962,6 +1987,61 @@ def shared_playlist_view(request, share_uuid):
     items = PlaylistItem.objects.filter(playlist=playlist).select_related('musica').order_by('ordem')
     tracks = [it.musica for it in items]
     return render(request, 'core/shared_playlist.html', {'playlist': playlist, 'tracks': tracks})
+
+
+def shared_track_view(request):
+    # simple page that stores track info to localStorage and redirects to main app
+    tid = request.GET.get('id', '')
+    title = request.GET.get('title', '')
+    artist = request.GET.get('artist', '')
+    thumb = request.GET.get('thumb', '')
+    # escape to avoid script injection
+    context = {
+        'track': {
+            'id': escape(tid),
+            'title': escape(title),
+            'artist': escape(artist),
+            'thumb': escape(thumb),
+        }
+    }
+    return render(request, 'core/shared_track.html', context)
+
+
+# shortened track share logic using cache
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def shorten_track(request):
+    """Return a tiny URL that redirects to shared_track_view."""
+    tid = request.GET.get('id', '')
+    title = request.GET.get('title', '')
+    artist = request.GET.get('artist', '')
+    thumb = request.GET.get('thumb', '')
+    track = {
+        'id': escape(tid),
+        'title': escape(title),
+        'artist': escape(artist),
+        'thumb': escape(thumb),
+    }
+    # generate short token
+    code = None
+    for _ in range(8):
+        candidate = secrets.token_urlsafe(4)
+        if not cache.get('track_' + candidate):
+            code = candidate
+            break
+    if not code:
+        code = secrets.token_urlsafe(6)
+    cache.set('track_' + code, track, 24 * 3600)
+    url = request.build_absolute_uri(reverse('track-short', args=[code]))
+    return Response({'url': url})
+
+
+def track_short_redirect(request, code):
+    """Redirect page used by short urls; reuses shared_track template."""
+    track = cache.get('track_' + code)
+    if not track:
+        raise Http404()
+    return render(request, 'core/shared_track.html', {'track': track})
 
 
 @csrf_exempt
@@ -2761,14 +2841,16 @@ def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[st
     ]
 
     ydl_opts = {
-        'proxy': 'http://127.0.0.1:8888',       # <-- ADICIONADO
-        'cookiefile': _get_cookiefile_path(),  # <-- ADICIONADO
+        'cookiefile': _get_cookiefile_path(),
         'format': 'bestaudio/best',
         'quiet': True,
         'no_warnings': True,
         'extract_flat': False,
         'socket_timeout': REQUEST_TIMEOUT,
     }
+    proxy = getattr(settings, 'YT_DLP_PROXY', None)
+    if proxy:
+        ydl_opts['proxy'] = proxy
 
     if is_prefetch:
         ydl_opts['extract_flat'] = True
