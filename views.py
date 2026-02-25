@@ -2840,17 +2840,16 @@ def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[st
         f'https://youtu.be/{video_id}'
     ]
 
+    # opções padrão para yt-dlp; ajustadas localmente sem depender de settings
     ydl_opts = {
-        'cookiefile': _get_cookiefile_path(),
+        'cookiefile': _get_cookiefile_path(),                # usa cookies.txt se existir
         'format': 'bestaudio/best',
         'quiet': True,
         'no_warnings': True,
         'extract_flat': False,
         'socket_timeout': REQUEST_TIMEOUT,
+        'proxy': 'http://127.0.0.1:8888',                      # túnel HTTP local para desenvolvimento
     }
-    proxy = getattr(settings, 'YT_DLP_PROXY', None)
-    if proxy:
-        ydl_opts['proxy'] = proxy
 
     if is_prefetch:
         ydl_opts['extract_flat'] = True
