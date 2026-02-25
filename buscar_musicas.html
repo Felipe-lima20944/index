@@ -437,6 +437,19 @@
             opacity: 1;
             pointer-events: auto;
         }
+        .download-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 4500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            pointer-events: none;
+        }
+
 
         /* Rest of your existing styles remain the same */
         /* (keeping all your existing CSS for cards, lists, player, etc.) */
@@ -814,6 +827,11 @@
 
     <!-- Overlay for drawers -->
     <div class="overlay" :class="{ 'active': queueDrawerActive || panelOpen }" @click="closeAllDrawers()"></div>
+
+    <!-- download loading overlay -->
+    <div class="download-overlay" x-show="downloading" x-cloak>
+        <i class="fa-solid fa-spinner fa-spin"></i>
+    </div>
 
     <!-- Queue Drawer -->
     <div class="queue-drawer" :class="{ 'active': queueDrawerActive }">
@@ -2108,9 +2126,9 @@
                 console.debug('download title raw', rawTitle);
                 const safeTitle = encodeURIComponent(rawTitle).replace(/%20/g,'_');
                 const dlUrl = '/api/streaming-download/?video_id=' + encodeURIComponent(vid) + '&title=' + safeTitle;
+                // if page navigates, overlay stays visible via beforeunload handler
                 window.location.href = dlUrl;
-                // reset flag after a moment
-                setTimeout(() => { this.downloading = false; }, 2000);
+                // keep overlay state; it will be cleared automatically if user returns or JS runs again
             },
             hasActivePlan: {{ assinatura_ativa|yesno:"true,false" }},
             _previewWarned: false,
@@ -2397,6 +2415,9 @@
                 }
                 setInterval(() => { this._savePlayerState(); }, 5000);
                 window.appStore = this;
+
+                // keep overlay visible while navigation occurs
+                window.addEventListener('beforeunload', () => { this.downloading = true; });
 
                 // Update browser title when track changes
                 this.$watch('currentTrack', (val) => {
