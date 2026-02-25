@@ -1,53 +1,124 @@
-from django.urls import path
+# core/urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views
 
 urlpatterns = [
-    # Rotas de visualização da sua aplicação
-    path('', views.ChatView.as_view(), name='chat_list_or_new'),
-    path('conversa/<uuid:conversa_id>/', views.ConversaDetailView.as_view(), name='conversa_detail'),
-    path('chat/<uuid:conversa_id>/', views.ChatView.as_view(), name='carregar_conversa'),
-    path('home/', views.home_page, name='home_page'),
-    path('termos/', views.termos, name='termos'),
-    path('recursos/', views.recursos, name='recursos'),
+    # ============================================================================
+    # VIEWS HTML (RENDERIZAÇÃO)
+    # ============================================================================
+    path('', views.buscar_musicas_html, name='home'),
+    path('buscar/', views.buscar_musicas_html, name='buscar_musicas'),
+    path('register/', views.register, name='register'),
+    path('logout/', views.logout_view, name='logout'),
+    path('profile/edit/', views.profile_edit, name='profile_edit'),
+    path('assinatura/', views.assinatura, name='assinatura'),
+    
+    # ============================================================================
+    # API DE INTEGRAÇÃO COM YOUTUBE MUSIC
+    # ============================================================================
+    path('api/search/', views.buscar_musicas_api, name='api_search'),
+    path('api/recommendations/', views.recommendations_api, name='api_recommendations'),
+    path('api/album/tracks/', views.album_tracks_api, name='api_album_tracks'),
+    path('api/track/info/', views.track_info_api, name='api_track_info'),
+    path('api/stream/url/', views.streaming_url_api, name='api_stream_url'),
+    path('api/featured/', views.featured_albums_api, name='api_featured'),
+    
+    # ============================================================================
+    # API DE DADOS LOCAIS (BANCO DE DADOS)
+    # ============================================================================
+    path('api/artists/', views.artistas_list_api, name='api_artists_list'),
+    path('api/artists/<int:artista_id>/', views.artista_detail_api, name='api_artist_detail'),
+    path('api/albums/', views.albuns_list_api, name='api_albums_list'),
+    path('api/albums/<int:album_id>/', views.album_detail_api, name='api_album_detail'),
+    path('api/songs/', views.musicas_list_api, name='api_songs_list'),
+    path('api/songs/<int:musica_id>/', views.musica_detail_api, name='api_song_detail'),
+    path('api/songs/by-ids/', views.musicas_by_ids_api, name='api_songs_by_ids'),
+    path('api/genres/', views.generos_list_api, name='api_genres_list'),
+    path('api/genres/<slug:genero_slug>/', views.genero_detail_api, name='api_genre_detail'),
+    
+    # ============================================================================
+    # API DE PLAYLISTS
+    # ============================================================================
+    path('api/playlists/', views.playlists_api, name='api_playlists'),
+    path('api/playlists/<int:playlist_id>/', views.playlist_detail_api, name='api_playlist_detail'),
+    path('api/playlists/<int:playlist_id>/add/', views.playlist_add_musica_api, name='api_playlist_add'),
+    path('api/playlists/<int:playlist_id>/remove/<int:item_id>/', views.playlist_remove_musica_api, name='api_playlist_remove'),
+    path('api/playlists/<int:playlist_id>/reorder/', views.playlist_reorder_api, name='api_playlist_reorder'),
+    
+    # ============================================================================
+    # API DE HISTÓRICO E FAVORITOS (APIs canônicas + PT-BR alias)
+    # ============================================================================
+    path('api/history/', views.historico_api, name='api_history'),
+    # Canonical favorites endpoint (supports GET/POST/DELETE and {id,like} schema)
+    path('api/favorites/', views.favoritos_api, name='api_favorites'),
+    path('api/favorites/test/', views.favoritos_test, name='api_favorites_test'),
+    # PT-BR alias (trailing slash only)
+    path('api/favoritos/', views.favoritos_api, name='api_favoritos'),  # compatibilidade PT-BR
 
-    # Rotas de API da sua aplicação
-    path('api/chat/stream/', views.StreamingChatView.as_view(), name='streaming_chat'),
-    path('api/conversas/', views.listar_conversas, name='listar_conversas'),
-    path('api/conversa/<uuid:conversa_id>/', views.carregar_conversa, name='carregar_conversa_api'),
-    path('api/conversa/<uuid:conversa_id>/limpar/', views.limpar_conversa_api, name='limpar_conversa_api'),
-    path('api/conversa/<uuid:conversa_id>/cancelar/', views.cancelar_conversa_api, name='cancelar_conversa_api'),
-    path('api/conversa/excluir/', views.excluir_conversa_api, name='excluir_conversa_api'),
-    path('api/conversa/<uuid:conversa_id>/restaurar/', views.restaurar_conversa_api, name='restaurar_conversa_api'),
-    path('api/conversas/excluidas/', views.listar_conversas_excluidas_api, name='listar_conversas_excluidas_api'),
-    path('api/limpar/', views.limpar_conversas, name='limpar_conversas'),
-    path('api/cancelar/', views.cancelar_resposta, name='cancelar_resposta'),
-    path('api/personalidades/', views.listar_personalidades, name='listar_personalidades'),
-    path('api/status/', views.status_servico, name='status_servico'),
-    path('api/feedback/<uuid:mensagem_id>/', views.enviar_feedback, name='enviar_feedback'),
-    path('api/mensagem/<uuid:mensagem_id>/excluir/', views.excluir_mensagem_api, name='excluir_mensagem_api'),
-    path('api/mensagem/<uuid:mensagem_id>/editar/', views.editar_mensagem_api, name='editar_mensagem_api'),
-    path('api/chat/reprocessar/', views.reprocessar_conversa_api, name='reprocessar_conversa_api'),
+    
+    # ============================================================================
+    # API DE AVALIAÇÕES
+    # ============================================================================
+    path('api/ratings/', views.avaliacoes_api, name='api_ratings'),
+    
+    # ============================================================================
+    # API DE PLAYBACK STATE
+    # ============================================================================
+    path('api/playback/state/', views.playback_state_api, name='api_playback_state'),
+    path('api/playback/queue/', views.queue_api, name='api_playback_queue'),
+    
+    # ============================================================================
+    # API DE ESTATÍSTICAS
+    # ============================================================================
+    path('api/stats/dashboard/', views.dashboard_stats_api, name='api_stats_dashboard'),
+    
+    # ============================================================================
+    # ALIASES PARA COMPATIBILIDADE (nomes antigos)
+    # ============================================================================
+    path('api/buscar/', views.buscar_musicas, name='api_buscar'),
+    path('api/recomendacoes/', views.recommendations, name='recomendacoes'),
+    path('api/album/faixas/', views.album_tracks, name='album_faixas'),
+    path('api/musica/info/', views.track_info, name='musica_info'),
 
-    # Rota para ramificar conversa a partir de uma mensagem
-    path('api/conversa/<uuid:conversa_id>/ramificar/<uuid:mensagem_id>/', views.ramificar_conversa_api, name='ramificar_conversa_api'),
+    path('api/streaming-url/', views.streaming_url_api, name='api_streaming_url'),
+    # rota adicional para proxy de download (mesmo id que streaming-url)
+    path('api/streaming-download/', views.streaming_download_api, name='api_streaming_download'),
+    path('api/musicas/by-ids/', views.musicas_by_ids_api, name='api_musicas_by_ids'),
 
-    # --- ROTAS DE COMPARTILHAMENTO CORRIGIDAS ---
-    # Rota da API para o frontend solicitar o link de compartilhamento.
-    path('api/chat/compartilhar/<uuid:conversa_id>/', views.ativar_compartilhamento, name='ativar_compartilhamento'),
+    # Recomendações com id na URL
+    path('api/recommendations/<str:track_id>/', views.recommendations_api, name='api_recommendations_with_id'),
 
-    # Rota pública para visualização de uma conversa.
-    path('compartilhar/<uuid:uuid_compartilhamento>/', views.visualizar_conversa_compartilhada, name='visualizar_conversa_compartilhada'),
+    # Álbum detalhe usado pelo template
+    path('api/album/<str:album_id>/', views.album_detail_api, name='api_album_detail_by_id'),
 
-    # --- NOVAS ROTAS PARA FUNCIONALIDADES AVANÇADAS ---
-    path('api/mensagem/<uuid:mensagem_id>/reacao/', views.adicionar_reacao, name='adicionar_reacao'),
-    path('api/mensagem/<uuid:mensagem_id>/sinalizar/', views.sinalizar_mensagem, name='sinalizar_mensagem'),
-    path('api/preferencias/', views.obter_preferencias_usuario, name='obter_preferencias'),
-    path('api/preferencias/atualizar/', views.atualizar_preferencias_usuario, name='atualizar_preferencias'),
-    path('api/conversa/<uuid:conversa_id>/metadata/', views.atualizar_conversa_metadata, name='atualizar_conversa_metadata'),
-    path('api/conversa/<uuid:conversa_id>/titulo/', views.atualizar_titulo_conversa, name='atualizar_titulo_conversa'),
-    path('api/conversa/<uuid:conversa_id>/analytics/', views.obter_analytics_conversa, name='obter_analytics_conversa'),
+    # ============================================================================
+    # PLAYLISTS — mantenha apenas rotas canônicas (plural)
+    # ============================================================================
+    # Observação: templates e testes foram atualizados para usar `/api/playlists/`.
+    # Remover rotas singulares legadas para reduzir superfície de rota.
+    # Manter rota para remoção por musica_id no formato plural.
+    path('api/playlists/<int:playlist_id>/remove/', views.remove_track_from_playlist, name='api_playlist_remove_track'),
+    # Compartilhamento por link (APIs)
+    path('api/playlists/<int:playlist_id>/share/toggle/', views.playlist_share_toggle_api, name='api_playlist_share_toggle'),
+    path('api/playlists/<int:playlist_id>/share/regenerate/', views.playlist_share_regenerate_api, name='api_playlist_share_regenerate'),
+    # ASAAS: cobrança PIX e webhook
+    path('api/payments/asaas/create-pix/', views.asaas_create_pix, name='api_asaas_create_pix'),
+    path('api/payments/asaas/status/', views.asaas_payment_status, name='api_asaas_payment_status'),
+    # accepts both with and without trailing slash since webhook providers sometimes omit it
+    path('webhook/asaas/', views.asaas_webhook, name='asaas_webhook'),
+    path('webhook/asaas', views.asaas_webhook),
 ]
 
-# Handlers para páginas de erro
-handler404 = 'chat.views.handler404'
-handler500 = 'chat.views.handler500'
+# URLs públicas (sem API)
+public_patterns = [
+    path('', views.buscar_musicas_html, name='home'),
+    path('buscar/', views.buscar_musicas_html, name='buscar'),
+    path('share/<uuid:share_uuid>/', views.shared_playlist_view, name='playlist-share'),
+    path('share/track/', views.shared_track_view, name='track-share'),
+    path('short/track/', views.shorten_track, name='short-track'),
+    path('t/<str:code>/', views.track_short_redirect, name='track-short'),
+]
+
+# Incluir rotas públicas no conjunto principal
+urlpatterns += public_patterns
