@@ -2850,6 +2850,11 @@ def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[st
         'extract_flat': False,
         'socket_timeout': REQUEST_TIMEOUT,
     }
+    # development proxy hardcoded (remove or set to '' to disable)
+    proxy_setting = 'http://127.0.0.1:8888'
+    if proxy_setting:
+        ydl_opts['proxy'] = proxy_setting
+        logger.debug('aplicando proxy para yt-dlp', extra={'proxy': proxy_setting})
 
     if is_prefetch:
         ydl_opts['extract_flat'] = True
