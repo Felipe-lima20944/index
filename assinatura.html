@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Assinatura Premium · Melodya</title>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="/static/icone.ico" type="image/x-icon">
+
+    <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        --bg-primary:      #070709;
+        --bg-secondary:    #0f0f12;
+        --bg-tertiary:     #0d0d0f;
+        --border-light:    rgba(255,255,255,0.05);
+        --border-med:      rgba(255,255,255,0.09);
+        --text-primary:    #f4f4f6;
+        --text-secondary:  #8b8b9a;
+        --text-muted:      #6b6b78;
+        --accent-orange:   #ff8a00;
+        --accent-dark:     #e67e00;
+        --success:         #00c864;
+        --warning:         #f5c518;
+        --danger:          #ff3c6e;
+    }
+
+    html { scroll-behavior: smooth; }
+    
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+        color: var(--text-primary);
+        min-height: 100vh;
+        overflow-x: hidden;
+        position: relative;
+    }
+
+    /* ─── Dynamic background effects ─── */
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: 
+            radial-gradient(circle at 20% 30%, rgba(255, 138, 0, 0.15) 0%, transparent 40%),
+            radial-gradient(circle at 80% 70%, rgba(255, 138, 0, 0.12) 0%, transparent 45%),
+            radial-gradient(circle at 40% 80%, rgba(255, 138, 0, 0.08) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+        animation: bgShift 15s ease-in-out infinite;
+    }
+
+    @keyframes bgShift {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(15px, -10px) scale(1.05); }
+    }
+
+    /* ─── Animated grid pattern ─── */
+    body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image: 
+            linear-gradient(0deg, transparent 24%, rgba(255,255,255,.05) 25%, rgba(255,255,255,.05) 26%, transparent 27%, transparent 74%, rgba(255,255,255,.05) 75%, rgba(255,255,255,.05) 76%, transparent 77%, transparent),
+            linear-gradient(90deg, transparent 24%, rgba(255,255,255,.05) 25%, rgba(255,255,255,.05) 26%, transparent 27%, transparent 74%, rgba(255,255,255,.05) 75%, rgba(255,255,255,.05) 76%, transparent 77%, transparent);
+        background-size: 60px 60px;
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.3;
+    }
+
+    .wrapper {
+        position: relative;
+        z-index: 1;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 60px 24px 100px;
+    }
+
+    /* ─── Page header with dramatic entry ─── */
+    .page-header {
+        margin-bottom: 60px;
+        animation: headerReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    @keyframes headerReveal {
+        from { opacity: 0; transform: translateY(30px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .logo-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, rgba(255, 138, 0, 0.2), rgba(255, 138, 0, 0.15));
+        border: 1px solid rgba(255, 138, 0, 0.4);
+        border-radius: 50px;
+        padding: 7px 16px;
+        font-family: 'Clash Display', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        color: #ff8a00;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .logo-badge:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, rgba(255, 138, 0, 0.3), rgba(255, 138, 0, 0.25));
+        border-color: rgba(255, 138, 0, 0.6);
+        box-shadow: 0 8px 32px rgba(255, 138, 0, 0.2);
+    }
+
+    .page-header h1 {
+        font-family: 'Clash Display', sans-serif;
+        font-size: clamp(36px, 7vw, 52px);
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, var(--text-primary) 0%, #ff8a00 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 16px;
+        animation: textShimmer 3s ease-in-out infinite;
+    }
+
+    @keyframes textShimmer {
+        0%, 100% { -webkit-text-fill-color: transparent; }
+        50% { filter: brightness(1.1); }
+    }
+
+    .page-header p {
+        font-size: 16px;
+        color: var(--text-secondary);
+        max-width: 480px;
+        line-height: 1.7;
+        font-weight: 400;
+    }
+
+    /* ─── Navigation back button ─── */
+    .btn-back {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        width: 44px;
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border-med);
+        border-radius: 12px;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 100;
+        text-decoration: none;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 138, 0, 0.2);
+        border-color: rgba(255, 138, 0, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(255, 138, 0, 0.15);
+    }
+
+    /* ─── Active subscription banner with pulse effect ─── */
+    .active-banner {
+        background: linear-gradient(135deg, #ff8a00, #ff6b00, #ff5000);
+        background-size: 300% 300%;
+        color: #fff;
+        padding: 18px 28px;
+        border-radius: 16px;
+        text-align: center;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 24px;
+        box-shadow: 0 20px 60px rgba(255, 138, 0, 0.25);
+        animation: gradientShift 6s ease infinite, bannerPulse 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    @keyframes bannerPulse {
+        from { opacity: 0; transform: translateY(-15px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ─── No plan banner ─── */
+    .no-plan-banner {
+        background: linear-gradient(135deg, rgba(255, 138, 0, 0.1), rgba(255, 138, 0, 0.06));
+        border: 1px solid var(--border-med);
+        border-radius: 20px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+        animation: slideInUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    @keyframes slideInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .no-plan-banner::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ff8a00' fill-opacity='0.03'%3E%3Cpath d='M0 60L60 0H30L0 30M60 60V30L30 60'/%3E%3C/g%3E%3C/svg%3E");
+        pointer-events: none;
+    }
+
+    .no-plan-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(255, 138, 0, 0.2), rgba(255, 138, 0, 0.12));
+        border: 1px solid rgba(255, 138, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: #ff8a00;
+        flex-shrink: 0;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .no-plan-text h3 {
+        font-family: 'Clash Display', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: var(--text-primary);
+    }
+
+    .no-plan-text p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .no-plan-arrow {
+        margin-left: auto;
+        flex-shrink: 0;
+        font-size: 20px;
+        color: #ff8a00;
+        animation: bounce-right 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce-right {
+        0%, 100% { transform: translateX(0); }
+        50% { transform: translateX(8px); }
+    }
+
+    /* ─── Pending subscription banner ─── */
+    .pending-subscription-banner {
+        position: relative;
+        border-radius: 24px;
+        overflow: hidden;
+        margin-bottom: 32px;
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(255, 152, 0, 0.05));
+        box-shadow: 0 16px 60px rgba(245, 158, 11, 0.12);
+        animation: bannerIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        backdrop-filter: blur(20px);
+    }
+
+    @keyframes bannerIn {
+        from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .pending-subscription-banner::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #f59e0b 30%, #ff8a00 70%, transparent);
+        animation: shimmer-line 2.5s ease-in-out infinite;
+    }
+
+    @keyframes shimmer-line {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+    }
+
+    .psb-inner {
+        position: relative;
+        z-index: 1;
+        padding: 28px;
+    }
+
+    .psb-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .psb-icon-wrap {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(255, 152, 0, 0.1));
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        position: relative;
+        animation: pulse-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+        50% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+    }
+
+    .psb-titles {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .psb-eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--warning);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .psb-eyebrow .live-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--warning);
+        animation: blink-dot 1.1s step-start infinite;
+    }
+
+    @keyframes blink-dot {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    .psb-headline {
+        font-family: 'Clash Display', sans-serif;
+        font-size: clamp(18px, 4vw, 24px);
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.2;
+        margin-bottom: 6px;
+    }
+
+    .psb-sub {
+        font-size: 14px;
+        color: rgba(255,255,255, 0.55);
+        line-height: 1.6;
+    }
+
+    .psb-badge {
+        flex-shrink: 0;
+        background: rgba(245, 158, 11, 0.15);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        border-radius: 100px;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--warning);
+        white-space: nowrap;
+        align-self: flex-start;
+    }
+
+    @media (max-width: 480px) {
+        .psb-badge { display: none; }
+    }
+
+    .psb-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.2), transparent);
+        margin: 20px 0;
+    }
+
+    .psb-pix-label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255,255,255, 0.35);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .psb-pix-label::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: rgba(245, 158, 11, 0.15);
+    }
+
+    .psb-pix-row {
+        display: grid;
+        grid-template-columns: 1fr 110px;
+        gap: 14px;
+        align-items: start;
+    }
+
+    @media (max-width: 480px) {
+        .psb-pix-row { grid-template-columns: 1fr; }
+        .psb-qr-box { width: 100%; height: 160px; }
+    }
+
+    .psb-pix-code {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-radius: 12px;
+        color: rgba(255,255,255, 0.8);
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        padding: 12px;
+        resize: none;
+        min-height: 90px;
+        line-height: 1.6;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .psb-pix-code:focus {
+        outline: none;
+        border-color: rgba(245, 158, 11, 0.5);
+        background: rgba(0, 0, 0, 0.5);
+        box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+    }
+
+    .psb-qr-box {
+        width: 110px;
+        height: 110px;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(245, 158, 11, 0.05));
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .psb-qr-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 10px;
+    }
+
+    .psb-qr-empty {
+        font-size: 12px;
+        color: rgba(255,255,255, 0.2);
+        text-align: center;
+        padding: 10px;
+    }
+
+    .psb-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+
+    .psb-copy-btn {
+        background: linear-gradient(135deg, #f59e0b, #ff8a00);
+        border: none;
+        border-radius: 10px;
+        color: #000;
+        font-family: 'Clash Display', sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 11px 20px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .psb-copy-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(245, 158, 11, 0.3);
+    }
+
+    .psb-copy-btn:active {
+        transform: scale(0.97);
+    }
+
+    .psb-confirm-btn {
+        position: relative;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.08));
+        border: 1px solid rgba(16, 185, 129, 0.35);
+        border-radius: 10px;
+        color: var(--success);
+        font-family: 'Clash Display', sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 11px 20px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        -webkit-tap-highlight-color: transparent;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .psb-confirm-btn:hover:not(:disabled) {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.15));
+        border-color: rgba(16, 185, 129, 0.6);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(16, 185, 129, 0.2);
+    }
+
+    .psb-confirm-btn:active:not(:disabled) {
+        transform: scale(0.97);
+    }
+
+    .psb-confirm-btn:disabled {
+        opacity: 0.5;
+        cursor: default;
+    }
+
+    .psb-confirm-spinner {
+        display: none;
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(16, 185, 129, 0.3);
+        border-top-color: var(--success);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        flex-shrink: 0;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .psb-confirm-btn.loading .psb-confirm-spinner {
+        display: block;
+    }
+
+    .psb-confirm-btn.loading .psb-confirm-label {
+        opacity: 0;
+    }
+
+    .psb-help {
+        margin-top: 16px;
+        font-size: 13px;
+        color: rgba(255,255,255, 0.35);
+        line-height: 1.65;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .psb-help i {
+        margin-top: 3px;
+        flex-shrink: 0;
+        color: rgba(245, 158, 11, 0.4);
+    }
+
+    /* ─── Plan card ─── */
+    .plan-card {
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+        border: 1px solid var(--border-med);
+        border-radius: 24px;
+        overflow: hidden;
+        position: relative;
+        animation: cardReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes cardReveal {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .plan-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #ff8a00, #ff6b00, #ff5000, #f4f4f6);
+        background-size: 200% 100%;
+        animation: gradientShift 4s ease infinite;
+    }
+
+    .plan-body {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        min-height: 100%;
+    }
+
+    .plan-info {
+        padding: 40px;
+        border-right: 1px solid var(--border-light);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .plan-action {
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 16px;
+    }
+
+    @media (max-width: 680px) {
+        .plan-body { grid-template-columns: 1fr; }
+        .plan-info { border-right: none; border-bottom: 1px solid var(--border-light); padding: 28px; }
+        .plan-action { padding: 28px; }
+    }
+
+    .plan-tag {
+        font-family: 'Clash Display', sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #ff8a00;
+        margin-bottom: 8px;
+    }
+
+    .plan-name {
+        font-family: 'Clash Display', sans-serif;
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        background: linear-gradient(135deg, var(--text-primary), #ff8a00);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .plan-price {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+        margin-bottom: 24px;
+    }
+
+    .plan-price .currency {
+        font-size: 18px;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .plan-price .amount {
+        font-family: 'Clash Display', sans-serif;
+        font-size: 48px;
+        font-weight: 800;
+        line-height: 1;
+        background: linear-gradient(135deg, #ff8a00, #ff6b00);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .plan-price .period {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .active-price {
+        font-size: 1.4rem;
+        color: var(--success);
+        margin-bottom: 24px !important;
+    }
+
+    .feature-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .feature-list li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+    .feature-list li .icon {
+        width: 20px;
+        height: 20px;
+        background: linear-gradient(135deg, rgba(255, 138, 0, 0.2), rgba(255, 138, 0, 0.12));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        color: #ff8a00;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+
+    .feature-list li:hover .icon {
+        transform: scale(1.15);
+        background: linear-gradient(135deg, rgba(255, 138, 0, 0.35), rgba(255, 138, 0, 0.25));
+    }
+
+    /* ─── Status pill ─── */
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 100px;
+        font-size: 13px;
+        font-weight: 600;
+        background: rgba(255,255,255, 0.06);
+        border: 1px solid var(--border-med);
+        color: var(--text-secondary);
+        width: fit-content;
+        transition: all 0.3s ease;
+    }
+
+    .status-pill .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--text-secondary);
+    }
+
+    .status-pill.active {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: var(--success);
+    }
+
+    .status-pill.active .dot {
+        background: var(--success);
+        box-shadow: 0 0 8px var(--success);
+        animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+        0%, 100% { box-shadow: 0 0 0 0 var(--success); }
+        50% { box-shadow: 0 0 12px 2px var(--success); }
+    }
+
+    .status-pill.pending {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.3);
+        color: var(--warning);
+    }
+
+    .status-pill.pending .dot {
+        background: var(--warning);
+        box-shadow: 0 0 8px var(--warning);
+        animation: pulse-dot-warn 1.1s step-start infinite;
+    }
+
+    @keyframes pulse-dot-warn {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+
+    .btn-subscribe {
+        width: 100%;
+        padding: 16px 24px;
+        background: linear-gradient(135deg, #ff8a00, #ff6b00);
+        border: none;
+        border-radius: 14px;
+        color: #fff;
+        font-family: 'Clash Display', sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        text-decoration: none;
+        box-shadow: 0 12px 40px rgba(255, 138, 0, 0.3);
+    }
+
+    .btn-subscribe::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255,255,255, 0.2) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    .btn-subscribe:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 16px 50px rgba(255, 138, 0, 0.4);
+    }
+
+    .btn-subscribe:active:not(:disabled) {
+        transform: scale(0.98);
+    }
+
+    .btn-subscribe:disabled {
+        opacity: 0.6;
+        cursor: default;
+    }
+
+    .btn-subscribe .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255, 0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        display: none;
+    }
+
+    .btn-subscribe.loading .spinner {
+        display: block;
+    }
+
+    .btn-subscribe.loading .btn-label {
+        opacity: 0;
+    }
+
+    .subscribe-footnote {
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.6;
+        text-align: center;
+        margin-top: 14px;
+    }
+
+    .active-plan-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        border-radius: 12px;
+        padding: 13px 16px;
+        font-size: 13px;
+        color: var(--success);
+        line-height: 1.5;
+    }
+
+    /* ─── Data card ─── */
+    .data-card {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-light);
+        border-radius: 18px;
+        overflow: hidden;
+        margin-top: 28px;
+        animation: cardReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+    }
+
+    /* ─── Subscription items ─── */
+    .sub-item {
+        padding: 18px 22px;
+        border-top: 1px solid var(--border-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 14px;
+        flex-wrap: wrap;
+        transition: all 0.3s ease;
+    }
+
+    .sub-item:first-child {
+        border-top: none;
+    }
+
+    .sub-item:hover {
+        background: rgba(124, 58, 237, 0.05);
+    }
+
+    .sub-item-name {
+        font-family: 'Clash Display', sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .sub-item-meta {
+        font-size: 12px;
+        color: var(--text-secondary);
+        line-height: 1.65;
+    }
+
+    .sub-item-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 11px;
+        border-radius: 100px;
+        font-size: 11px;
+        font-weight: 700;
+        background: rgba(255,255,255, 0.06);
+        color: var(--text-secondary);
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .status-badge.paid {
+        background: rgba(16, 185, 129, 0.12);
+        color: var(--success);
+    }
+
+    .status-badge.pending {
+        background: rgba(245, 158, 11, 0.12);
+        color: var(--warning);
+    }
+
+    .status-badge.failed {
+        background: rgba(239, 68, 68, 0.12);
+        color: var(--danger);
+    }
+
+    .id-chip {
+        font-family: 'Courier New', monospace;
+        font-size: 10px;
+        background: rgba(124, 58, 237, 0.1);
+        padding: 4px 9px;
+        border-radius: 6px;
+        color: var(--text-secondary);
+        word-break: break-all;
+        max-width: 160px;
+        text-align: right;
+        border: 1px solid rgba(124, 58, 237, 0.15);
+    }
+
+    /* ─── Plans grid ─── */
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 14px;
+        margin-bottom: 28px;
+    }
+
+    .plan-option {
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+        border: 1px solid var(--border-med);
+        border-radius: 14px;
+        padding: 14px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        animation: cardReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    .plan-option:hover {
+        border-color: #ff8a00;
+        background: linear-gradient(135deg, rgba(255, 138, 0, 0.1), rgba(255, 138, 0, 0.06));
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(255, 138, 0, 0.15);
+    }
+
+    .plan-option .po-name {
+        font-family: 'Clash Display', sans-serif;
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 7px;
+        color: var(--text-primary);
+    }
+
+    .plan-option .po-price {
+        font-size: 20px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ff8a00, #ff6b00);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 6px;
+    }
+
+    .plan-option .po-duration {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+    }
+
+    .plan-option .btn-select {
+        display: inline-block;
+        padding: 8px 12px;
+        border-radius: 9px;
+        border: 1px solid var(--border-med);
+        background: transparent;
+        color: var(--text-primary);
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .plan-option .btn-select:hover {
+        background: rgba(255, 138, 0, 0.2);
+        border-color: #ff8a00;
+        color: #ff8a00;
+    }
+
+    /* ─── CTA banner ─── */
+    .cta-banner {
+        background: linear-gradient(135deg, rgba(255, 138, 0, 0.08), rgba(255, 138, 0, 0.04));
+        border: 1px solid var(--border-med);
+        border-radius: 18px;
+        padding: 28px;
+        margin: 32px 0;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        justify-content: space-between;
+        animation: slideInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    .cta-title {
+        font-family: 'Clash Display', sans-serif;
+        font-weight: 800;
+        font-size: 20px;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+    }
+
+    .cta-sub {
+        color: var(--text-secondary);
+        font-size: 14px;
+        max-width: 600px;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+        .cta-banner { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* ─── Empty state ─── */
+    .empty-state {
+        padding: 40px 24px;
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    .empty-state i {
+        font-size: 32px;
+        display: block;
+        margin-bottom: 14px;
+        opacity: 0.4;
+    }
+
+    /* ─── Bottom CTA ─── */
+    .bottom-cta {
+        text-align: center;
+        padding: 28px 24px;
+        background: linear-gradient(135deg, rgba(255, 138, 0, 0.1), rgba(255, 138, 0, 0.06));
+        color: var(--text-primary);
+        font-size: 14px;
+        border-top: 1px solid var(--border-light);
+        line-height: 1.7;
+    }
+
+    /* ─── Responsive improvements ─── */
+    @media (max-width: 480px) {
+        .wrapper { padding: 48px 16px 80px; }
+        .page-header { margin-bottom: 40px; }
+        .psb-pix-row { grid-template-columns: 1fr; }
+        .psb-qr-box { width: 100%; height: 160px; }
+    }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+
+    <!-- Back button -->
+    <a href="{% url 'home' %}" class="btn-back" aria-label="Voltar">
+        <i class="fa fa-arrow-left" aria-hidden="true"></i>
+    </a>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="logo-badge">
+            <i class="fa fa-music"></i>
+            Melodya Premium
+        </div>
+        <h1>Sua Assinatura</h1>
+        {% if assinatura_ativa %}
+        <p>Você já possui o <strong>{{ assinatura_ativa.plano_id|default:'Plano Mensal Premium' }}</strong> ativo até <strong>{{ assinatura_ativa.periodo_termina_em|date:'d/m/Y' }}</strong>.</p>
+        {% else %}
+        <p>Acesso ilimitado a músicas, downloads e recursos exclusivos. Escolha o plano perfeito para você.</p>
+        {% endif %}
+    </div>
+
+    <!-- Active subscription banner -->
+    {% if assinatura_ativa %}
+    <div class="active-banner">
+        <i class="fa fa-check-circle"></i>
+        Assinatura ativa até <strong>{{ assinatura_ativa.periodo_termina_em|date:'d/m/Y' }}</strong>
+    </div>
+    {% endif %}
+
+    <!-- Pending payment banner -->
+    {% if has_pending_payment and pagamento_pendente %}
+    <div class="pending-subscription-banner" id="pending-banner">
+        <div class="psb-confirm-overlay" id="psb-overlay" style="display: none;">
+            <div class="psb-overlay-icon">
+                <i class="fa fa-rotate-right fa-spin" id="psb-overlay-icon-inner"></i>
+            </div>
+            <div class="psb-overlay-text" id="psb-overlay-text">Verificando pagamento…</div>
+            <div class="psb-overlay-sub" id="psb-overlay-sub">Aguarde um instante</div>
+        </div>
+
+        <div class="psb-inner">
+            <div class="psb-header">
+                <div class="psb-icon-wrap">⏳</div>
+                <div class="psb-titles">
+                    <div class="psb-eyebrow"><span class="live-dot"></span> Aguardando pagamento</div>
+                    <div class="psb-headline">Sua assinatura está quase lá!</div>
+                    <div class="psb-sub">O PIX foi gerado mas ainda não foi confirmado. Pague agora e o acesso Premium é liberado na hora.</div>
+                </div>
+                <div class="psb-badge">{{ SELECTED_PLAN_LABEL|default:PLAN_LABEL }}</div>
+            </div>
+
+            <div class="psb-divider"></div>
+
+            <div class="psb-pix-label">
+                <i class="fa fa-qrcode"></i>
+                Seu código PIX
+            </div>
+
+            <div class="psb-pix-row">
+                <textarea id="psb-pix-code" class="psb-pix-code" readonly placeholder="Código PIX copia e cola…">{{ pagamento_pendente.pix_qr_payload|default:'' }}</textarea>
+                <div class="psb-qr-box">
+                    {% if pagamento_pendente.pix_qr_image %}
+                        <img src="{{ pagamento_pendente.pix_qr_image }}" alt="QR Code PIX" />
+                    {% else %}
+                        <div class="psb-qr-empty">
+                            <i class="fa fa-qrcode" style="font-size:28px;display:block;margin-bottom:6px;opacity:.2;"></i>QR não<br>disponível
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="psb-actions">
+                <button class="psb-copy-btn" id="psb-copy-btn" onclick="copyPsbPix()">
+                    <i class="fa fa-copy"></i>Copiar código PIX
+                </button>
+                <button class="psb-confirm-btn" id="psb-confirm-btn" onclick="confirmPayment()">
+                    <span class="psb-confirm-spinner"></span>
+                    <span class="psb-confirm-label"><i class="fa fa-circle-check"></i> Já paguei — Confirmar</span>
+                </button>
+            </div>
+
+            <div class="psb-help">
+                <i class="fa fa-circle-info"></i>
+                <span>Abra seu app do banco → <strong>Pix</strong> → <strong>Pagar</strong> → cole o código ou escaneie o QR. Acesso liberado automaticamente.</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- CTA Banner -->
+    <div class="cta-banner">
+        <div>
+            <div class="cta-title">Escolha seu plano perfeito</div>
+            <div class="cta-sub">Selecione o plano que mais combina com você e ative seu acesso Premium agora — músicas ilimitadas, sem anúncios e recursos exclusivos.</div>
+        </div>
+    </div>
+
+    <!-- Plans Grid -->
+    {% if plans %}
+    <div id="plans" class="plans-grid">
+        {% for p in plans %}
+        <div class="plan-option">
+            <div class="po-name">{{ p.name }}</div>
+            <div class="po-price">R$ {{ p.price }}</div>
+            <div class="po-duration">{{ p.duration_days }} dias</div>
+            <a href="?plan={{ p.slug }}" class="btn-select">Selecionar</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Plan Card -->
+    {% if selected_plan or assinatura_ativa or has_pending_payment %}
+    <div class="plan-card">
+        <div class="plan-body">
+            <div class="plan-info">
+                {% if assinatura_ativa %}
+                    <div class="plan-tag" style="color:var(--success);">✓ Plano Ativo</div>
+                {% elif selected_plan %}
+                    <div class="plan-tag">Plano Selecionado</div>
+                {% else %}
+                    <div class="plan-tag">Plano Disponível</div>
+                {% endif %}
+                <div class="plan-name">{{ SELECTED_PLAN_NAME|default:PLAN_NAME }}</div>
+
+                {% if assinatura_ativa %}
+                    <div class="plan-price active-price">
+                        <strong>{{ assinatura_ativa.plano_id|default:PLAN_NAME }}</strong>
+                    </div>
+                {% else %}
+                    <div class="plan-price">
+                        <span class="currency">R$</span>
+                        <span class="amount">{{ SELECTED_PLAN_PRICE|default:PLAN_PRICE }}</span>
+                        <span class="period">/mês</span>
+                    </div>
+                {% endif %}
+
+                <ul class="feature-list">
+                    <li><span class="icon"><i class="fa fa-check"></i></span>Músicas ilimitadas</li>
+                    <li><span class="icon"><i class="fa fa-check"></i></span>Sem anúncios</li>
+                    <li><span class="icon"><i class="fa fa-check"></i></span>Suporte prioritário</li>
+                    <li><span class="icon"><i class="fa fa-check"></i></span>Novidades em primeira mão</li>
+                </ul>
+            </div>
+
+            <div class="plan-action">
+                {% if assinatura_ativa %}
+                    <div class="status-pill active">
+                        <span class="dot"></span>
+                        <span><strong>Status: Ativo</strong></span>
+                    </div>
+                    <div class="active-plan-info">
+                        <i class="fa fa-shield-halved"></i>
+                        <span>Seu acesso é válido até <strong>{{ assinatura_ativa.periodo_termina_em|date:'d/m/Y' }}</strong></span>
+                    </div>
+
+                    {% if pagamentos %}
+                    <div class="data-card">
+                        <div style="padding: 18px 22px; border-bottom: 1px solid var(--border-light);">
+                            <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">Histórico de pagamentos</div>
+                        </div>
+                        {% for p in pagamentos %}
+                        <div class="sub-item">
+                            <div>
+                                <div class="sub-item-name">{{ p.criado_em|date:'d/m/Y H:i' }}</div>
+                                <div class="sub-item-meta">
+                                    {{ p.method }} · R$ {{ p.amount }}
+                                    {% if p.pago_em %} · Pago em {{ p.pago_em|date:'d/m/Y' }}{% endif %}
+                                </div>
+                            </div>
+                            <div class="sub-item-right">
+                                <span class="status-badge {% if p.status == 'paid' %}paid{% elif p.status == 'pending' %}pending{% elif p.status == 'failed' %}failed{% endif %}">
+                                    {{ p.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                {% elif has_pending_payment %}
+                    <div class="status-pill pending">
+                        <span class="dot"></span>
+                        <span><strong id="status-strong">Pagamento Pendente</strong></span>
+                    </div>
+                    <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; padding: 13px 16px; font-size: 13px; color: var(--warning); display: flex; align-items: center; gap: 10px;">
+                        <i class="fa fa-clock"></i>
+                        <span>PIX gerado — aguardando confirmação do pagamento.</span>
+                    </div>
+                    
+                    <button class="btn-subscribe" style="width: 100%; justify-content: center;" onclick="confirmPayment()">
+                        <span class="spinner"></span>
+                        <span class="btn-label"><i class="fa fa-circle-check"></i> Já paguei — Confirmar</span>
+                    </button>
+
+                {% else %}
+                    <div class="status-pill">
+                        <span class="dot"></span>
+                        <span><strong>Sem plano ativo</strong></span>
+                    </div>
+                    <button id="assinatura-btn" class="btn-subscribe">
+                        <span class="spinner"></span>
+                        <span class="btn-label"><i class="fa fa-bolt"></i> Ativar por {{ SELECTED_PLAN_LABEL|default:PLAN_LABEL }}</span>
+                    </button>
+                    <p class="subscribe-footnote">Pagamento via PIX · Cancele quando quiser · Sem fidelidade</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div><!-- /wrapper -->
+
+<!-- Bottom CTA -->
+<div class="bottom-cta">
+    <p>Escolha seu plano para ficar por dentro de tudo na Melodya — mais músicas, menos limites e acesso premium instantâneo.</p>
+</div>
+
+<script>
+function copyPsbPix() {
+    const ta = document.getElementById('psb-pix-code');
+    if (!ta || !ta.value) return;
+    navigator.clipboard.writeText(ta.value).then(function() {
+        const btn = document.getElementById('psb-copy-btn');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fa fa-check"></i> Copiado!';
+        btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        setTimeout(function() { btn.innerHTML = orig; btn.style.background = ''; }, 2800);
+    }).catch(function() { alert('Não foi possível copiar.'); });
+}
+
+function confirmPayment() {
+    document.querySelectorAll('.psb-confirm-btn, .btn-subscribe').forEach(function(b) {
+        if (b.textContent.includes('paguei') || b.textContent.includes('Confirmar')) {
+            b.classList.add('loading');
+            b.disabled = true;
+        }
+    });
+    const overlay = document.getElementById('psb-overlay');
+    if (overlay) overlay.style.display = 'flex';
+    setTimeout(function() {
+        const icon = document.getElementById('psb-overlay-icon-inner');
+        const txt = document.getElementById('psb-overlay-text');
+        const sub = document.getElementById('psb-overlay-sub');
+        if (icon) { icon.className = 'fa fa-circle-check'; }
+        if (txt) { txt.textContent = 'Pagamento verificado!'; }
+        if (sub) { sub.textContent = 'Atualizando sua página'; }
+    }, 1000);
+    setTimeout(function() { window.location.reload(); }, 1800);
+}
+
+(function() {
+    function getCookie(name) {
+        const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+        return v ? v.pop() : '';
+    }
+
+    const btn = document.getElementById('assinatura-btn');
+
+    async function createPix() {
+        if (!btn) return;
+        btn.classList.add('loading');
+        btn.disabled = true;
+        try {
+            const payload = {
+                amount: '{{ SELECTED_PLAN_PRICE|default:PLAN_PRICE }}',
+                description: 'Assinatura {{ SELECTED_PLAN_LABEL|default:PLAN_LABEL }}'
+            };
+            {% if profile and profile.cpf_cnpj %}
+            payload.document = '{{ profile.cpf_cnpj }}';
+            {% endif %}
+
+            const resp = await fetch('/api/payments/asaas/create-pix/', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await resp.json();
+
+            if (!resp.ok) {
+                let msg = data.error || 'Erro ao criar cobrança';
+                if (data.message) msg += '\n' + data.message;
+                if (data.asaas_error) msg += '\n' + JSON.stringify(data.asaas_error);
+                alert(msg);
+                return;
+            }
+
+            window.location.reload();
+        } catch (e) {
+            console.error(e);
+            alert('Erro ao comunicar com o servidor.');
+        } finally {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+        }
+    }
+
+    if (btn) btn.addEventListener('click', createPix);
+})();
+</script>
+
+</body>
+</html>
