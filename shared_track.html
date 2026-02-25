@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compartilhando música · Melodya</title>
+    <link rel="icon" href="/static/icone.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --bg-primary: #070709;
+        --bg-secondary: #0f0f12;
+        --text-primary: #f4f4f6;
+        --text-secondary: #8b8b9a;
+        --accent-orange: #ff8a00;
+        --accent-dark: #e67e00;
+    }
+
+    html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    /* Background estático ou com pulso muito sutil */
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: 
+            radial-gradient(circle at 20% 30%, rgba(255, 138, 0, 0.12) 0%, transparent 40%),
+            radial-gradient(circle at 80% 70%, rgba(255, 138, 0, 0.08) 0%, transparent 45%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image: 
+            linear-gradient(0deg, transparent 24%, rgba(255,255,255,.04) 25%, rgba(255,255,255,.04) 26%, transparent 27%, transparent 74%, rgba(255,255,255,.04) 75%, rgba(255,255,255,.04) 76%, transparent 77%, transparent),
+            linear-gradient(90deg, transparent 24%, rgba(255,255,255,.04) 25%, rgba(255,255,255,.04) 26%, transparent 27%, transparent 74%, rgba(255,255,255,.04) 75%, rgba(255,255,255,.04) 76%, transparent 77%, transparent);
+        background-size: 80px 80px;
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.2;
+    }
+
+    .container {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+        max-width: 600px;
+        padding: 40px 24px;
+        /* Apenas animação de entrada */
+        animation: containerReveal 0.6s ease-out both;
+    }
+
+    @keyframes containerReveal {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Ícone Estático ─── */
+    .music-icon-wrapper {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+    }
+
+    .music-icon-circle {
+        position: absolute;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255, 138, 0, 0.1) 0%, transparent 70%);
+        border: 2px solid rgba(255, 138, 0, 0.3);
+        /* Removido: animação orbitSpin */
+    }
+
+    .music-icon-circle::before {
+        content: '';
+        position: absolute;
+        inset: 12px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(255, 138, 0, 0.4);
+        /* Removido: animação innerSpin */
+    }
+
+    .music-icon {
+        position: relative;
+        z-index: 2;
+        font-size: 52px;
+        color: var(--accent-orange);
+        text-shadow: 0 0 20px rgba(255, 138, 0, 0.3);
+        /* Removido: animação iconPulse */
+    }
+
+    /* ─── Conteúdo ─── */
+    .content {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .title {
+        font-family: 'Clash Display', sans-serif;
+        font-size: clamp(28px, 6vw, 42px);
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--text-primary);
+    }
+
+    .subtitle {
+        font-size: 16px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    /* Partículas estáticas ou removidas para evitar sensação de loading */
+    .particles {
+        display: none; /* Removido para foco total no logo estático */
+    }
+
+    @media (max-width: 480px) {
+        .container { gap: 24px; padding: 32px 20px; }
+        .music-icon-wrapper { width: 100px; height: 100px; }
+        .music-icon-circle { width: 100px; height: 100px; }
+        .title { font-size: 28px; }
+    }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="music-icon-wrapper">
+            <div class="music-icon-circle"></div>
+            <div class="music-icon">
+                <i class="fas fa-music"></i>
+            </div>
+        </div>
+
+        <div class="content">
+            <h1 class="title">Conectando ao Melodya</h1>
+            <p class="subtitle">Sincronizando sua conta para carregar a música compartilhada.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            try {
+                var t = {{ track|safe }};
+                if(t && t.id){
+                    localStorage.setItem('melodya_shared_track', JSON.stringify(t));
+                }
+            } catch(e){ 
+                console.error('share track store error', e); 
+            }
+            
+            // O redirecionamento continua, mas sem a ansiedade visual do "carregando"
+            setTimeout(function(){
+                window.location.href = '/';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
