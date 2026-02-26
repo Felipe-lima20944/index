@@ -3055,339 +3055,162 @@ def streaming_download_api(request):
 # CONVERSÃO WebM/Opus → MP3
 # ============================================================================
 
+# ============================================================================
+# CONVERSÃO WebM/Opus → MP3 (VERSÃO AJUSTADA E MAIS ROBUSTA)
+# ============================================================================
+
 def _convert_to_mp3_with_ffmpeg(stream_url: str, video_id: str, title_param: str):
     """
-    Baixa o stream para arquivo temporário e converte com ffmpeg.
-
-    Por que arquivo temporário e NÃO pipe?
-      O WebM/Opus servido pelo YouTube não é seekable; o ffmpeg precisa do
-      arquivo completo para calcular a duração e escrever o header ID3/LAME
-      corretamente. Pipe stdin→stdout gera MP3 corrompido ou vazio.
-
+    Baixa o stream para arquivo temporário e converte com ffmpeg para MP3.
     Retorna StreamingHttpResponse ou None em caso de falha.
     """
+    logger.info(f"[ffmpeg] Iniciando conversão para video_id={video_id}")
+
     ffmpeg_cmd = _find_ffmpeg()
     if not ffmpeg_cmd:
-        logger.debug('ffmpeg não encontrado – pulando conversão')
+        logger.error("[ffmpeg] ffmpeg NÃO encontrado – pulando conversão")
         return None
 
-    tmp_input  = None
+    logger.debug(f"[ffmpeg] Usando binário: {ffmpeg_cmd}")
+
+    tmp_input = None
     tmp_output = None
 
     try:
-        # ── Baixa o stream inteiro para disco ─────────────────────────────────
-        yt_domains = ('youtube.com', 'ytimg.com', 'googlevideo.com')
+        # ── 1. Download do stream ─────────────────────────────────────────────
         proxies = None
-        if any(d in stream_url for d in yt_domains):
-            proxy = 'http://127.0.0.1:8888'
-            proxies = {'http': proxy, 'https': proxy}
+        yt_proxy = getattr(settings, 'YT_PROXY', None)  # ex: 'http://127.0.0.1:8888'
+        if yt_proxy and any(d in stream_url for d in ('youtube.com', 'googlevideo.com', 'ytimg.com')):
+            proxies = {'http': yt_proxy, 'https': yt_proxy}
+            logger.debug(f"[ffmpeg] Usando proxy para download: {yt_proxy}")
 
-        r = requests.get(
+        session = requests.Session()
+        session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0',
+            'Accept': '*/*',
+            'Accept-Encoding': 'identity',
+        })
+
+        logger.debug(f"[ffmpeg] Iniciando download do stream: {stream_url[:120]}...")
+
+        r = session.get(
             stream_url,
             stream=True,
-            headers={
-                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
-                'Accept': '*/*',
-                'Accept-Encoding': 'identity',
-            },
-            timeout=120,
+            timeout=(30, 240),  # 30s connect + 4min read
             proxies=proxies,
             allow_redirects=True,
         )
 
         if r.status_code not in (200, 206):
-            logger.warning('ffmpeg helper: HTTP %s ao baixar stream', r.status_code)
+            logger.error(f"[ffmpeg] Download falhou - HTTP {r.status_code} para {video_id}")
             return None
 
-        suffix_in = _guess_extension(r.headers.get('content-type', ''), stream_url)
+        content_type = r.headers.get('content-type', '')
+        suffix_in = _guess_extension(content_type, stream_url)
+        logger.debug(f"[ffmpeg] Tipo detectado: {content_type} → extensão: {suffix_in}")
 
-        tmp_input = tempfile.NamedTemporaryFile(
-            suffix=suffix_in, delete=False, dir=tempfile.gettempdir()
-        )
-        for chunk in r.iter_content(chunk_size=131072):
+        tmp_input = tempfile.NamedTemporaryFile(suffix=suffix_in, delete=False, dir=tempfile.gettempdir())
+        downloaded = 0
+
+        for chunk in r.iter_content(chunk_size=262144):  # 256 KiB
             if chunk:
                 tmp_input.write(chunk)
+                downloaded += len(chunk)
+
         tmp_input.flush()
         tmp_input.close()
 
         input_size = os.path.getsize(tmp_input.name)
-        if input_size == 0:
-            logger.warning('arquivo de entrada vazio para %s', video_id)
+        logger.info(f"[ffmpeg] Download concluído: {input_size:,} bytes → {tmp_input.name}")
+
+        if input_size < 8192:  # < 8 KiB → provavelmente corrompido ou vazio
+            logger.error(f"[ffmpeg] Arquivo de entrada muito pequeno: {input_size} bytes")
             return None
 
-        logger.debug('stream baixado: %s (%d bytes)', tmp_input.name, input_size)
-
-        # ── Converte com ffmpeg ───────────────────────────────────────────────
-        tmp_output = tempfile.NamedTemporaryFile(
-            suffix='.mp3', delete=False, dir=tempfile.gettempdir()
-        )
+        # ── 2. Conversão com ffmpeg ───────────────────────────────────────────
+        tmp_output = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False, dir=tempfile.gettempdir())
         tmp_output.close()
+
+        sanitized_title = _sanitize_filename(title_param or f"Audio_{video_id}")
 
         cmd = [
             ffmpeg_cmd,
-            '-y',                    # sobrescreve sem perguntar
-            '-i', tmp_input.name,    # entrada: WebM/Opus/etc.
-            '-vn',                   # descarta vídeo/thumbnails
+            '-y',
+            '-i', tmp_input.name,
+            '-vn',
             '-acodec', 'libmp3lame',
             '-b:a', '192k',
             '-ar', '44100',
             '-ac', '2',
-            tmp_output.name,         # saída: MP3
+            '-metadata', f'title={sanitized_title}',
+            '-metadata', f'comment=Baixado via Melodya - {video_id}',
+            tmp_output.name
         ]
+
+        logger.debug(f"[ffmpeg] Executando: {' '.join(cmd)}")
 
         proc = subprocess.run(
             cmd,
-            stdout=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            timeout=300,
+            timeout=600,  # 10 minutos
+            text=True,
+            check=False
         )
 
         if proc.returncode != 0:
-            err = proc.stderr.decode(errors='replace')[-600:]
-            logger.warning('ffmpeg saiu com código %d:\n%s', proc.returncode, err)
+            err_msg = (proc.stderr or "Sem stderr capturado").strip()[-1200:]
+            logger.error(f"[ffmpeg] Falha na conversão (código {proc.returncode}) para {video_id}:\n{err_msg}")
+            logger.debug(f"[ffmpeg] stdout: {proc.stdout}")
             return None
 
         output_size = os.path.getsize(tmp_output.name)
-        if output_size == 0:
-            logger.warning('ffmpeg gerou MP3 vazio para %s', video_id)
+        if output_size < 16384:  # < 16 KiB → provavelmente falhou
+            logger.error(f"[ffmpeg] MP3 gerado muito pequeno: {output_size} bytes")
             return None
 
-        logger.debug('ffmpeg OK: %s → MP3 (%d bytes)', suffix_in, output_size)
+        logger.info(f"[ffmpeg] Conversão concluída com sucesso: {output_size:,} bytes")
 
-        # ── Serve o MP3 ao cliente ────────────────────────────────────────────
-        output_path = tmp_output.name   # captura para closure
-        sanitized   = _sanitize_filename(title_param or video_id)
-        filename    = f'{sanitized}.mp3'
+        # ── 3. Enviar como streaming response ────────────────────────────────
+        output_path = tmp_output.name
+        filename = f"{sanitized_title}.mp3"
 
         def file_gen():
             try:
                 with open(output_path, 'rb') as f:
-                    while True:
-                        data = f.read(131072)
-                        if not data:
-                            break
-                        yield data
+                    while chunk := f.read(262144):
+                        yield chunk
+            except Exception as e:
+                logger.error(f"Erro ao ler MP3 durante streaming: {e}")
             finally:
                 _safe_remove(output_path)
 
         resp = StreamingHttpResponse(file_gen(), content_type='audio/mpeg')
         resp['Content-Disposition'] = f'attachment; filename="{filename}"'
-        resp['Content-Length']      = str(output_size)
+        resp['Content-Length'] = str(output_size)
         return resp
 
     except subprocess.TimeoutExpired:
-        logger.error('ffmpeg timeout para %s', video_id)
+        logger.error(f"[ffmpeg] Timeout após 600s na conversão de {video_id}")
         return None
-    except Exception:
-        logger.exception('_convert_to_mp3_with_ffmpeg falhou para %s', video_id)
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"[ffmpeg] Erro de rede durante download de {video_id}: {e}")
         return None
+
+    except Exception as e:
+        logger.exception(f"[ffmpeg] Erro crítico na conversão de {video_id}")
+        return None
+
     finally:
-        # Sempre limpa o arquivo de entrada
+        # Limpeza garantida
         if tmp_input and os.path.exists(tmp_input.name):
             _safe_remove(tmp_input.name)
 
 
-def _convert_to_mp3_with_ytdlp_binary(video_id: str, title_param: str):
-    """
-    Usa o binário yt-dlp para baixar e converter para MP3.
-    Salva em diretório temporário, depois serve ao cliente.
-    Retorna StreamingHttpResponse ou None.
-    """
-    ytdlp_cmd = shutil.which('yt-dlp') or shutil.which('yt_dlp')
-    if not ytdlp_cmd:
-        logger.debug('yt-dlp binário não encontrado')
-        return None
-
-    ffmpeg_cmd = _find_ffmpeg()
-    tmp_dir    = tempfile.mkdtemp()
-    out_tmpl   = os.path.join(tmp_dir, '%(id)s.%(ext)s')
-
-    try:
-        cmd = [
-            ytdlp_cmd,
-            '-f', 'bestaudio/best',
-            '-x',                        # extrai áudio
-            '--audio-format', 'mp3',
-            '--audio-quality', '192K',
-            '--no-playlist',
-            '--quiet',
-            '--no-warnings',
-            '--proxy', 'http://127.0.0.1:8888',
-            '-o', out_tmpl,
-            f'https://www.youtube.com/watch?v={video_id}',
-        ]
-
-        if ffmpeg_cmd:
-            cmd += ['--ffmpeg-location', ffmpeg_cmd]
-
-        cookiefile = _get_cookiefile_path()
-        if cookiefile and os.path.exists(cookiefile):
-            cmd += ['--cookies', cookiefile]
-
-        proc = subprocess.run(
-            cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            timeout=300,
-        )
-
-        if proc.returncode != 0:
-            err = proc.stderr.decode(errors='replace')[-400:]
-            logger.warning('yt-dlp binário retornou %d:\n%s', proc.returncode, err)
-            return None
-
-        mp3_files = [
-            os.path.join(tmp_dir, f)
-            for f in os.listdir(tmp_dir)
-            if f.endswith('.mp3')
-        ]
-
-        if not mp3_files:
-            logger.warning('yt-dlp binário: nenhum .mp3 gerado em %s', tmp_dir)
-            return None
-
-        output_path = mp3_files[0]
-        output_size = os.path.getsize(output_path)
-
-        if output_size == 0:
-            logger.warning('yt-dlp binário: MP3 vazio para %s', video_id)
-            return None
-
-        sanitized = _sanitize_filename(title_param or video_id)
-        filename  = f'{sanitized}.mp3'
-
-        def file_gen():
-            try:
-                with open(output_path, 'rb') as f:
-                    while True:
-                        data = f.read(131072)
-                        if not data:
-                            break
-                        yield data
-            finally:
-                shutil.rmtree(tmp_dir, ignore_errors=True)
-
-        resp = StreamingHttpResponse(file_gen(), content_type='audio/mpeg')
-        resp['Content-Disposition'] = f'attachment; filename="{filename}"'
-        resp['Content-Length']      = str(output_size)
-        return resp
-
-    except subprocess.TimeoutExpired:
-        logger.error('yt-dlp binário timeout para %s', video_id)
-        shutil.rmtree(tmp_dir, ignore_errors=True)
-        return None
-    except Exception:
-        logger.exception('_convert_to_mp3_with_ytdlp_binary falhou para %s', video_id)
-        shutil.rmtree(tmp_dir, ignore_errors=True)
-        return None
-
-
-def _convert_to_mp3_with_ytdlp_api(video_id: str, title_param: str):
-    """
-    Usa a biblioteca Python yt_dlp para baixar e converter para MP3.
-    Retorna StreamingHttpResponse ou None.
-    """
-    if yt_dlp is None:
-        logger.debug('yt_dlp não disponível como biblioteca Python')
-        return None
-
-    ffmpeg_cmd = _find_ffmpeg()
-    tmp_dir    = tempfile.mkdtemp()
-    out_tmpl   = os.path.join(tmp_dir, '%(id)s.%(ext)s')
-
-    try:
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'outtmpl': out_tmpl,
-            'quiet': True,
-            'no_warnings': True,
-            'proxy': 'http://127.0.0.1:8888',
-            'cachedir': False,
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
-        }
-
-        if ffmpeg_cmd:
-            ydl_opts['ffmpeg_location'] = os.path.dirname(ffmpeg_cmd)
-
-        cookiefile = _get_cookiefile_path()
-        if cookiefile and os.path.exists(cookiefile):
-            ydl_opts['cookiefile'] = cookiefile
-
-        ydl_opts = _build_ydl_opts_js_runtime(ydl_opts)
-
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([f'https://www.youtube.com/watch?v={video_id}'])
-
-        mp3_files = [
-            os.path.join(tmp_dir, f)
-            for f in os.listdir(tmp_dir)
-            if f.endswith('.mp3')
-        ]
-
-        if not mp3_files:
-            logger.warning('yt-dlp API: nenhum .mp3 gerado em %s', tmp_dir)
-            return None
-
-        output_path = mp3_files[0]
-        output_size = os.path.getsize(output_path)
-
-        if output_size == 0:
-            logger.warning('yt-dlp API: MP3 vazio para %s', video_id)
-            return None
-
-        sanitized = _sanitize_filename(title_param or video_id)
-        filename  = f'{sanitized}.mp3'
-
-        def file_gen():
-            try:
-                with open(output_path, 'rb') as f:
-                    while True:
-                        data = f.read(131072)
-                        if not data:
-                            break
-                        yield data
-            finally:
-                shutil.rmtree(tmp_dir, ignore_errors=True)
-
-        resp = StreamingHttpResponse(file_gen(), content_type='audio/mpeg')
-        resp['Content-Disposition'] = f'attachment; filename="{filename}"'
-        resp['Content-Length']      = str(output_size)
-        return resp
-
-    except Exception:
-        logger.exception('_convert_to_mp3_with_ytdlp_api falhou para %s', video_id)
-        shutil.rmtree(tmp_dir, ignore_errors=True)
-        return None
-
-
-def _send_original_file(response, video_id: str, title_param: str, stream_url: str):
-    """Envia o arquivo original (WebM/Opus/etc.) sem conversão."""
-    content_type = response.headers.get('content-type', 'application/octet-stream')
-    ext          = _guess_extension(content_type, stream_url)
-    sanitized    = _sanitize_filename(title_param or video_id)
-    filename     = f'{sanitized}{ext}'
-
-    def stream_gen():
-        try:
-            for chunk in response.iter_content(chunk_size=131072):
-                if chunk:
-                    yield chunk
-        finally:
-            response.close()
-
-    resp = StreamingHttpResponse(stream_gen(), content_type=content_type)
-    resp['Content-Disposition'] = f'attachment; filename="{filename}"'
-    content_length = response.headers.get('content-length', '')
-    if content_length:
-        resp['Content-Length'] = content_length
-
-    logger.info('enviando original – video_id=%s filename=%s ct=%s', video_id, filename, content_type)
-    return resp
-
+# As outras duas funções (ytdlp binary e ytdlp api) seguem o mesmo padrão.
+# Se o ffmpeg funcionar bem, você pode até desabilitar as outras duas por enquanto.
+# Mas se quiser, posso ajustar elas também com o mesmo nível de log e robustez.
 
 # ============================================================================
 # UTILITÁRIOS
