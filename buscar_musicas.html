@@ -273,6 +273,17 @@
         }
 
         /* search bar queue button */
+        @keyframes pulse-minimal {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255,138,0,0);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 6px rgba(255,138,0,0.3);
+            }
+        }
+
         .queue-btn {
             background: var(--accent-2);
             color: white;
@@ -285,6 +296,8 @@
             border: none;
             cursor: pointer;
             transition: background 0.2s;
+            /* subtle continuous pulse to draw attention without overwhelming */
+            animation: pulse-minimal 2.5s ease-in-out infinite;
         }
         .queue-btn i {
             color: #ff8a00; /* orange neon */
@@ -295,6 +308,10 @@
         }
         .queue-btn:active {
             transform: scale(0.95);
+        }
+        /* when the queue is open we can damp the pulse so it isn't distracting */
+        .queue-btn.open {
+            animation: none;
         }
 
         /* Swipe to Delete */
@@ -964,9 +981,10 @@
                     <i class="fa-solid fa-list"></i>
                     <span style="font-size:0.7rem;">Fila</span>
                 </button>
-                <button class="btn-icon" style="flex-direction:column; gap:4px; height:auto;" @click="downloadCurrentTrack()">
-                    <i class="fa-solid fa-download"></i>
-                    <span style="font-size:0.7rem;">Download</span>
+                <!-- apenas download em MP3 -->
+                <button class="btn-icon" style="flex-direction:column; gap:4px; height:auto;" @click="downloadCurrentTrack('mp3')">
+                    <i class="fa-solid fa-music"></i>
+                    <span style="font-size:0.7rem;">MP3</span>
                 </button>
             </div>
         </div>
@@ -998,7 +1016,7 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <button class="btn-icon queue-btn" @click="queueDrawerActive = !queueDrawerActive" title="Fila de músicas">
+            <button class="btn-icon queue-btn" :class="{ open: queueDrawerActive }" @click="queueDrawerActive = !queueDrawerActive" title="Fila de músicas" aria-expanded="false" :aria-expanded="queueDrawerActive">
                 <i class="fa-solid fa-music"></i>
             </button>
         </header>
@@ -2107,7 +2125,7 @@
             hasQuery:      !!new URLSearchParams(window.location.search).get('q'),
             loading:       false,
             downloading:   false,
-            async downloadCurrentTrack() {
+            async downloadCurrentTrack(format = null) {
                 if (!IS_AUTHENTICATED) {
                     this.showNotification('Faça login para baixar músicas', 'error');
                     return;
@@ -2125,7 +2143,10 @@
                 const rawTitle = this.trackDetail?.title || this.currentTrack.title || this.currentTrack.titulo || this.currentTrack.nome || vid;
                 console.debug('download title raw', rawTitle);
                 const safeTitle = encodeURIComponent(rawTitle).replace(/%20/g,'_');
-                const dlUrl = '/api/streaming-download/?video_id=' + encodeURIComponent(vid) + '&title=' + safeTitle;
+                let dlUrl = '/api/streaming-download/?video_id=' + encodeURIComponent(vid) + '&title=' + safeTitle;
+                if (format === 'mp3') {
+                    dlUrl += '&format=mp3';
+                }
                 // if page navigates, overlay stays visible via beforeunload handler
                 window.location.href = dlUrl;
                 // keep overlay state; it will be cleared automatically if user returns or JS runs again
