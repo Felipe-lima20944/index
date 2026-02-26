@@ -1257,13 +1257,13 @@
                         <i class="fa-solid fa-music"></i> Fila ativa — <span x-text="activeGenre?.name"></span>
                     </div>
                     <div class="music-list">
-                        <template x-for="(track, i) in genreResults.songs.slice(0,12)" :key="'gr-' + (track.id ? String(track.id) : i)">
+                        <template x-for="(track, i) in genreResults.songs" :key="'gr-' + (track.id ? String(track.id) : i)">
                             <div class="list-item" :class="{'now-playing': currentTrack?.id === track.id}"
                                  @click="selectTrack(track, i, genreResults.songs, 'genre')" style="position:relative;">
-                                <div class="list-thumb"><img :src="track.thumb" loading="lazy" alt=""></div>
+                                <div class="list-thumb"><img :src="track.thumb || track.capa || track.thumbnail || '/static/classicacapa.jpg'" loading="lazy" alt=""></div>
                                 <div class="list-info">
-                                    <div class="list-title" x-text="track.title"></div>
-                                    <div class="list-artist" x-text="track.artist"></div>
+                                    <div class="list-title" x-text="track.title || track.titulo"></div>
+                                    <div class="list-artist" x-text="track.artist || track.artista"></div>
                                 </div>
                                 <div class="list-actions">
                                     <button class="ripple-host" @click.stop="selectTrack(track, i, genreResults.songs, 'genre'); addRipple($event)">
@@ -1302,7 +1302,7 @@
                             <h2 class="section-title">Álbuns</h2>
                         </div>
                         <div class="album-row">
-                            <template x-for="(album, i) in searchResults.albums.slice(0,6)" :key="'alb-' + (album.id || album.browseId || i)">
+                            <template x-for="(album, i) in searchResults.albums" :key="'alb-' + (album.id || album.browseId || i)">
                                 <div class="card-music" @click="openAlbum(album.id || album.browseId, album.title, album.thumb, album.track_count)">
                                     <img :src="album.thumb" loading="lazy">
                                     <div class="play-btn-float"
@@ -1349,7 +1349,7 @@
                     </template>
 
                     <template x-if="searchResults.songs?.length">
-                        <template x-for="(track, i) in searchResults.songs.slice(0,20)" :key="'sr-' + (track.id ? String(track.id) : i)">
+                        <template x-for="(track, i) in searchResults.songs" :key="'sr-' + (track.id ? String(track.id) : i)">
                             <div class="list-item" :class="{'now-playing': currentTrack?.id === track.id}"
                                  @click="selectTrack(track, i, searchResults.songs, 'search')">
                                 <div class="list-thumb"><img :src="track.thumb" loading="lazy" alt=""></div>
@@ -2098,13 +2098,16 @@
         const rawId = t.id != null ? t.id : null;
         const canonicalId = ytId || (rawId != null ? String(rawId) : null);
         if (!canonicalId) return null;
+        const baseAudio = t.audio_url || t.stream_url || '';
+        const fallbackAudio = ytId ? '/api/streaming-url/?video_id=' + encodeURIComponent(ytId) : '';
+        const finalAudio = baseAudio || fallbackAudio;
         return {
             id:         canonicalId,
             youtube_id: ytId || '',
             title:      t.title || t.titulo || t.nome || t.name || 'Sem título',
             artist:     resolveArtist(t),
             thumb:      t.thumb || t.thumbnail || t.capa || '',
-            audio_url:  t.audio_url || t.stream_url || '',
+            audio_url:  finalAudio,
             arquivo:    t.arquivo || '',
             album:      (typeof t.album === 'string' ? t.album : '') || '',
             albumId:    t.album_browseId || t.albumId || t.album_id || t.browseId || '',
@@ -2117,18 +2120,18 @@
     };
 
     const GENEROS = [
-        { slug:'pop',        name:'Pop',        emoji:'✨', gradient:'linear-gradient(135deg,#ec4899,#f97316)', image: '{% static "popcapa.jpg" %}' },
-        { slug:'rock',       name:'Rock',       emoji:'🎸', gradient:'linear-gradient(135deg,#1f2937,#dc2626)', image: '{% static "rock_capa.jpg" %}' },
-        { slug:'sertanejo',  name:'Sertanejo',  emoji:'🤠', gradient:'linear-gradient(135deg,#d97706,#b45309)', image: '{% static "sertanejocapa.jpg" %}' },
-        { slug:'funk',       name:'Funk',       emoji:'🔥', gradient:'linear-gradient(135deg,#16a34a,#15803d)', image: '{% static "funkcapa.jpg" %}' },
-        { slug:'jazz',       name:'Jazz',       emoji:'🎷', gradient:'linear-gradient(135deg,#1d4ed8,#1e3a8a)', image: '{% static "jazzcapa.jpg" %}' },
-        { slug:'eletrônico', name:'Eletrônico', emoji:'⚡', gradient:'linear-gradient(135deg,#0ea5e9,#7c3aed)', image: '{% static "eletrocapa.jpg" %}' },
-        { slug:'r&b',        name:'R&B / Soul', emoji:'🎤', gradient:'linear-gradient(135deg,#7c3aed,#db2777)', image: '{% static "rbcapa.jpg" %}' },
-        { slug:'pagode',     name:'Pagode',     emoji:'🥁', gradient:'linear-gradient(135deg,#ea580c,#c2410c)', image: '{% static "pagode.jpg" %}' },
-        { slug:'hip-hop',    name:'Hip-Hop',    emoji:'🎧', gradient:'linear-gradient(135deg,#374151,#111827)', image: '{% static "hiphop.jpg" %}' },
-        { slug:'mpb',        name:'MPB',        emoji:'🌿', gradient:'linear-gradient(135deg,#059669,#047857)', image: '{% static "mpb.jpg" %}' },
-        { slug:'clássico',   name:'Clássico',   emoji:'🎻', gradient:'linear-gradient(135deg,#92400e,#78350f)', image: '{% static "classicacapa.jpg" %}' },
-        { slug:'gospel',     name:'Gospel',     emoji:'🙏', gradient:'linear-gradient(135deg,#6d28d9,#4c1d95)', image: '{% static "gospel.jpg" %}' },
+        { slug:'pop',        name:'Pop',        emoji:'✨', gradient:'linear-gradient(135deg,#ec4899,#f97316)', image: '{% static "popcapa.jpg" %}',       json_url: '{% static "genres/pop.json" %}' },
+        { slug:'rock',       name:'Rock',       emoji:'🎸', gradient:'linear-gradient(135deg,#1f2937,#dc2626)', image: '{% static "rock_capa.jpg" %}',       json_url: '{% static "genres/rock.json" %}' },
+        { slug:'sertanejo',  name:'Sertanejo',  emoji:'🤠', gradient:'linear-gradient(135deg,#d97706,#b45309)', image: '{% static "sertanejocapa.jpg" %}',   json_url: '{% static "genres/sertanejo.json" %}' },
+        { slug:'funk',       name:'Funk',       emoji:'🔥', gradient:'linear-gradient(135deg,#16a34a,#15803d)', image: '{% static "funkcapa.jpg" %}',         json_url: '{% static "genres/funk.json" %}' },
+        { slug:'jazz',       name:'Jazz',       emoji:'🎷', gradient:'linear-gradient(135deg,#1d4ed8,#1e3a8a)', image: '{% static "jazzcapa.jpg" %}',         json_url: '{% static "genres/jazz.json" %}' },
+        { slug:'eletrônico', name:'Eletrônico', emoji:'⚡', gradient:'linear-gradient(135deg,#0ea5e9,#7c3aed)', image: '{% static "eletrocapa.jpg" %}',       json_url: '{% static "genres/eletronico.json" %}' },
+        { slug:'r&b',        name:'R&B / Soul', emoji:'🎤', gradient:'linear-gradient(135deg,#7c3aed,#db2777)', image: '{% static "rbcapa.jpg" %}',           json_url: '{% static "genres/rb.json" %}' },
+        { slug:'pagode',     name:'Pagode',     emoji:'🥁', gradient:'linear-gradient(135deg,#ea580c,#c2410c)', image: '{% static "pagode.jpg" %}',           json_url: '{% static "genres/pagode.json" %}' },
+        { slug:'hip-hop',    name:'Hip-Hop',    emoji:'🎧', gradient:'linear-gradient(135deg,#374151,#111827)', image: '{% static "hiphop.jpg" %}',           json_url: '{% static "genres/hip-hop.json" %}' },
+        { slug:'mpb',        name:'MPB',        emoji:'🌿', gradient:'linear-gradient(135deg,#059669,#047857)', image: '{% static "mpb.jpg" %}',             json_url: '{% static "genres/mpb.json" %}' },
+        { slug:'clássico',   name:'Clássico',   emoji:'🎻', gradient:'linear-gradient(135deg,#92400e,#78350f)', image: '{% static "classicacapa.jpg" %}',    json_url: '{% static "genres/classico.json" %}' },
+        { slug:'gospel',     name:'Gospel',     emoji:'🙏', gradient:'linear-gradient(135deg,#6d28d9,#4c1d95)', image: '{% static "gospel.jpg" %}',          json_url: '{% static "genres/gospel.json" %}' },
     ];
 
     // ═══════════════════════════════════════════════════════════════
@@ -2598,54 +2601,6 @@
                 }
             },
 
-            // ─── EXPLORAR ──────────────────────────────────────────────
-            async loadExplorar(force = false) {
-                if (!force && this.explorarTracks && this.explorarTracks.length) {
-                    this.explorarLoading = false;
-                    return;
-                }
-                if (this.explorarLoading && this.explorarTracks.length > 0) return;
-                this.explorarLoading = true;
-                const cached = AppCache.get('explorar', 'top-brasil');
-                if (cached) {
-                    const seen = new Set();
-                    this.explorarTracks = (cached.songs || [])
-                        .map(t => normalizeTrack(t))
-                        .filter(t => { if (!t || !t.id || seen.has(t.id)) return false; seen.add(t.id); return true; })
-                        .slice(0, 8);
-                }
-                this.explorarLoading = false;
-            },
-
-            async loadExplorarFeatured() {
-                if (!this.explorarTracks.length) return;
-                const shuffled = [...this.explorarTracks].sort(() => Math.random() - 0.5);
-                this.currentQueue = shuffled;
-                this.currentQueueType = 'explorar';
-                this.currentQueueIndex = 0;
-                await this.selectTrack(shuffled[0], 0, shuffled, 'explorar');
-            },
-
-            async exploreGenre(genre) {
-                this.activeGenre = genre;
-                const cached = AppCache.get('genre', genre.slug);
-                if (cached) { this.genreResults = cached; }
-                else { this.genreResults = {}; }
-                this.loading = true;
-                try {
-                    const { data } = await cachedFetch(
-                        '/api/search/?q=' + encodeURIComponent(genre.slug),
-                        'genre', genre.slug
-                    );
-                    this.genreResults = data;
-                } catch(e) {
-                    if (!cached) this.showNotification('Erro ao carregar gênero', 'error');
-                } finally {
-                    this.loading = false;
-                }
-                setTimeout(() => { document.getElementById('mainScroll')?.scrollTo({ top: 9999, behavior: 'smooth' }); }, 200);
-            },
-
             // ─── SELECT / PLAY ─────────────────────────────────────────
             async selectTrack(track, index = null, sourceList = null, queueType = 'single') {
                 if (!this.hasActivePlan) {
@@ -2693,7 +2648,6 @@
                 this._savePlayerState();
             },
 
-            // ─── ÁUDIO COM CACHE DE STREAMING URL ─────────────────────
             async _playSrc(track) {
                 if (this.audio && !this.audio.paused) {
                     try { this.audio.pause(); } catch(e) { /* ignore */ }
@@ -2713,7 +2667,6 @@
                                 const d = await r.json();
                                 if (d?.stream_url) { src = d.stream_url; AppCache.set('streaming', au, src); }
                             } catch(e) { console.warn('_playSrc audio_url fetch:', e); }
-                            finally { this.hideNotification(); }
                         }
                     }
                 }
@@ -2721,37 +2674,165 @@
                     const vid = track.youtube_id ||
                         (track.id && /^[A-Za-z0-9_-]{11}$/.test(String(track.id)) ? String(track.id) : null);
                     if (vid) {
-                        const cachedUrl = AppCache.get('streaming', vid);
-                        if (cachedUrl) {
-                            src = cachedUrl;
-                        } else {
+                        const fetchUrl = '/api/streaming-url/?video_id=' + encodeURIComponent(vid);
+                        const cached2 = AppCache.get('streaming', fetchUrl);
+                        if (cached2) { src = cached2; }
+                        else {
                             try {
-                                this.showNotification('Carregando…', 'info');
-                                const r = await fetch('/api/streaming-url/?video_id=' + encodeURIComponent(vid));
-                                const d = await r.json();
-                                if (d?.stream_url) { src = d.stream_url; AppCache.set('streaming', vid, src); }
-                                else { console.warn('_playSrc: sem stream_url para', vid, d); }
+                                const r2 = await fetch(fetchUrl);
+                                const d2 = await r2.json();
+                                if (d2?.stream_url) { src = d2.stream_url; AppCache.set('streaming', fetchUrl, src); }
                             } catch(e) { console.warn('_playSrc streaming fetch:', e); }
-                            finally { this.hideNotification(); }
                         }
-                    } else { console.warn('_playSrc: sem video_id válido para', track); }
+                    }
                 }
-                if (!src) { this.showNotification('Áudio não disponível para esta faixa', 'error'); return false; }
-                this.audio.src = src;
+                if (!src) {
+                    console.warn('_playSrc: no source for track', track);
+                    return false;
+                }
                 try {
+                    this.audio.src = src;
                     await this.audio.play();
                     this.isPlaying = true;
                     return true;
                 } catch(e) {
-                    if (e.name === 'AbortError') {
-                        console.warn('_playSrc play() aborted:', e);
-                    } else {
-                        console.error('_playSrc play() error:', e);
-                    }
+                    console.warn('_playSrc play() aborted:', e);
                     this.isPlaying = false;
                     return false;
                 }
             },
+
+            // ─── EXPLORAR ──────────────────────────────────────────────
+            async loadExplorar(force = false) {
+                if (!force && this.explorarTracks && this.explorarTracks.length) {
+                    this.explorarLoading = false;
+                    return;
+                }
+                if (this.explorarLoading && this.explorarTracks.length > 0) return;
+                this.explorarLoading = true;
+                const cached = AppCache.get('explorar', 'top-brasil');
+                if (cached) {
+                    const seen = new Set();
+                    this.explorarTracks = (cached.songs || [])
+                        .map(t => normalizeTrack(t))
+                        .filter(t => { if (!t || !t.id || seen.has(t.id)) return false; seen.add(t.id); return true; });
+                }
+                this.explorarLoading = false;
+            },
+
+            async loadExplorarFeatured() {
+                if (!this.explorarTracks.length) return;
+                const shuffled = [...this.explorarTracks].sort(() => Math.random() - 0.5);
+                this.currentQueue = shuffled;
+                this.currentQueueType = 'explorar';
+                this.currentQueueIndex = 0;
+                await this.selectTrack(shuffled[0], 0, shuffled, 'explorar');
+            },
+
+            async exploreGenre(genre) {
+    this.activeGenre = genre;
+    this.genreResults = {};
+    this.loading = true;
+
+    // ── Verificar cache ────────────────────────────────────────────
+    let cached = AppCache.get('genre', genre.slug);
+
+    // Migrar cache antigo (objeto artista->tracks) para o novo formato
+    if (cached && typeof cached === 'object' && !cached.songs) {
+        const songs = Object.values(cached)
+            .flat()
+            .map(t => normalizeTrack(t))
+            .filter(Boolean);
+        cached = { songs };
+        AppCache.set('genre', genre.slug, cached);
+    }
+
+    // Sempre renormalizar songs do cache (garante thumb/title corretos)
+    if (cached && Array.isArray(cached.songs) && cached.songs.length) {
+        cached.songs = cached.songs.map(t => normalizeTrack(t)).filter(Boolean);
+        this.genreResults = cached;
+    }
+
+    if (!genre.json_url) {
+        this.loading = false;
+        if (!cached || !cached.songs?.length) {
+            this.showNotification('Nenhum arquivo configurado para: ' + genre.name, 'info');
+        }
+        return;
+    }
+
+    try {
+        const r = await fetch(encodeURI(genre.json_url));
+
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+
+        const raw = await r.json();
+
+        // ── Normalizar qualquer formato de entrada ─────────────────
+        // Suportado:
+        //   [ track, track, ... ]                    → array flat
+        //   { "Artista": [tracks], ... }              → objeto artista->tracks
+        //   { songs: [tracks] }                       → objeto com chave songs
+        //   { tracks: [tracks] }                      → objeto com chave tracks
+        let flatTracks = [];
+
+        if (Array.isArray(raw)) {
+            flatTracks = raw;
+        } else if (raw && typeof raw === 'object') {
+            if (Array.isArray(raw.songs)) {
+                flatTracks = raw.songs;
+            } else if (Array.isArray(raw.tracks)) {
+                flatTracks = raw.tracks;
+            } else {
+                // Objeto com artistas como chaves — achata todos os arrays
+                flatTracks = Object.values(raw).reduce((acc, val) => {
+                    if (Array.isArray(val)) return acc.concat(val);
+                    if (val && typeof val === 'object') {
+                        if (Array.isArray(val.tracks)) return acc.concat(val.tracks);
+                        if (Array.isArray(val.songs))  return acc.concat(val.songs);
+                    }
+                    return acc;
+                }, []);
+            }
+        }
+
+        // ── Normalizar e deduplicar por id ─────────────────────────
+        const seen = new Set();
+        const songs = flatTracks
+            .map(t => normalizeTrack(t))
+            .filter(t => {
+                if (!t || !t.id || seen.has(t.id)) return false;
+                seen.add(t.id);
+                return true;
+            });
+
+        if (!songs.length) {
+            this.loading = false;
+            if (!cached?.songs?.length) {
+                this.showNotification('Nenhuma música encontrada para: ' + genre.name, 'info');
+            }
+            return;
+        }
+
+        const result = { songs };
+        this.genreResults = result;
+        AppCache.set('genre', genre.slug, result);
+
+        this.showNotification(genre.name + ' — ' + songs.length + ' músicas ✓', 'success');
+
+    } catch (err) {
+        console.warn('[exploreGenre] Falha ao carregar "' + genre.slug + '":', err);
+        // Se não tem cache, avisar o usuário; se tem, continua mostrando o cache silenciosamente
+        if (!cached?.songs?.length) {
+            this.showNotification('Erro ao carregar músicas de ' + genre.name, 'error');
+        }
+    }
+
+    this.loading = false;
+    setTimeout(() => {
+        document.getElementById('mainScroll')?.scrollTo({ top: 9999, behavior: 'smooth' });
+    }, 200);
+},
 
             // ─── NEXT / PREVIOUS ───────────────────────────────────────
             async next(manual = false) {
