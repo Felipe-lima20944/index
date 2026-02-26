@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Melodya · Professional Streaming</title>
+    <title>Beatflow · Professional Streaming</title>
     <meta name="csrf-token" content="{{ csrf_token }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="/static/icone.ico" type="image/x-icon">
+    <link rel="icon" href="/static/icones.ico" type="image/x-icon">
     <!-- Swiper for smooth touch sliders -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
@@ -21,27 +21,30 @@
            TOKENS & RESET - Enhanced with dynamic variables
         ═══════════════════════════════════════════════════════════════ */
         :root {
-            --accent:        #ff3c6e;
-            --accent-2:      #ff8a00;
-            --accent-glow:   rgba(255, 60, 110, 0.32);
-            --accent-dim:    rgba(255, 60, 110, 0.12);
+            /* primary accents now purple/pink gradient hues */
+            --accent:        #a855f7;            /* vivid purple */
+            --accent-2:      #ec4899;            /* bright pink */
+            --accent-glow:   rgba(232, 72, 153, 0.45);
+            --accent-dim:    rgba(168, 85, 247, 0.18);
 
-            --shuffle-color: #a78bfa;
-            --shuffle-glow:  rgba(167, 139, 250, 0.35);
-            --repeat-once:   #fbbf24;
-            --repeat-once-glow: rgba(251, 191, 36, 0.35);
+            /* shuffled and repeat icons keep contrast but fit theme */
+            --shuffle-color: #7c3aed;            /* purple */
+            --shuffle-glow:  rgba(124, 58, 237, 0.35);
+            --repeat-once:   #3b82f6;            /* blue */
+            --repeat-once-glow: rgba(59, 130, 246, 0.35);
 
-            --bg:            #070709;
-            --surface-1:     #0f0f12;
-            --surface-2:     #161619;
-            --surface-3:     #1e1e23;
+            /* base backgrounds use deep purple/blue shades for gradient */
+            --bg:            #000000; /* puro preto */
+            --surface-1:     #080008;
+            --surface-2:     #100010;
+            --surface-3:     #180018;
             --surface-glass: rgba(255,255,255,0.04);
             --border:        rgba(255,255,255,0.07);
-            --border-accent: rgba(255, 60, 110, 0.28);
+            --border-accent: rgba(232, 72, 153, 0.4);
 
-            --txt-1:  #f4f4f6;
-            --txt-2:  #8b8b9a;
-            --txt-3:  #55556a;
+            --txt-1:  #ececec; /* texto principal levemente mais escuro */
+            --txt-2:  #a2a2b0; /* secundário mais visível */
+            --txt-3:  #77778b; /* detalhes subtis */
 
             --player-h:      72px;
             --nav-h:         66px;
@@ -70,6 +73,7 @@
         html { overflow-x: hidden; height: -webkit-fill-available; }
 
         body {
+            /* solid black with very subtle pink overlay via pseudo-element */
             background: var(--bg);
             color: var(--txt-1);
             font-family: var(--font-body);
@@ -88,8 +92,8 @@
             inset: 0;
             z-index: 9999;
             pointer-events: none;
-            opacity: 0.025;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.12; /* a bit more visible */
+            background: linear-gradient(135deg, rgba(232,72,153,0.06), rgba(232,72,153,0) 60%);
         }
 
         /* Dynamic App Grid with Gesture Support */
@@ -276,16 +280,16 @@
         @keyframes pulse-minimal {
             0%, 100% {
                 transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(255,138,0,0);
+                box-shadow: 0 0 0 0 rgba(168,85,247,0);
             }
             50% {
                 transform: scale(1.05);
-                box-shadow: 0 0 6px rgba(255,138,0,0.3);
+                box-shadow: 0 0 6px rgba(168,85,247,0.3);
             }
         }
 
         .queue-btn {
-            background: var(--accent-2);
+            background: var(--accent);
             color: white;
             width: 36px;
             height: 36px;
@@ -300,11 +304,11 @@
             animation: pulse-minimal 2.5s ease-in-out infinite;
         }
         .queue-btn i {
-            color: #ff8a00; /* orange neon */
-            text-shadow: 0 0 3px rgba(255,138,0,0.6);
+            color: var(--accent-2);
+            text-shadow: 0 0 3px rgba(232,72,153,0.6);
         }
         .queue-btn:hover {
-            background: #e89900;
+            background: var(--accent-2);
         }
         .queue-btn:active {
             transform: scale(0.95);
@@ -464,7 +468,7 @@
         .search-input-wrapper input { width: 100%; background: var(--surface-2); border: 1px solid var(--border); padding: 13px 16px 13px 44px; border-radius: 999px; color: var(--txt-1); font-family: var(--font-body); font-size: 15px; outline: none; transition: border-color 0.25s, background 0.25s, box-shadow 0.25s; }
         .search-input-wrapper input:focus { border-color: var(--accent); background: var(--surface-3); box-shadow: 0 0 0 3px var(--accent-dim), 0 8px 24px rgba(0,0,0,0.4); }
         .search-input-wrapper input::placeholder { color: var(--txt-3); }
-        .search-input-wrapper .si-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--txt-3); font-size: 14px; pointer-events: none; transition: color 0.2s; }
+        .search-input-wrapper .si-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--accent); font-size: 14px; pointer-events: none; transition: color 0.2s; }
         .search-input-wrapper input:focus ~ .si-icon, .search-input-wrapper:focus-within .si-icon { color: var(--accent); }
         .search-clear-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 50%; background: var(--txt-3); border: none; color: var(--bg); font-size: 0.65rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.18s, transform 0.18s var(--ease-bounce), opacity 0.18s; opacity: 0; pointer-events: none; }
         .search-clear-btn.visible { opacity: 1; pointer-events: auto; }
@@ -706,6 +710,9 @@
         .pl-actions .btn-icon { min-width:44px; height:40px; padding:8px; border-radius:8px; }
         .playlist-icon { width: 52px; height: 52px; border-radius: var(--radius-sm); flex-shrink: 0; background: linear-gradient(135deg, var(--accent), var(--accent-2)); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: white; box-shadow: 0 4px 14px var(--accent-glow); transition: transform 0.2s var(--ease-bounce), box-shadow 0.2s; }
         .playlist-card:hover .playlist-icon { transform: scale(1.08) rotate(-3deg); box-shadow: 0 6px 20px var(--accent-glow); }
+        /* grid of small album covers used in playlist previews */
+        .playlist-art-grid { width:52px; height:52px; border-radius: var(--radius-sm); overflow:hidden; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:2px; background: var(--surface-3); flex-shrink:0; }
+        .playlist-art-grid img { width:100%; height:100%; object-fit:cover; display:block; }
         .playlist-info { min-width: 0; flex: 1; position: relative; z-index: 1; }
         .playlist-name { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: -0.02em; }
         .playlist-count { font-size: 0.78rem; color: var(--txt-2); margin-top: 3px; }
@@ -1279,7 +1286,7 @@
 
             <div class="search-hero" x-show="activeNav === 'search' && !loading && !query.trim()" x-cloak>
                 <div class="search-hero-inner">
-                    <img src="{% static 'fundosecaopesquisa.WebP' %}" alt="">
+                    <img src="{% static 'fundosecaopesquisaa.WebP' %}" alt="">
                     <div class="search-hero-overlay">
                         <h3>Buscar músicas</h3>
                         <p>Digite no campo acima para começar</p>
@@ -1383,7 +1390,7 @@
         <!-- ─── ABA: PLAYLISTS ─────────────────────────────────────── -->
         <div x-show="activeNav === 'library'" x-cloak>
             <div class="section-header">
-                <h2 class="section-title">Minhas <i class="fa-solid fa-heart" style="color:var(--accent);margin:0 4px;"></i><span>Playlists</span></h2>
+                <h2 class="section-title">Minhas <i  style="color:var(--accent);margin:0 4px;" ></i><span>Playlists </span></h2>
                 {% if user.is_authenticated %}
                 <button class="section-cta ripple-host" @click="showCreatePlaylistModal = true; addRipple($event)">
                     <i class="fa-solid fa-plus"></i> Nova
@@ -1406,9 +1413,18 @@
             <div class="playlist-list" x-show="userPlaylists.length > 0">
                 <template x-for="(pl, i) in userPlaylists" :key="'upl-' + (pl.id || i)">
                     <div class="playlist-card" @click="openPlaylist(pl.id)">
-                        <div class="playlist-icon">
-                            <i :class="(pl.nome || '').toLowerCase().includes('curtidas') ? 'fa-solid fa-heart' : 'fa-solid fa-music'"></i>
-                        </div>
+                        <template x-if="pl.covers && pl.covers.some(u => u)">
+                            <div class="playlist-art-grid">
+                                <template x-for="(url,j) in pl.covers.slice(0,4)" :key="j">
+                                    <img :src="url || '{% static 'classicacapa.jpg' %}'" loading="lazy">
+                                </template>
+                            </div>
+                        </template>
+                        <template x-if="!(pl.covers && pl.covers.some(u => u))">
+                            <div class="playlist-icon">
+                                <i :class="(pl.nome || '').toLowerCase().includes('curtidas') ? 'fa-solid fa-heart' : 'fa-solid fa-music'"></i>
+                            </div>
+                        </template>
                         <div class="playlist-info">
                             <div class="playlist-name" x-text="pl.nome"></div>
                             <div class="playlist-count" x-text="(pl.total_musicas ?? 0) + ' músicas'"></div>
@@ -1439,6 +1455,14 @@
                             x-show="userPlaylists.some(p => p.id === openedPlaylistId)">
                         <i class="fa-solid fa-trash" style="color:#ff5572;margin-right:6px"></i> Excluir
                     </button>
+                </div>
+            </div>
+            <!-- preview grid of first four track covers when a playlist is opened -->
+            <div class="opened-art-grid" x-show="openedPlaylistId && playlist.length > 0">
+                <div class="playlist-art-grid" style="margin:0 16px 12px 16px;">
+                    <template x-for="(t,i) in playlist.slice(0,4)" :key="i">
+                        <img :src="t.thumb || t.thumbnail || t.capa || (t.youtube_id ? 'https://i.ytimg.com/vi/'+t.youtube_id+'/mqdefault.jpg' : '{% static 'classicacapa.jpg' %}')" loading="lazy">
+                    </template>
                 </div>
             </div>
 
@@ -1525,7 +1549,7 @@
                     <i class="fa-solid fa-list-ul"></i> Minhas playlists
                 </div>
                 <div class="profile-action-btn" @click="clearLocalData()">
-                    <i class="fa-solid fa-broom"></i> Limpar dados locais
+                    <i class="fa-solid fa-broom"></i> Limpar dados locais (Melhorar Processamento)
                 </div>
                 <a href="{% url 'logout' %}" class="profile-action-btn danger">
                     <i class="fa-solid fa-right-from-bracket"></i> Sair
@@ -1763,7 +1787,16 @@
             <template x-for="(pl, i) in (userPlaylists || []).filter(p => !playlistFilter.trim() || (p.nome || '').toLowerCase().includes(playlistFilter.toLowerCase()))" :key="'mpl-' + (pl && pl.id ? pl.id : i)">
                 <div class="playlist-option">
                     <div class="pl-main" :class="{ 'adding': addingPlaylistId === pl.id }" @click="addToPlaylist(pl.id)" style="display:flex;align-items:center;gap:14px;flex:1;cursor:pointer;">
-                        <div class="pl-icon"><i class="fa-solid fa-music"></i></div>
+                        <template x-if="pl.covers && pl.covers.some(u => u)">
+                                <div class="playlist-art-grid" style="width:40px;height:40px;">
+                                    <template x-for="(url,j) in pl.covers.slice(0,4)" :key="j">
+                                        <img :src="url || '{% static 'classicacapa.jpg' %}'" loading="lazy">
+                                    </template>
+                                </div>
+                            </template>
+                            <template x-if="!(pl.covers && pl.covers.some(u => u))">
+                                <div class="pl-icon"><i class="fa-solid fa-music"></i></div>
+                            </template>
                         <div class="pl-info">
                             <div class="pl-name" x-text="pl.nome"></div>
                             <div class="pl-count" x-text="(pl.total_musicas ?? 0) + ' músicas'"></div>
@@ -2397,7 +2430,7 @@
 
                 // Update browser title when track changes
                 this.$watch('currentTrack', (val) => {
-                    document.title = val ? ( (val.title || '') + (val.artist ? ' - ' + val.artist : '') ) : 'Melodya';
+                    document.title = val ? ( (val.title || '') + (val.artist ? ' - ' + val.artist : '') ) : 'Beatflow';
                 });
 
                 // Receive shared playlist from the public share page
@@ -2442,7 +2475,7 @@
                     try { if (e.origin !== window.location.origin) return; } catch(_) {}
                     const d = e.data;
                     if (!d) return;
-                    if (d.type === 'melodya_playPlaylist') {
+                    if (d.type === 'beatflow_playPlaylist') {
                         _handleSharedPlaylist(d);
                     } else if (d.tracks) {
                         _handleSharedPlaylist(d);
@@ -2450,14 +2483,14 @@
                 };
 
                 const _storageListener = (e) => {
-                    if (e.key === 'melodya_shared_playlist') {
+                    if (e.key === 'beatflow_shared_playlist') {
                         if (!e.newValue) return;
                         try {
                             const payload = JSON.parse(e.newValue);
                             if (payload) _handleSharedPlaylist(payload);
-                            localStorage.removeItem('melodya_shared_playlist');
+                            localStorage.removeItem('beatflow_shared_playlist');
                         } catch(err) { console.error('storage shared playlist parse error', err); }
-                    } else if (e.key === 'melodya_shared_track') {
+                    } else if (e.key === 'beatflow_shared_track') {
                         if (!e.newValue) return;
                         try {
                             const t = JSON.parse(e.newValue);
@@ -2465,7 +2498,7 @@
                                 this.selectTrack(t, 0, [t], 'shared');
                                 this.trackDetailOpen = true;
                             }
-                            localStorage.removeItem('melodya_shared_track');
+                            localStorage.removeItem('beatflow_shared_track');
                         } catch(err) { console.error('storage shared track parse error', err); }
                     }
                 };
@@ -2474,20 +2507,20 @@
                 window.addEventListener('storage', _storageListener);
 
                 try {
-                    let pending = localStorage.getItem('melodya_shared_playlist');
+                    let pending = localStorage.getItem('beatflow_shared_playlist');
                     if (pending) {
                         const payload = JSON.parse(pending);
                         if (payload) _handleSharedPlaylist(payload);
-                        localStorage.removeItem('melodya_shared_playlist');
+                        localStorage.removeItem('beatflow_shared_playlist');
                     }
-                    pending = localStorage.getItem('melodya_shared_track');
+                    pending = localStorage.getItem('beatflow_shared_track');
                     if (pending) {
                         const t = JSON.parse(pending);
                         if (t) {
                             this.selectTrack(t, 0, [t], 'shared');
                             this.trackDetailOpen = true;
                         }
-                        localStorage.removeItem('melodya_shared_track');
+                        localStorage.removeItem('beatflow_shared_track');
                     }
                 } catch(_) {}
 
