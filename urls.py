@@ -82,8 +82,6 @@ urlpatterns = [
     path('api/musica/info/', views.track_info, name='musica_info'),
 
     path('api/streaming-url/', views.streaming_url_api, name='api_streaming_url'),
-    # rota adicional para proxy de download (mesmo id que streaming-url)
-    path('api/streaming-download/', views.streaming_download_api, name='api_streaming_download'),
     path('api/musicas/by-ids/', views.musicas_by_ids_api, name='api_musicas_by_ids'),
 
     # Recomendações com id na URL
