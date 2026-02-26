@@ -2935,7 +2935,8 @@ def streaming_download_api(request):
     permite que o arquivo seja baixado automaticamente.
     """
     logger.debug('streaming_download_api chamada', extra={'user': request.user.username})
-    # checagem de assinatura ativa: replicamos a mesma lógica usada em outras views.
+    
+    # checagem de assinatura ativa
     assinatura_ativa = None
     try:
         assinaturas = Subscription.objects.filter(usuario=request.user, status='active').order_by('-criado_em')[:1]
@@ -2943,22 +2944,27 @@ def streaming_download_api(request):
     except Exception:
         logger.exception('erro ao consultar assinaturas para download', exc_info=True)
         assinatura_ativa = None
+    
     if not assinatura_ativa:
         logger.warning('download negado - sem assinatura ativa', extra={'user': request.user.username})
         return HttpResponse(status=403)
 
     video_id = request.GET.get('video_id')
     title_param = request.GET.get('title')
+    
     if title_param:
         try:
             from urllib.parse import unquote
             title_param = unquote(title_param)
         except Exception:
             pass
+    
     logger.debug('video_id recebido para download', extra={'video_id': video_id, 'title': title_param})
+    
     if not video_id:
         logger.error('video_id ausente em streaming_download_api')
         return HttpResponseBadRequest('video_id é obrigatório')
+    
     if not _is_valid_youtube_id(video_id):
         logger.error('video_id inválido em streaming_download_api', extra={'video_id': video_id})
         return HttpResponseBadRequest('video_id inválido')
@@ -2966,12 +2972,15 @@ def streaming_download_api(request):
     try:
         stream_url = _extract_stream_url(video_id)
         logger.debug('stream_url extraída', extra={'stream_url': stream_url})
+        
         if not stream_url:
             logger.error('não foi possível extrair stream_url', extra={'video_id': video_id})
             return HttpResponse('não foi possível obter stream', status=502)
 
-        # configure request proxies – match whatever we used for yt-dlp earlier
-        proxy_setting = 'http://127.0.0.1:8888'  # same hardcoded proxy as in _extract_stream_url
+        # Proxy - DESABILITADO para Ubuntu (comente ou remova)
+        proxy_setting = None  # Desabilitado no Ubuntu
+        # proxy_setting = 'http://127.0.0.1:8888'  # Apenas para Windows com túnel
+        
         proxies = None
         if proxy_setting:
             proxies = {"http": proxy_setting, "https": proxy_setting}
@@ -2981,7 +2990,9 @@ def streaming_download_api(request):
                          headers={'User-Agent': request.META.get('HTTP_USER_AGENT', '')},
                          timeout=30,
                          proxies=proxies)
+        
         logger.debug('requisição ao stream_url retornou', extra={'status_code': r.status_code, 'url': stream_url})
+        
         if r.status_code != 200:
             body_snippet = ''
             try:
@@ -2990,184 +3001,315 @@ def streaming_download_api(request):
                 pass
             logger.error('erro HTTP ao buscar conteúdo de stream_url', extra={'status_code': r.status_code, 'body': body_snippet})
             return HttpResponse(f'erro ao buscar conteúdo ({r.status_code})', status=502)
+        
         # decidir se converte para mp3 com base em parâmetro GET (format=mp3)
         want_mp3 = request.GET.get('format', '').lower() == 'mp3'
+        
         if want_mp3:
-            # tenta usar ffmpeg; procura no PATH, em settings ou em diretórios extraídos
+            # ===== VERSÃO OTIMIZADA PARA UBUNTU =====
+            # tenta usar ffmpeg; procura no PATH e locais comuns do Ubuntu
             ffmpeg_cmd = None
-            # configuração opcional em settings
+            
+            # 1. Verificar configuração no settings.py
             ffmpeg_path = getattr(settings, 'FFMPEG_PATH', None)
-            if ffmpeg_path:
-                logger.debug('usando FFMPEG_PATH', extra={'path': ffmpeg_path})
+            if ffmpeg_path and os.path.exists(ffmpeg_path):
+                logger.debug('usando FFMPEG_PATH do settings', extra={'path': ffmpeg_path})
                 ffmpeg_cmd = ffmpeg_path
-            else:
-                # checagem manual em locais conhecidos
-                logger.debug('procurando ffmpeg em pastas conhecidas')
-                for base_dir in [
-                    r"C:\Users\dulim\ffmpeg-8.0.1",
-                    r"C:\Users\dulim\ffmpeg-8.0.1-essentials_build",
-                    r"C:\Users\dulim\ffmpeg-8.0.1-essentials_build\bin",
-                ]:
-                    logger.debug('checando base_dir', extra={'base_dir': base_dir})
-                    if os.path.isdir(base_dir):
-                        possible = os.path.join(base_dir, 'bin', 'ffmpeg.exe')
-                        logger.debug('checando possível', extra={'path': possible})
-                        if os.path.exists(possible):
-                            ffmpeg_cmd = possible
-                            logger.debug('encontrado ffmpeg', extra={'path': ffmpeg_cmd})
-                            break
-                        possible2 = os.path.join(base_dir, 'ffmpeg.exe')
-                        logger.debug('checando possível2', extra={'path': possible2})
-                        if os.path.exists(possible2):
-                            ffmpeg_cmd = possible2
-                            logger.debug('encontrado ffmpeg', extra={'path': ffmpeg_cmd})
-                            break
-                if not ffmpeg_cmd:
-                    ffmpeg_cmd = shutil.which('ffmpeg')
-                    logger.debug('shutil.which result', extra={'ffmpeg_cmd': ffmpeg_cmd})
+            
+            # 2. Procurar no PATH do sistema (Ubuntu)
+            if not ffmpeg_cmd:
+                ffmpeg_cmd = shutil.which('ffmpeg')
+                logger.debug('shutil.which result no Ubuntu', extra={'ffmpeg_cmd': ffmpeg_cmd})
+            
+            # 3. Verificar locais comuns no Ubuntu
+            if not ffmpeg_cmd:
+                ubuntu_paths = [
+                    '/usr/bin/ffmpeg',
+                    '/usr/local/bin/ffmpeg',
+                    '/opt/ffmpeg/bin/ffmpeg',
+                    '/snap/bin/ffmpeg'
+                ]
+                for path in ubuntu_paths:
+                    if os.path.exists(path):
+                        ffmpeg_cmd = path
+                        logger.debug('encontrado ffmpeg em caminho Ubuntu', extra={'path': ffmpeg_cmd})
+                        break
+            
+            # 4. Tentar encontrar com whereis (fallback)
+            if not ffmpeg_cmd:
+                try:
+                    import subprocess
+                    result = subprocess.run(['whereis', 'ffmpeg'], capture_output=True, text=True)
+                    if result.returncode == 0 and result.stdout.strip():
+                        # whereis retorna "ffmpeg: /usr/bin/ffmpeg /usr/local/bin/ffmpeg"
+                        parts = result.stdout.split()
+                        if len(parts) > 1:
+                            ffmpeg_cmd = parts[1].strip()
+                            logger.debug('ffmpeg encontrado via whereis', extra={'path': ffmpeg_cmd})
+                except Exception as e:
+                    logger.debug('whereis falhou', extra={'error': str(e)})
+            
             if ffmpeg_cmd:
                 try:
+                    # Usar ffmpeg com configuração otimizada para Ubuntu
+                    # -bufsize aumenta buffer para melhor performance
+                    # -acodec libmp3lame para garantir codec MP3
+                    # -b:a 192k para qualidade 192kbps
                     ffmpeg = subprocess.Popen(
-                        [ffmpeg_cmd, '-i', 'pipe:0', '-f', 'mp3', 'pipe:1'],
+                        [
+                            ffmpeg_cmd, 
+                            '-i', 'pipe:0', 
+                            '-f', 'mp3', 
+                            '-acodec', 'libmp3lame',
+                            '-b:a', '192k',
+                            '-bufsize', '64k',
+                            '-y',  # overwrite output
+                            'pipe:1'
+                        ],
                         stdin=subprocess.PIPE,
                         stdout=subprocess.PIPE,
-                        stderr=subprocess.DEVNULL
+                        stderr=subprocess.DEVNULL,
+                        bufsize=10**7  # 10MB buffer para melhor performance
                     )
-                except Exception:
-                    ffmpeg = None
-            else:
-                ffmpeg = None
-            if ffmpeg:
-                def stream_generator():
-                    try:
-                        for chunk in r.iter_content(chunk_size=8192):
-                            if chunk:
-                                ffmpeg.stdin.write(chunk)
-                                ffmpeg.stdin.flush()
-                        ffmpeg.stdin.close()
-                        while True:
-                            out = ffmpeg.stdout.read(8192)
-                            if not out:
-                                break
-                            yield out
-                    finally:
-                        try: ffmpeg.kill()
-                        except: pass
-                        r.close()
-                content_type = 'audio/mpeg'
-                sanitized = title_param or video_id
-                sanitized = re.sub(r'[\\/\:\*\?"\<\>\|]', '_', sanitized)
-                filename = f"{sanitized}.mp3"
-                response = StreamingHttpResponse(stream_generator(), content_type=content_type)
-                response['Content-Disposition'] = f'attachment; filename="{filename}"'
-                logger.info('proxy mp3 (ffmpeg)', extra={'video_id': video_id, 'filename': filename})
-                return response
-            # ffmpeg não funcionou ou não encontrado, tentar yt-dlp binário
-            logger.warning('ffmpeg ausente ou falhou, tentando yt_dlp binário')
-            binary_used = False
-            if shutil.which('yt-dlp') or shutil.which('yt_dlp'):
-                try:
-                    binname = shutil.which('yt-dlp') or shutil.which('yt_dlp')
-                    proc2 = subprocess.Popen(
-                        [binname, '-f', 'bestaudio', '-o', '-',
-                         '--extract-audio', '--audio-format', 'mp3',
-                         f'https://www.youtube.com/watch?v={video_id}'],
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.DEVNULL
-                    )
-                    def ytdlp_gen():
+                    
+                    def stream_generator():
                         try:
-                            for chunk in iter(lambda: proc2.stdout.read(8192), b''):
+                            # Enviar dados em chunks maiores para melhor performance
+                            for chunk in r.iter_content(chunk_size=65536):  # 64KB chunks
                                 if chunk:
-                                    yield chunk
+                                    ffmpeg.stdin.write(chunk)
+                                    ffmpeg.stdin.flush()
+                            
+                            ffmpeg.stdin.close()
+                            
+                            # Ler saída do ffmpeg
+                            while True:
+                                out = ffmpeg.stdout.read(65536)
+                                if not out:
+                                    break
+                                yield out
+                                
                         finally:
-                            proc2.kill()
+                            try: 
+                                ffmpeg.terminate()  # Tentar terminar graciosamente
+                                ffmpeg.wait(timeout=2)  # Aguardar até 2 segundos
+                            except:
+                                try:
+                                    ffmpeg.kill()  # Forçar kill se necessário
+                                except:
+                                    pass
                             r.close()
+                    
                     content_type = 'audio/mpeg'
                     sanitized = title_param or video_id
                     sanitized = re.sub(r'[\\/\:\*\?"\<\>\|]', '_', sanitized)
                     filename = f"{sanitized}.mp3"
+                    
+                    response = StreamingHttpResponse(stream_generator(), content_type=content_type)
+                    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                    response['Content-Length'] = ''  # Não sabemos o tamanho final
+                    
+                    logger.info('proxy mp3 com ffmpeg no Ubuntu', extra={
+                        'video_id': video_id, 
+                        'filename': filename,
+                        'ffmpeg_path': ffmpeg_cmd
+                    })
+                    return response
+                    
+                except Exception as e:
+                    logger.exception('ffmpeg falhou no Ubuntu', exc_info=True)
+                    ffmpeg = None
+            
+            # ffmpeg não funcionou ou não encontrado, tentar yt-dlp binário
+            logger.warning('ffmpeg ausente ou falhou, tentando yt_dlp binário')
+            
+            # Verificar se yt-dlp está instalado no Ubuntu
+            ytdlp_cmd = shutil.which('yt-dlp') or shutil.which('yt_dlp')
+            
+            if ytdlp_cmd:
+                try:
+                    # Usar yt-dlp para baixar e converter diretamente
+                    proc2 = subprocess.Popen(
+                        [
+                            ytdlp_cmd,
+                            '-f', 'bestaudio',
+                            '-o', '-',
+                            '--extract-audio',
+                            '--audio-format', 'mp3',
+                            '--audio-quality', '192K',
+                            '--no-playlist',
+                            '--quiet',
+                            '--no-warnings',
+                            f'https://www.youtube.com/watch?v={video_id}'
+                        ],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.DEVNULL,
+                        bufsize=10**7
+                    )
+                    
+                    def ytdlp_gen():
+                        try:
+                            while True:
+                                chunk = proc2.stdout.read(65536)
+                                if not chunk:
+                                    break
+                                yield chunk
+                        finally:
+                            try:
+                                proc2.terminate()
+                                proc2.wait(timeout=2)
+                            except:
+                                try:
+                                    proc2.kill()
+                                except:
+                                    pass
+                            r.close()
+                    
+                    content_type = 'audio/mpeg'
+                    sanitized = title_param or video_id
+                    sanitized = re.sub(r'[\\/\:\*\?"\<\>\|]', '_', sanitized)
+                    filename = f"{sanitized}.mp3"
+                    
                     response = StreamingHttpResponse(ytdlp_gen(), content_type=content_type)
                     response['Content-Disposition'] = f'attachment; filename="{filename}"'
-                    logger.info('proxy mp3 (yt_dlp binário)', extra={'video_id': video_id, 'filename': filename})
-                    binary_used = True
+                    
+                    logger.info('proxy mp3 com yt-dlp binário no Ubuntu', extra={
+                        'video_id': video_id, 
+                        'filename': filename,
+                        'ytdlp_path': ytdlp_cmd
+                    })
                     return response
-                except Exception:
-                    logger.exception('yt_dlp binário falhou', exc_info=True)
-            if not binary_used and yt_dlp:
-                # fallback usando API Python, salva em arquivo temporário
-                logger.info('tentando conversão mp3 via API yt_dlp')
+                    
+                except Exception as e:
+                    logger.exception('yt_dlp binário falhou no Ubuntu', exc_info=True)
+            
+            # Fallback: tentar usar a API do yt-dlp Python
+            if yt_dlp:
+                logger.info('tentando conversão mp3 via API yt_dlp no Ubuntu')
                 import tempfile
                 tmp = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
+                
                 try:
+                    # Opções otimizadas para Ubuntu
                     ydl_opts = {
-        # proxy and cookies support added for residential tunnel
-        'proxy': 'http://127.0.0.1:8888',
-        'cookiefile': _get_cookiefile_path(),
-        'format': 'bestaudio',
-        'outtmpl': tmp.name,
-        'quiet': True,
-        'no_warnings': True,
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-        'cachedir': False,
-    }
-                    # replicate the same js-runtime adjustments used elsewhere
+                        'format': 'bestaudio',
+                        'outtmpl': tmp.name,
+                        'quiet': True,
+                        'no_warnings': True,
+                        'postprocessors': [{
+                            'key': 'FFmpegExtractAudio',
+                            'preferredcodec': 'mp3',
+                            'preferredquality': '192',
+                        }],
+                        'cachedir': False,
+                        # Não usar proxy no Ubuntu a menos que configurado
+                        'proxy': None,  # Desabilitado no Ubuntu
+                    }
+                    
+                    # Apenas adicionar cookiefile se existir
+                    cookiefile = _get_cookiefile_path()
+                    if cookiefile and os.path.exists(cookiefile):
+                        ydl_opts['cookiefile'] = cookiefile
+                    
+                    # Aplicar configurações JS runtime se necessário
                     ydl_opts = _build_ydl_opts_js_runtime(ydl_opts)
+                    
                     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                        # force yt-dlp to ignore proxies by clearing environment vars
-                        env = os.environ.copy()
-                        env.pop('http_proxy', None)
-                        env.pop('https_proxy', None)
                         ydl.download([f'https://www.youtube.com/watch?v={video_id}'])
+                    
                     def file_gen():
                         try:
                             with open(tmp.name, 'rb') as f:
                                 while True:
-                                    data = f.read(8192)
+                                    data = f.read(65536)
                                     if not data:
                                         break
                                     yield data
                         finally:
-                            os.remove(tmp.name)
+                            try:
+                                os.remove(tmp.name)
+                            except:
+                                pass
                             r.close()
+                    
                     content_type = 'audio/mpeg'
                     sanitized = title_param or video_id
                     sanitized = re.sub(r'[\\/\:\*\?"\<\>\|]', '_', sanitized)
                     filename = f"{sanitized}.mp3"
+                    
                     response = StreamingHttpResponse(file_gen(), content_type=content_type)
                     response['Content-Disposition'] = f'attachment; filename="{filename}"'
-                    logger.info('proxy mp3 (yt_dlp API)', extra={'video_id': video_id, 'filename': filename})
+                    
+                    logger.info('proxy mp3 com API yt_dlp no Ubuntu', extra={
+                        'video_id': video_id, 
+                        'filename': filename
+                    })
                     return response
-                except Exception:
-                    logger.exception('arquivo yt_dlp API falhou', exc_info=True)
+                    
+                except Exception as e:
+                    logger.exception('API yt_dlp falhou no Ubuntu', exc_info=True)
                     try:
                         os.remove(tmp.name)
-                    except: pass
-            logger.warning('não foi possível converter para mp3, continuando sem conversão')
-        # se não pediu mp3 ou se conversão falhou, repassa bruto
+                    except:
+                        pass
+            
+            logger.warning('não foi possível converter para mp3 no Ubuntu, continuando sem conversão')
+        
+        # ===== ENVIO DO ARQUIVO ORIGINAL =====
+        # se não pediu mp3 ou se conversão falhou, repassa o arquivo original
         content_type = r.headers.get('content-type', 'application/octet-stream')
         sanitized = title_param or video_id
         sanitized = re.sub(r'[\\/\:\*\?"\<\>\|]', '_', sanitized)
-        ext = content_type.split('/')[-1].split(';')[0].strip() or 'bin'
+        
+        # Determinar extensão baseada no content-type
+        content_type_lower = content_type.lower()
+        if 'webm' in content_type_lower:
+            ext = 'webm'
+        elif 'opus' in content_type_lower:
+            ext = 'opus'
+        elif 'ogg' in content_type_lower:
+            ext = 'ogg'
+        elif 'mpeg' in content_type_lower or 'mp3' in content_type_lower:
+            ext = 'mp3'
+        elif 'mp4' in content_type_lower:
+            ext = 'mp4'
+        elif 'x-matroska' in content_type_lower or 'mkv' in content_type_lower:
+            ext = 'mkv'
+        else:
+            # Tentar extrair extensão da URL
+            ext = 'bin'
+            if stream_url:
+                url_parts = stream_url.split('/')[-1].split('?')[0].split('.')
+                if len(url_parts) > 1:
+                    possible_ext = url_parts[-1].lower()
+                    if len(possible_ext) <= 4:  # extensões típicas têm até 4 chars
+                        ext = possible_ext
+        
         filename = f"{sanitized}.{ext}"
+        
         def stream_generator():
             try:
-                for chunk in r.iter_content(chunk_size=8192):
+                for chunk in r.iter_content(chunk_size=65536):
                     if chunk:
                         yield chunk
             finally:
                 r.close()
+        
         response = StreamingHttpResponse(stream_generator(), content_type=content_type)
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        logger.info('proxy bruto', extra={'video_id': video_id, 'filename': filename})
+        response['Content-Length'] = r.headers.get('content-length', '')
+        
+        logger.info('proxy bruto no Ubuntu', extra={
+            'video_id': video_id, 
+            'filename': filename, 
+            'format': ext,
+            'content_type': content_type
+        })
         return response
+        
     except Exception as e:
         logger.exception(f"Erro no streaming_download_api para {video_id}")
-        return HttpResponse('erro interno', status=500)
+        return HttpResponse('erro interno no servidor', status=500)
 
 
 # ============================================================================
