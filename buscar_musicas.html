@@ -454,18 +454,7 @@
             opacity: 1;
             pointer-events: auto;
         }
-        .download-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            z-index: 4500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 3rem;
-            pointer-events: none;
-        }
+        
 
 
         /* Rest of your existing styles remain the same */
@@ -845,10 +834,7 @@
     <!-- Overlay for drawers -->
     <div class="overlay" :class="{ 'active': queueDrawerActive || panelOpen }" @click="closeAllDrawers()"></div>
 
-    <!-- download loading overlay -->
-    <div class="download-overlay" x-show="downloading" x-cloak>
-        <i class="fa-solid fa-spinner fa-spin"></i>
-    </div>
+
 
     <!-- Queue Drawer -->
     <div class="queue-drawer" :class="{ 'active': queueDrawerActive }">
@@ -981,11 +967,7 @@
                     <i class="fa-solid fa-list"></i>
                     <span style="font-size:0.7rem;">Fila</span>
                 </button>
-                <!-- apenas download em MP3 -->
-                <button class="btn-icon" style="flex-direction:column; gap:4px; height:auto;" @click="downloadCurrentTrack('mp3')">
-                    <i class="fa-solid fa-music"></i>
-                    <span style="font-size:0.7rem;">MP3</span>
-                </button>
+
             </div>
         </div>
     </div>
@@ -2124,33 +2106,7 @@
             query:         new URLSearchParams(window.location.search).get('q') || '',
             hasQuery:      !!new URLSearchParams(window.location.search).get('q'),
             loading:       false,
-            downloading:   false,
-            async downloadCurrentTrack(format = null) {
-                if (!IS_AUTHENTICATED) {
-                    this.showNotification('Faça login para baixar músicas', 'error');
-                    return;
-                }
-                if (!this.currentTrack) return;
-                // try to resolve youtube id
-                const vid = this.currentTrack.youtube_id ||
-                    (this.currentTrack.id && /^[A-Za-z0-9_-]{11}$/.test(String(this.currentTrack.id)) ? String(this.currentTrack.id) : null);
-                if (!vid) {
-                    this.showNotification('Não foi possível encontrar um vídeo para download', 'error');
-                    return;
-                }
-                this.downloading = true;
-                // build title from whichever field is set (normalized track may use t.title/t.titulo/t.nome)
-                const rawTitle = this.trackDetail?.title || this.currentTrack.title || this.currentTrack.titulo || this.currentTrack.nome || vid;
-                console.debug('download title raw', rawTitle);
-                const safeTitle = encodeURIComponent(rawTitle).replace(/%20/g,'_');
-                let dlUrl = '/api/streaming-download/?video_id=' + encodeURIComponent(vid) + '&title=' + safeTitle;
-                if (format === 'mp3') {
-                    dlUrl += '&format=mp3';
-                }
-                // if page navigates, overlay stays visible via beforeunload handler
-                window.location.href = dlUrl;
-                // keep overlay state; it will be cleared automatically if user returns or JS runs again
-            },
+
             hasActivePlan: {{ assinatura_ativa|yesno:"true,false" }},
             _previewWarned: false,
             previewLimit: 30,
@@ -2325,7 +2281,6 @@
                 });
             },
 
-            // ─── DOWNLOAD ─────────────────────────────────────────────
             async _resolveStreamUrl(track) {
                 if (!track) return null;
                 if (track.arquivo && track.arquivo.startsWith('/media/')) return track.arquivo;
@@ -2438,7 +2393,7 @@
                 window.appStore = this;
 
                 // keep overlay visible while navigation occurs
-                window.addEventListener('beforeunload', () => { this.downloading = true; });
+
 
                 // Update browser title when track changes
                 this.$watch('currentTrack', (val) => {
