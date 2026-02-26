@@ -4,21 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Melodya · Criar conta</title>
+    <title>Beatflow · Criar conta</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
-            --accent:      #ff3c6e;
-            --accent-2:    #ff8a00;
-            --accent-glow: rgba(255, 60, 110, 0.4);
-            --accent-dim:  rgba(255, 60, 110, 0.10);
-            --success:     #22d37a;
-            --success-dim: rgba(34, 211, 122, 0.12);
-            --border:      rgba(255,255,255,0.07);
-            --border-accent: rgba(255,60,110,0.28);
+            --accent:        #8b2cf6;
+            --accent-2:      #c026d3;
+            --accent-glow:   rgba(139, 44, 246, 0.45);
+            --accent-dim:    rgba(139, 44, 246, 0.10);
+            --success:       #22d37a;
+            --success-dim:   rgba(34, 211, 122, 0.12);
+            --border:        rgba(255,255,255,0.07);
+            --border-accent: rgba(139,44,246,0.30);
             --txt-1: #f0f0f4;
             --txt-2: #7a7a90;
             --txt-3: #44445a;
@@ -29,11 +29,7 @@
         }
 
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-        html, body {
-            width: 100%;
-            min-height: 100dvh;
-        }
+        html, body { width: 100%; min-height: 100dvh; }
 
         body {
             font-family: var(--font-body);
@@ -50,64 +46,25 @@
             overflow-x: hidden;
         }
 
-        /* Malha de pontos */
-        body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
-            background-size: 28px 28px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* Grain */
         body::before {
             content: '';
-            position: fixed;
-            inset: 0;
-            z-index: 999;
-            pointer-events: none;
-            opacity: 0.028;
+            position: fixed; inset: 0; z-index: 999; pointer-events: none; opacity: 0.028;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
 
-        /* Orbs */
-        .bg-orbs {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
+        body::after {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none; z-index: 0;
         }
 
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            animation: orbDrift 10s ease-in-out infinite;
-        }
-
-        .orb-a {
-            width: 600px; height: 400px;
-            background: rgba(255,60,110,0.11);
-            top: -120px; left: -100px;
-            animation-delay: 0s;
-        }
-
-        .orb-b {
-            width: 500px; height: 500px;
-            background: rgba(255,138,0,0.07);
-            bottom: -200px; right: -120px;
-            animation-delay: -5s;
-        }
-
-        .orb-c {
-            width: 300px; height: 300px;
-            background: rgba(90,50,200,0.07);
-            top: 40%; left: 55%;
-            animation-delay: -3s;
-        }
+        .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+        .orb { position: absolute; border-radius: 50%; filter: blur(100px); animation: orbDrift 10s ease-in-out infinite; }
+        .orb-a { width:600px;height:400px;background:rgba(139,44,246,0.12);top:-120px;left:-100px;animation-delay:0s; }
+        .orb-b { width:500px;height:500px;background:rgba(192,38,211,0.08);bottom:-200px;right:-120px;animation-delay:-5s; }
+        .orb-c { width:300px;height:300px;background:rgba(90,50,200,0.08);top:40%;left:55%;animation-delay:-3s; }
 
         @keyframes orbDrift {
             0%,100% { transform: translate(0,0); }
@@ -115,156 +72,113 @@
             66%      { transform: translate(-20px,25px); }
         }
 
-        /* ══════════════════════════════
-           CONTEÚDO
-        ══════════════════════════════ */
-        .page-content {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 440px;
-            padding: 0 20px;
-            display: flex;
-            flex-direction: column;
+        /* ─── MUSIC NOTES ─── */
+        .music-notes-stage {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 100vh;
+            pointer-events: none; z-index: 2; overflow: hidden;
         }
 
-        /* Marca */
+        .mnote {
+            position: absolute; bottom: -60px;
+            opacity: 0;
+            animation: noteRise linear infinite;
+            will-change: transform, opacity;
+        }
+
+        @keyframes noteRise {
+            0%   { opacity: 0; transform: translateY(0) translateX(0) rotate(-8deg) scale(0.5); filter: blur(1px); }
+            8%   { opacity: 0.38; filter: blur(0px); }
+            30%  { transform: translateY(-28vh) translateX(18px) rotate(6deg) scale(0.9); }
+            55%  { transform: translateY(-52vh) translateX(-14px) rotate(-4deg) scale(1); opacity: 0.20; }
+            85%  { opacity: 0.06; }
+            100% { opacity: 0; transform: translateY(-95vh) translateX(-8px) rotate(18deg) scale(1.1); filter: blur(3px); }
+        }
+
+        /* ─── LAYOUT ─── */
+        .page-content {
+            position: relative; z-index: 3;
+            width: 100%; max-width: 400px;
+            padding: 0 20px;
+            display: flex; flex-direction: column;
+        }
+
         .brand-header {
-            display: flex;
-            align-items: center;
-            gap: 14px;
+            display: flex; align-items: center; gap: 14px;
             margin-bottom: clamp(20px, 4vh, 36px);
             animation: fadeUp 0.5s var(--ease-out) both;
         }
 
         .brand-icon {
-            width: clamp(40px, 10vw, 48px);
-            height: clamp(40px, 10vw, 48px);
+            width: clamp(40px,10vw,48px); height: clamp(40px,10vw,48px);
             border-radius: 14px;
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
             display: flex; align-items: center; justify-content: center;
-            font-size: clamp(1rem, 2vw, 1.25rem);
-            color: #fff;
-            box-shadow: 0 8px 28px var(--accent-glow);
-            flex-shrink: 0;
+            font-size: clamp(1rem,2vw,1.25rem); color: #fff;
+            box-shadow: 0 8px 28px var(--accent-glow); flex-shrink: 0;
             animation: iconPulse 4s ease-in-out infinite;
-        }
-
-        .brand-text .name {
-            font-family: var(--font-display);
-            font-size: clamp(1.1rem, 3vw, 1.35rem);
-            font-weight: 800;
-            letter-spacing: -0.04em;
-            background: linear-gradient(130deg, #fff 40%, rgba(255,255,255,0.5));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            line-height: 1.1;
-        }
-
-        .brand-text .sub {
-            font-size: clamp(0.65rem, 1.5vw, 0.75rem);
-            color: var(--txt-3);
         }
 
         @keyframes iconPulse {
             0%,100% { box-shadow: 0 8px 28px var(--accent-glow); }
-            50%      { box-shadow: 0 8px 40px rgba(255,60,110,0.55); }
+            50%      { box-shadow: 0 8px 40px rgba(139,44,246,0.65); }
         }
 
-        /* Título */
+        .brand-text .name {
+            font-family: var(--font-display); font-size: clamp(1.1rem,3vw,1.35rem);
+            font-weight: 800; letter-spacing: -0.04em;
+            background: linear-gradient(130deg, #fff 40%, rgba(255,255,255,0.5));
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+        }
+
+        .brand-text .sub { font-size: clamp(0.65rem,1.5vw,0.75rem); color: var(--txt-3); }
+
         .page-heading {
-            margin-bottom: clamp(16px, 3vh, 28px);
+            margin-bottom: clamp(16px,3vh,28px);
             animation: fadeUp 0.5s var(--ease-out) 0.07s both;
         }
 
         .page-heading h1 {
-            font-family: var(--font-display);
-            font-size: clamp(1.6rem, 5vw, 2.8rem);
-            font-weight: 800;
-            letter-spacing: -0.05em;
-            line-height: 1.05;
-            margin-bottom: 8px;
+            font-family: var(--font-display); font-size: clamp(1.6rem,5vw,2.4rem);
+            font-weight: 800; letter-spacing: -0.05em; line-height: 1.05; margin-bottom: 8px;
         }
 
         .page-heading h1 span {
             background: linear-gradient(100deg, var(--accent), var(--accent-2));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        .page-heading p {
-            font-size: clamp(0.75rem, 2vw, 0.87rem);
-            color: var(--txt-2);
-        }
+        .page-heading p { font-size: clamp(0.75rem,2vw,0.87rem); color: var(--txt-2); }
 
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(20px); }
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Card do form */
         .form-card {
             background: rgba(12,12,16,0.85);
             border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 24px;
-            padding: clamp(18px, 4vw, 28px);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            box-shadow:
-                0 30px 70px rgba(0,0,0,0.5),
-                0 0 0 1px rgba(255,255,255,0.03) inset;
+            border-radius: 24px; padding: clamp(18px,4vw,28px);
+            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            box-shadow: 0 30px 70px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03) inset;
             animation: fadeUp 0.55s var(--ease-out) 0.12s both;
-            max-height: 75vh;
-            overflow-y: auto;
-            overflow-x: hidden;
+            max-height: 75vh; overflow-y: auto; overflow-x: hidden;
         }
 
-        /* Scrollbar customizado */
-        .form-card::-webkit-scrollbar {
-            width: 6px;
-        }
-        .form-card::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .form-card::-webkit-scrollbar-thumb {
-            background: rgba(255, 60, 110, 0.3);
-            border-radius: 3px;
-        }
-        .form-card::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 60, 110, 0.5);
-        }
+        .form-card::-webkit-scrollbar { width: 5px; }
+        .form-card::-webkit-scrollbar-track { background: transparent; }
+        .form-card::-webkit-scrollbar-thumb { background: rgba(139,44,246,0.3); border-radius: 3px; }
+        .form-card::-webkit-scrollbar-thumb:hover { background: rgba(139,44,246,0.55); }
 
-        /* Erro */
         .error-banner {
-            display: flex;
-            align-items: center;
-            gap: clamp(8px, 2vw, 10px);
-            background: rgba(255,60,110,0.09);
-            border: 1px solid rgba(255,60,110,0.25);
-            border-radius: 12px;
-            padding: clamp(9px, 2vh, 11px) clamp(12px, 2.5vw, 14px);
-            margin-bottom: clamp(14px, 2vh, 20px);
-            font-size: clamp(0.7rem, 1.8vw, 0.82rem);
-            color: #ff7a97;
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(139,44,246,0.09); border: 1px solid rgba(139,44,246,0.28);
+            border-radius: 12px; padding: 11px 14px; margin-bottom: 20px;
+            font-size: 0.82rem; color: #c084fc;
             animation: shakeErr 0.4s var(--ease-bounce);
         }
 
-        @keyframes shakeErr {
-            0%,100% { transform: translateX(0); }
-            25%      { transform: translateX(-5px); }
-            75%      { transform: translateX(5px); }
-        }
-
-        /* Steps */
-        .step {
-            display: none;
-            flex-direction: column;
-            gap: clamp(10px, 2vw, 14px);
-            animation: stepIn 0.32s var(--ease-out) both;
-        }
-
+        .step { display: none; flex-direction: column; gap: clamp(10px,2vw,14px); animation: stepIn 0.32s var(--ease-out) both; }
         .step.active { display: flex; }
 
         @keyframes stepIn {
@@ -272,88 +186,47 @@
             to   { opacity: 1; transform: translateX(0); }
         }
 
-        /* Dots */
-        .step-dots {
-            display: flex;
-            gap: 5px;
-            margin-bottom: clamp(12px, 2vh, 16px);
-        }
+        .step-dots { display: flex; gap: 5px; margin-bottom: clamp(12px,2vh,16px); }
 
         .step-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: var(--txt-3);
+            width: 6px; height: 6px; border-radius: 50%; background: var(--txt-3);
             transition: all 0.3s var(--ease-bounce);
         }
 
         .step-dot.active {
-            background: var(--accent);
-            width: 20px;
-            border-radius: 3px;
+            background: var(--accent); width: 20px; border-radius: 3px;
             box-shadow: 0 0 8px var(--accent-glow);
         }
 
         .step-heading h2 {
-            font-family: var(--font-display);
-            font-size: clamp(1rem, 3vw, 1.15rem);
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            margin-bottom: 2px;
+            font-family: var(--font-display); font-size: clamp(1rem,3vw,1.15rem);
+            font-weight: 700; letter-spacing: -0.03em; margin-bottom: 2px;
         }
 
-        .step-heading p {
-            font-size: clamp(0.7rem, 1.8vw, 0.8rem);
-            color: var(--txt-2);
-        }
+        .step-heading p { font-size: clamp(0.7rem,1.8vw,0.8rem); color: var(--txt-2); }
 
-        .step-heading .highlight { color: var(--accent); font-weight: 600; }
+        .field { display: flex; flex-direction: column; gap: clamp(4px,1vh,6px); }
 
-        /* Field */
-        .field { display: flex; flex-direction: column; gap: clamp(4px, 1vh, 6px); }
-
-        /* Field Grid - 2 colunas */
-        .field-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: clamp(6px, 2vw, 12px);
-        }
-
-        .field-grid .field {
-            gap: clamp(3px, 0.8vh, 5px);
-        }
+        .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(6px,2vw,12px); }
 
         .field label {
-            font-size: clamp(0.65rem, 1.5vw, 0.72rem);
-            font-weight: 600;
-            color: var(--txt-2);
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
+            font-size: clamp(0.65rem,1.5vw,0.72rem); font-weight: 600;
+            color: var(--txt-2); letter-spacing: 0.05em; text-transform: uppercase;
         }
 
         .input-wrap { position: relative; }
 
         .input-wrap > i.icon-left {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--txt-3);
-            font-size: clamp(0.75rem, 1.8vw, 0.85rem);
-            transition: color 0.2s;
-            pointer-events: none;
-            z-index: 1;
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: var(--txt-3); font-size: clamp(0.75rem,1.8vw,0.85rem);
+            transition: color 0.2s; pointer-events: none; z-index: 1;
         }
 
         .input-wrap input {
-            width: 100%;
-            padding: clamp(10px, 2.5vw, 12px) clamp(36px, 8vw, 42px);
-            background: rgba(18,18,24,0.9);
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 12px;
-            color: var(--txt-1);
-            font-family: var(--font-body);
-            font-size: clamp(14px, 3.5vw, 15px);
-            outline: none;
+            width: 100%; padding: clamp(10px,2.5vw,12px) clamp(36px,8vw,42px);
+            background: rgba(18,18,24,0.9); border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 12px; color: var(--txt-1); font-family: var(--font-body);
+            font-size: clamp(14px,3.5vw,15px); outline: none;
             transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
             -webkit-appearance: none;
         }
@@ -361,1079 +234,761 @@
         .input-wrap input::placeholder { color: var(--txt-3); }
 
         .input-wrap input:focus {
-            border-color: var(--accent);
-            background: rgba(22,18,26,0.98);
-            box-shadow: 0 0 0 3px rgba(255,60,110,0.13);
+            border-color: var(--accent); background: rgba(18,12,28,0.98);
+            box-shadow: 0 0 0 3px rgba(139,44,246,0.14);
         }
 
-        .input-wrap input.valid {
-            border-color: var(--success);
-            box-shadow: 0 0 0 2px rgba(34,211,122,0.10);
-        }
-
-        .input-wrap input.invalid {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(255,60,110,0.10);
-        }
-
+        .input-wrap input.valid { border-color: var(--success); box-shadow: 0 0 0 2px rgba(34,211,122,0.10); }
+        .input-wrap input.invalid { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(139,44,246,0.12); }
         .input-wrap:focus-within > i.icon-left { color: var(--accent); }
 
         .input-wrap .icon-right {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--txt-3);
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: color 0.2s;
-            z-index: 1;
+            position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+            color: var(--txt-3); font-size: 0.85rem; cursor: pointer; transition: color 0.2s; z-index: 1;
         }
 
         .input-wrap .icon-right:hover { color: var(--txt-1); }
 
-        /* Password strength */
         .pwd-strength {
-            display: flex; align-items: center; gap: clamp(4px, 1vw, 6px); margin-top: 2px; opacity: 0; transition: opacity 0.3s;
+            display: flex; align-items: center; gap: 6px;
+            margin-top: 2px; opacity: 0; transition: opacity 0.3s;
         }
 
-        .pwd-strength-bars {
-            display: flex; gap: 3px; flex: 1;
-        }
+        .pwd-strength-bars { display: flex; gap: 3px; flex: 1; }
 
-        .pwd-bar {
-            height: 2px; flex: 1; border-radius: 2px;
-            background: var(--border);
-            transition: background 0.3s var(--ease-out);
-        }
-
-        .pwd-bar.weak   { background: var(--accent); }
+        .pwd-bar { height: 2px; flex: 1; border-radius: 2px; background: var(--border); transition: background 0.3s var(--ease-out); }
+        .pwd-bar.weak   { background: #e55; }
         .pwd-bar.medium { background: #ffb700; }
         .pwd-bar.strong { background: var(--success); }
 
-        .pwd-strength-label {
-            font-size: clamp(0.55rem, 1.2vw, 0.6rem); color: var(--txt-3);
-            font-weight: 600; letter-spacing: 0.04em;
-            min-width: 30px; text-align: right;
-            transition: color 0.2s;
-        }
+        .pwd-strength-label { font-size: 0.6rem; color: var(--txt-3); font-weight: 600; letter-spacing: 0.04em; min-width: 30px; text-align: right; transition: color 0.2s; }
 
-        /* Field hint */
-        .field-hint {
-            font-size: clamp(0.55rem, 1.2vw, 0.6rem); color: var(--txt-3);
-            margin-top: -2px; padding-left: 2px;
-        }
+        .field-hint { font-size: 0.6rem; color: var(--txt-3); margin-top: -2px; padding-left: 2px; }
 
-        /* Botão */
         .btn-primary {
-            width: 100%;
-            padding: clamp(11px, 2.5vh, 13px);
+            width: 100%; padding: clamp(11px,2.5vh,13px);
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            border: none;
-            border-radius: 12px;
-            color: #fff;
-            font-family: var(--font-display);
-            font-size: clamp(0.85rem, 2vw, 0.92rem);
-            font-weight: 700;
-            letter-spacing: -0.01em;
-            cursor: pointer;
+            border: none; border-radius: 12px; color: #fff;
+            font-family: var(--font-display); font-size: clamp(0.85rem,2vw,0.92rem);
+            font-weight: 700; letter-spacing: -0.01em; cursor: pointer;
             box-shadow: 0 6px 22px var(--accent-glow);
             transition: transform 0.18s var(--ease-bounce), box-shadow 0.18s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            -webkit-tap-highlight-color: transparent;
-            margin-top: 4px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            -webkit-tap-highlight-color: transparent; margin-top: 4px;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 32px var(--accent-glow);
-        }
-
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 32px var(--accent-glow); }
         .btn-primary:active { transform: scale(0.97); }
-        .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+        .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
-        /* Voltar */
         .btn-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            background: none;
-            border: none;
-            color: var(--txt-2);
-            font-family: var(--font-body);
-            font-size: clamp(0.75rem, 2vw, 0.84rem);
-            cursor: pointer;
-            padding: 4px 0;
+            display: inline-flex; align-items: center; gap: 7px;
+            background: none; border: none; color: var(--txt-2);
+            font-family: var(--font-body); font-size: clamp(0.75rem,2vw,0.84rem);
+            cursor: pointer; padding: 4px 0;
             transition: color 0.15s, transform 0.12s;
-            width: fit-content;
-            margin-bottom: clamp(4px, 1vh, 6px);
+            width: fit-content; margin-bottom: clamp(4px,1vh,6px);
         }
 
         .btn-back i { font-size: 0.8rem; transition: transform 0.12s; }
         .btn-back:hover { color: var(--txt-1); transform: translateX(-3px); }
         .btn-back:hover i { transform: translateX(-2px); }
 
-        /* Email chip */
-        .email-chip {
-            display: flex;
-            align-items: center;
-            gap: clamp(8px, 2vw, 10px);
-            background: var(--accent-dim);
-            border: 1px solid var(--border-accent);
-            border-radius: 12px;
-            padding: clamp(8px, 2vh, 10px) clamp(10px, 2.5vw, 13px);
-            cursor: pointer;
-            transition: background 0.15s;
-            margin-bottom: clamp(6px, 1.5vh, 8px);
+        .review-chip {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--accent-dim); border: 1px solid var(--border-accent);
+            border-radius: 12px; padding: 10px 13px;
         }
 
-        .email-chip:hover { background: rgba(255,60,110,0.16); }
-        .email-chip > i { color: var(--accent); font-size: clamp(0.75rem, 1.8vw, 0.82rem); flex-shrink: 0; }
+        .review-chip > i { color: var(--accent); font-size: 0.82rem; flex-shrink: 0; }
 
-        .email-chip span {
-            font-size: clamp(0.75rem, 2vw, 0.86rem);
-            font-weight: 600;
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        .review-chip span {
+            font-size: 0.86rem; font-weight: 600; flex: 1;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--txt-1);
         }
 
-        /* Terms */
         .terms-check {
             display: flex; align-items: flex-start; gap: 8px;
-            padding: clamp(6px, 1.5vh, 8px) clamp(8px, 2vw, 10px);
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            transition: border-color 0.2s;
+            padding: 8px 10px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            border-radius: 10px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+            transition: border-color 0.2s, background 0.2s;
         }
 
-        .terms-check:has(input:checked) {
-            border-color: rgba(34,211,122,0.30);
-            background: var(--success-dim);
-        }
+        .terms-check:has(input:checked) { border-color: rgba(34,211,122,0.30); background: var(--success-dim); }
 
         .terms-check input[type="checkbox"] {
-            width: 16px; height: 16px; flex-shrink: 0;
-            border-radius: 4px;
-            border: 1.5px solid var(--border);
+            width: 16px; height: 16px; flex-shrink: 0; border-radius: 4px;
+            border: 1.5px solid rgba(255,255,255,0.12);
             background: rgba(255,255,255,0.05);
-            appearance: none; -webkit-appearance: none;
-            cursor: pointer;
+            appearance: none; -webkit-appearance: none; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s var(--ease-bounce);
-            position: relative; margin-top: 2px;
-            padding: 0;
-            min-height: unset;
+            transition: all 0.2s var(--ease-bounce); position: relative;
+            margin-top: 2px; padding: 0; min-height: unset;
         }
 
-        .terms-check input[type="checkbox"]:checked {
-            background: var(--success);
-            border-color: var(--success);
-        }
+        .terms-check input[type="checkbox"]:checked { background: var(--success); border-color: var(--success); }
 
         .terms-check input[type="checkbox"]:checked::after {
-            content: '';
-            position: absolute;
-            width: 4px; height: 7px;
-            border: 2px solid white;
+            content: ''; position: absolute;
+            width: 4px; height: 7px; border: 2px solid white;
             border-top: none; border-left: none;
             transform: rotate(42deg) translate(0px, -1px);
         }
 
-        .terms-text {
-            font-size: clamp(0.65rem, 1.6vw, 0.7rem); color: var(--txt-2); line-height: 1.4;
-        }
-
+        .terms-text { font-size: 0.7rem; color: var(--txt-2); line-height: 1.4; }
         .terms-text a { color: var(--accent); font-weight: 600; text-decoration: none; }
+        .terms-text a:hover { opacity: 0.8; }
 
-        /* Footer */
         .form-footer {
-            margin-top: clamp(14px, 2vh, 20px);
-            text-align: center;
-            font-size: clamp(0.7rem, 1.8vw, 0.8rem);
-            color: var(--txt-2);
+            margin-top: clamp(14px,2vh,20px); text-align: center;
+            font-size: clamp(0.7rem,1.8vw,0.8rem); color: var(--txt-2);
         }
 
-        .form-footer a {
-            color: var(--accent);
-            font-weight: 700;
-            text-decoration: none;
-        }
-
+        .form-footer a { color: var(--accent); font-weight: 700; text-decoration: none; }
         .form-footer a:hover { opacity: 0.8; }
 
-        /* ══════════════════════════════════════
-           SUCCESS OVERLAY
-        ══════════════════════════════════════ */
+        .deco-line {
+            position: relative; margin-top: 28px;
+            display: flex; align-items: center; gap: 14px;
+            animation: fadeUp 0.6s var(--ease-out) 0.2s both;
+        }
+
+        .deco-line::before, .deco-line::after {
+            content: ''; flex: 1; height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.07), transparent);
+        }
+
+        .deco-features { display: flex; gap: 16px; }
+
+        .deco-feat { display: flex; align-items: center; gap: 7px; font-size: 0.72rem; color: var(--txt-3); white-space: nowrap; }
+        .deco-feat i { color: var(--accent); font-size: 0.7rem; opacity: 0.7; }
+
+        /* ─── SUCCESS OVERLAY ─── */
         .success-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 100;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 0;
-            background: #07070a;
-            animation: overlayIn 0.5s var(--ease-out) both;
+            display: none; position: fixed; inset: 0; z-index: 1000;
+            flex-direction: column; align-items: center; justify-content: center;
+            background: #07070a; animation: overlayIn 0.5s var(--ease-out) both;
         }
 
         .success-overlay.active { display: flex; }
 
-        @keyframes overlayIn {
-            from { opacity: 0; }
-            to   { opacity: 1; }
-        }
+        @keyframes overlayIn { from{opacity:0;}to{opacity:1;} }
 
-        .success-icon-wrap {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 36px;
-        }
+        .success-icon-wrap { position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 36px; }
 
-        .success-icon-ring {
-            position: absolute;
-            width: 110px; height: 110px;
-            border-radius: 50%;
-            border: 1.5px solid rgba(255,60,110,0.25);
-            animation: ringPulse 2s ease-in-out infinite;
-        }
+        .success-icon-ring { position: absolute; width: 110px; height: 110px; border-radius: 50%; border: 1.5px solid rgba(139,44,246,0.3); animation: ringPulse 2s ease-in-out infinite; }
+        .success-icon-ring-2 { position: absolute; width: 140px; height: 140px; border-radius: 50%; border: 1px solid rgba(139,44,246,0.12); animation: ringPulse 2s ease-in-out 0.3s infinite; }
 
-        .success-icon-ring-2 {
-            position: absolute;
-            width: 140px; height: 140px;
-            border-radius: 50%;
-            border: 1px solid rgba(255,60,110,0.10);
-            animation: ringPulse 2s ease-in-out 0.3s infinite;
-        }
-
-        @keyframes ringPulse {
-            0%,100% { transform: scale(1); opacity: 1; }
-            50%      { transform: scale(1.08); opacity: 0.5; }
-        }
+        @keyframes ringPulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: 0.5; } }
 
         .success-icon-box {
-            width: 80px; height: 80px;
-            border-radius: 24px;
+            width: 80px; height: 80px; border-radius: 24px;
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
             display: flex; align-items: center; justify-content: center;
-            font-size: 2rem;
-            color: #fff;
-            box-shadow: 0 16px 48px var(--accent-glow);
-            animation: iconPopIn 0.6s var(--ease-bounce) 0.2s both;
-            position: relative;
-            z-index: 1;
+            font-size: 2rem; color: #fff; box-shadow: 0 16px 48px var(--accent-glow);
+            animation: iconPopIn 0.6s var(--ease-bounce) 0.2s both; position: relative; z-index: 1;
         }
 
-        @keyframes iconPopIn {
-            from { transform: scale(0.4) rotate(-12deg); opacity: 0; }
-            to   { transform: scale(1) rotate(0deg); opacity: 1; }
-        }
+        @keyframes iconPopIn { from { transform: scale(0.4) rotate(-12deg); opacity: 0; } to { transform: scale(1) rotate(0deg); opacity: 1; } }
 
-        .success-text {
-            text-align: center;
-            animation: fadeUp 0.5s var(--ease-out) 0.4s both;
-        }
+        .success-text { text-align: center; animation: fadeUp 0.5s var(--ease-out) 0.4s both; }
 
-        .success-text h2 {
-            font-family: var(--font-display);
-            font-size: clamp(1.4rem, 4vw, 2.2rem);
-            font-weight: 800;
-            letter-spacing: -0.04em;
-            margin-bottom: clamp(8px, 1.5vh, 10px);
-        }
+        .success-text h2 { font-family: var(--font-display); font-size: clamp(1.4rem,4vw,2.2rem); font-weight: 800; letter-spacing: -0.04em; margin-bottom: 10px; }
 
-        .success-text p {
-            font-size: clamp(0.8rem, 2vw, 0.9rem);
-            color: var(--txt-2);
-            line-height: 1.6;
-            max-width: 280px;
-            margin: 0 auto;
-        }
+        .success-text p { font-size: 0.9rem; color: var(--txt-2); line-height: 1.6; max-width: 280px; margin: 0 auto; }
 
-        .success-text .username-highlight {
-            color: var(--accent);
-            font-weight: 700;
-        }
+        .username-highlight { color: var(--accent); font-weight: 700; }
 
-        .success-progress {
-            margin-top: 40px;
-            width: 200px;
-            animation: fadeUp 0.5s var(--ease-out) 0.55s both;
-        }
+        .success-progress { margin-top: 40px; width: 200px; animation: fadeUp 0.5s var(--ease-out) 0.55s both; }
 
-        .progress-track {
-            width: 100%;
-            height: 3px;
-            border-radius: 2px;
-            background: rgba(255,255,255,0.07);
-            overflow: hidden;
-        }
+        .progress-track { width: 100%; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.07); overflow: hidden; }
 
         .progress-fill {
-            height: 100%;
-            border-radius: 2px;
+            height: 100%; border-radius: 2px;
             background: linear-gradient(90deg, var(--accent), var(--accent-2));
-            box-shadow: 0 0 10px var(--accent-glow);
-            width: 0%;
+            box-shadow: 0 0 10px var(--accent-glow); width: 0%;
             animation: progressGrow 1.6s var(--ease-out) 0.5s forwards;
         }
 
-        @keyframes progressGrow {
-            from { width: 0%; }
-            to   { width: 100%; }
-        }
+        @keyframes progressGrow { from{width:0%;}to{width:100%;} }
 
-        .progress-label {
-            margin-top: 10px;
-            font-size: 0.74rem;
-            color: var(--txt-3);
-            text-align: center;
-            letter-spacing: 0.04em;
-            animation: fadeUp 0.4s var(--ease-out) 0.7s both;
-        }
+        .progress-label { margin-top: 10px; font-size: 0.74rem; color: var(--txt-3); text-align: center; letter-spacing: 0.04em; animation: fadeUp 0.4s var(--ease-out) 0.7s both; }
 
-        .music-particles {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            overflow: hidden;
-        }
+        .music-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 
-        .particle {
-            position: absolute;
-            font-size: 1.1rem;
-            opacity: 0;
-            animation: particleFloat 3s ease-out forwards;
-        }
+        .particle { position: absolute; font-size: 1.1rem; opacity: 0; animation: particleFloat 3s ease-out forwards; }
 
-        @keyframes particleFloat {
-            0%   { opacity: 0; transform: translateY(0) scale(0.5); }
-            20%  { opacity: 0.6; }
-            100% { opacity: 0; transform: translateY(-180px) scale(1.2) rotate(20deg); }
-        }
+        @keyframes particleFloat { 0% { opacity:0; transform:translateY(0) scale(0.5); } 20% { opacity:0.6; } 100% { opacity:0; transform:translateY(-180px) scale(1.2) rotate(20deg); } }
 
-        /* Mobile */
         @media (max-width: 480px) {
-            .page-content { 
-                padding: 0 clamp(12px, 3vw, 16px); 
-            }
-
-            .form-card { 
-                padding: 16px;
-                border-radius: 20px;
-            }
-
-            .step-dots {
-                margin-bottom: 12px;
-            }
-
-            .field {
-                gap: 4px;
-            }
-
-            .field-grid {
-                gap: clamp(5px, 1.5vw, 8px);
-            }
-
-            .input-wrap input {
-                padding: 10px 38px;
-                font-size: 14px;
-            }
-
-            .btn-primary {
-                padding: 11px;
-                margin-top: 2px;
-            }
-
-            .pwd-strength-label {
-                min-width: 30px;
-                font-size: 0.55rem;
-            }
+            .page-content { padding: 0 clamp(12px,3vw,16px); }
+            .form-card { padding: 16px; border-radius: 20px; }
+            .step-dots { margin-bottom: 12px; }
+            .field-grid { gap: 6px; }
+            .input-wrap input { padding: 10px 38px; font-size: 14px; }
+            .btn-primary { padding: 11px; margin-top: 2px; }
+            .deco-line { display: none; }
         }
     </style>
 </head>
 <body>
 
-    <div class="bg-orbs" aria-hidden="true">
-        <div class="orb orb-a"></div>
-        <div class="orb orb-b"></div>
-        <div class="orb orb-c"></div>
-    </div>
+<div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="orb orb-c"></div>
+</div>
 
-    <div class="page-content">
+<div class="music-notes-stage" id="musicNotesStage" aria-hidden="true"></div>
 
-        <div class="brand-header">
-            <div class="brand-icon"><i class="fa-solid fa-music"></i></div>
-            <div class="brand-text">
-                <div class="name">Melodya</div>
-                <div class="sub">Sua música, em todo lugar</div>
-            </div>
-        </div>
+<div class="page-content">
 
-        <div class="page-heading">
-            <h1>Crie sua<br><span>conta.</span></h1>
-            <p>Junte-se à comunidade Melodya</p>
-        </div>
-
-        <div class="form-card">
-
-            {% if form.errors %}
-            <div class="error-banner">
-                <i class="fa-solid fa-circle-exclamation"></i>
-                <span>Erro ao registrar. Verifique os dados.</span>
-            </div>
-            {% endif %}
-
-            <form id="realForm" method="post" action="{% url 'register' %}" style="display:none;">
-                {% csrf_token %}
-                <input type="hidden" id="f-username"  name="username">
-                <input type="hidden" id="f-email"     name="email">
-                <input type="hidden" id="f-password1" name="password1">
-                <input type="hidden" id="f-password2" name="password2">
-                <input type="hidden" id="f-fullname" name="full_name">
-                <input type="hidden" id="f-cpf" name="cpf_cnpj">
-                <input type="hidden" id="f-phone" name="phone">
-                <input type="hidden" id="f-mobile" name="mobile_phone">
-                <input type="hidden" id="f-cep" name="postal_code">
-                <input type="hidden" id="f-address" name="address">
-                <input type="hidden" id="f-number" name="address_number">
-                <input type="hidden" id="f-complement" name="complement">
-                <input type="hidden" id="f-city" name="city">
-                <input type="hidden" id="f-state" name="state">
-            </form>
-
-            <!-- PROGRESS DOTS: 4 steps -->
-            <div class="step-dots" id="progressDots">
-                <div class="step-dot active" id="dot1"></div>
-                <div class="step-dot"        id="dot2"></div>
-                <div class="step-dot"        id="dot3"></div>
-                <div class="step-dot"        id="dot4"></div>
-            </div>
-
-            <!-- ═════════════════════════════════════
-                 STEP 1 — Usuário + E-mail
-            ═════════════════════════════════════ -->
-            <div class="step active" id="step1">
-                <div class="step-heading">
-                    <h2>Usuário e E-mail</h2>
-                    <p>Comece com o básico</p>
-                </div>
-
-                <div class="field">
-                    <label for="inp-username">Nome de usuário</label>
-                    <div class="input-wrap">
-                        <i class="fa-regular fa-user icon-left"></i>
-                        <input type="text" id="inp-username"
-                               placeholder="seu_usuario"
-                               autocomplete="username"
-                               autocapitalize="none"
-                               spellcheck="false"
-                               maxlength="30">
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label for="inp-email">E-mail</label>
-                    <div class="input-wrap">
-                        <i class="fa-regular fa-envelope icon-left"></i>
-                        <input type="email" id="inp-email"
-                               placeholder="seu@email.com"
-                               autocomplete="email"
-                               autocapitalize="none"
-                               spellcheck="false">
-                    </div>
-                </div>
-
-                <button class="btn-primary" type="button" id="btn1">
-                    Continuar <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
-
-            <!-- ═════════════════════════════════════
-                 STEP 2 — Senha
-            ═════════════════════════════════════ -->
-            <div class="step" id="step2">
-                <button class="btn-back" type="button" id="back2">
-                    <i class="fa-solid fa-arrow-left"></i> Voltar
-                </button>
-
-                <div class="step-heading">
-                    <h2>Crie sua senha</h2>
-                    <p>Escolha algo seguro</p>
-                </div>
-
-                <div class="field">
-                    <label for="inp-pwd1">Senha</label>
-                    <div class="input-wrap">
-                        <i class="fa-solid fa-lock icon-left"></i>
-                        <input type="password" id="inp-pwd1"
-                               placeholder="Mínimo 8 caracteres"
-                               autocomplete="new-password">
-                        <i class="fa-regular fa-eye icon-right" id="togglePwd1"></i>
-                    </div>
-                    <div class="pwd-strength" id="pwdStrengthRow">
-                        <div class="pwd-strength-bars">
-                            <div class="pwd-bar" id="pbar1"></div>
-                            <div class="pwd-bar" id="pbar2"></div>
-                            <div class="pwd-bar" id="pbar3"></div>
-                        </div>
-                        <span class="pwd-strength-label" id="pwdStrengthLabel"></span>
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label for="inp-pwd2">Confirmar senha</label>
-                    <div class="input-wrap">
-                        <i class="fa-solid fa-lock icon-left"></i>
-                        <input type="password" id="inp-pwd2"
-                               placeholder="Repita a senha"
-                               autocomplete="new-password">
-                        <i class="fa-regular fa-eye icon-right" id="togglePwd2"></i>
-                    </div>
-                    <p class="field-hint" id="pwdMatchHint" style="display:none"></p>
-                </div>
-
-                <button class="btn-primary" type="button" id="btn2">
-                    Continuar <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
-
-            <!-- ═════════════════════════════════════
-                 STEP 3 — Dados pessoais
-            ═════════════════════════════════════ -->
-            <div class="step" id="step3">
-                <button class="btn-back" type="button" id="back3">
-                    <i class="fa-solid fa-arrow-left"></i> Voltar
-                </button>
-
-                <div class="step-heading">
-                    <h2>Seus dados</h2>
-                    <p>Informações pessoais</p>
-                </div>
-
-                <div class="field">
-                    <label for="inp-fullname">Nome completo</label>
-                    <div class="input-wrap">
-                        <i class="fa-regular fa-user icon-left"></i>
-                        <input type="text" id="inp-fullname" placeholder="Seu nome completo">
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label for="inp-cpf">CPF / CNPJ</label>
-                    <div class="input-wrap">
-                        <i class="fa fa-id-card icon-left"></i>
-                        <input type="text" id="inp-cpf" placeholder="000.000.000-00" maxlength="18">
-                    </div>
-                </div>
-
-                <div class="field-grid">
-                    <div class="field">
-                        <label for="inp-phone">Telefone</label>
-                        <div class="input-wrap">
-                            <i class="fa fa-phone icon-left"></i>
-                            <input type="tel" id="inp-phone" placeholder="(11) 3000-0000" maxlength="14">
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label for="inp-mobile">Celular</label>
-                        <div class="input-wrap">
-                            <i class="fa fa-mobile icon-left"></i>
-                            <input type="tel" id="inp-mobile" placeholder="(11) 90000-0000" maxlength="15">
-                        </div>
-                    </div>
-                </div>
-
-                <button class="btn-primary" type="button" id="btn3">
-                    Continuar <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
-
-            <!-- ═════════════════════════════════════
-                 STEP 4 — Endereço via CEP
-            ═════════════════════════════════════ -->
-            <div class="step" id="step4">
-                <button class="btn-back" type="button" id="back4">
-                    <i class="fa-solid fa-arrow-left"></i> Voltar
-                </button>
-
-                <div class="step-heading">
-                    <h2>Seu endereço</h2>
-                    <p>Preencha o CEP para autocompletar</p>
-                </div>
-
-                <div class="field">
-                    <label for="inp-cep">CEP</label>
-                    <div class="input-wrap">
-                        <i class="fa fa-location-pin icon-left"></i>
-                        <input type="text" id="inp-cep" placeholder="00000-000" maxlength="9">
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label for="inp-address">Endereço</label>
-                    <div class="input-wrap">
-                        <i class="fa fa-road icon-left"></i>
-                        <input type="text" id="inp-address" placeholder="Rua, Avenida…" readonly>
-                    </div>
-                </div>
-
-                <div class="field-grid">
-                    <div class="field">
-                        <label for="inp-number">Número</label>
-                        <div class="input-wrap">
-                            <i class="fa fa-hashtag icon-left"></i>
-                            <input type="text" id="inp-number" placeholder="123">
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label for="inp-complement">Complemento</label>
-                        <div class="input-wrap">
-                            <i class="fa fa-plus icon-left"></i>
-                            <input type="text" id="inp-complement" placeholder="Apto, Bloco…">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="field-grid">
-                    <div class="field">
-                        <label for="inp-city">Cidade</label>
-                        <div class="input-wrap">
-                            <i class="fa fa-city icon-left"></i>
-                            <input type="text" id="inp-city" placeholder="São Paulo" readonly>
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label for="inp-state">Estado</label>
-                        <div class="input-wrap">
-                            <i class="fa fa-map icon-left"></i>
-                            <input type="text" id="inp-state" placeholder="SP" readonly maxlength="2">
-                        </div>
-                    </div>
-                </div>
-
-                <button class="btn-primary" type="button" id="btn4">
-                    Continuar <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
-
-            <!-- ═════════════════════════════════════
-                 STEP 5 — Revisão e Termos
-            ═════════════════════════════════════ -->
-            <div class="step" id="step5">
-                <button class="btn-back" type="button" id="back5">
-                    <i class="fa-solid fa-arrow-left"></i> Voltar
-                </button>
-
-                <div class="step-heading">
-                    <h2>Tudo pronto!</h2>
-                    <p>Revise seus dados</p>
-                </div>
-
-                <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
-                    <div class="email-chip" style="cursor:default">
-                        <i class="fa-regular fa-user"></i>
-                        <span id="resumeUserText" style="font-size:.85rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span>
-                    </div>
-                    <div class="email-chip" style="cursor:default">
-                        <i class="fa-solid fa-id-card"></i>
-                        <span id="resumeFullNameText" style="font-size:.85rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span>
-                    </div>
-                    <div class="email-chip" style="cursor:default">
-                        <i class="fa-regular fa-envelope"></i>
-                        <span id="resumeEmailText" style="font-size:.85rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</span>
-                    </div>
-                </div>
-
-                <label class="terms-check" for="inp-terms">
-                    <input type="checkbox" id="inp-terms">
-                    <span class="terms-text">
-                        Eu concordo com os <a href="#">Termos de Serviço</a> e <a href="#">Política de Privacidade</a>.
-                    </span>
-                </label>
-
-                <button class="btn-primary" type="button" id="btn5" disabled>
-                    <i class="fa-solid fa-check"></i> Criar conta
-                </button>
-            </div>
-
-            <div class="form-footer">
-                Já tem conta? <a href="{% url 'login' %}">Entrar</a>
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- ════════════════════════════════
-         SUCCESS OVERLAY
-    ════════════════════════════════ -->
-    <div class="success-overlay" id="successOverlay">
-        <div class="music-particles" id="musicParticles"></div>
-
-        <div class="success-icon-wrap">
-            <div class="success-icon-ring-2"></div>
-            <div class="success-icon-ring"></div>
-            <div class="success-icon-box">
-                <i class="fa-solid fa-music"></i>
-            </div>
-        </div>
-
-        <div class="success-text">
-            <h2>Conta criada<span style="color:var(--accent)">!</span></h2>
-            <p>Bem-vindo à Melodya, <span class="username-highlight" id="successUsername"></span>. Estamos preparando sua experiência…</p>
-        </div>
-
-        <div class="success-progress">
-            <div class="progress-track">
-                <div class="progress-fill"></div>
-            </div>
-            <div class="progress-label">PERSONALIZANDO EXPERIÊNCIA</div>
+    <div class="brand-header">
+        <div class="brand-icon"><i class="fa-solid fa-music"></i></div>
+        <div class="brand-text">
+            <div class="name">Beatflow</div>
+            <div class="sub">Sua música, em todo lugar</div>
         </div>
     </div>
 
-    <script>
-    (() => {
-        // Elementos
-        const steps = [null, 
-            document.getElementById('step1'),
-            document.getElementById('step2'),
-            document.getElementById('step3'),
-            document.getElementById('step4'),
-            document.getElementById('step5')
-        ];
-        const dots = [null,
-            document.getElementById('dot1'),
-            document.getElementById('dot2'),
-            document.getElementById('dot3'),
-            document.getElementById('dot4')
-        ];
+    <div class="page-heading">
+        <h1>Crie sua<br><span>conta.</span></h1>
+        <p>Junte-se à comunidade Beatflow</p>
+    </div>
 
-        const inpUser = document.getElementById('inp-username');
-        const inpEmail = document.getElementById('inp-email');
-        const inpPwd1 = document.getElementById('inp-pwd1');
-        const inpPwd2 = document.getElementById('inp-pwd2');
-        const inpFullname = document.getElementById('inp-fullname');
-        const inpCpf = document.getElementById('inp-cpf');
-        const inpPhone = document.getElementById('inp-phone');
-        const inpMobile = document.getElementById('inp-mobile');
-        const inpCep = document.getElementById('inp-cep');
-        const inpAddress = document.getElementById('inp-address');
-        const inpCity = document.getElementById('inp-city');
-        const inpState = document.getElementById('inp-state');
-        const inpNumber = document.getElementById('inp-number');
-        const inpComplement = document.getElementById('inp-complement');
-        const inpTerms = document.getElementById('inp-terms');
+    <div class="form-card">
 
-        const btn1 = document.getElementById('btn1');
-        const btn2 = document.getElementById('btn2');
-        const btn3 = document.getElementById('btn3');
-        const btn4 = document.getElementById('btn4');
-        const btn5 = document.getElementById('btn5');
+        {% if form.errors %}
+        <div class="error-banner">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>Erro ao registrar. Verifique os dados.</span>
+        </div>
+        {% endif %}
 
-        const back2 = document.getElementById('back2');
-        const back3 = document.getElementById('back3');
-        const back4 = document.getElementById('back4');
-        const back5 = document.getElementById('back5');
+        <form id="realForm" method="post" action="{% url 'register' %}" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" id="f-username"   name="username">
+            <input type="hidden" id="f-email"      name="email">
+            <input type="hidden" id="f-password1"  name="password1">
+            <input type="hidden" id="f-password2"  name="password2">
+            <input type="hidden" id="f-fullname"   name="full_name">
+            <input type="hidden" id="f-cpf"        name="cpf_cnpj">
+            <input type="hidden" id="f-phone"      name="phone">
+            <input type="hidden" id="f-mobile"     name="mobile_phone">
+            <input type="hidden" id="f-cep"        name="postal_code">
+            <input type="hidden" id="f-address"    name="address">
+            <input type="hidden" id="f-number"     name="address_number">
+            <input type="hidden" id="f-complement" name="complement">
+            <input type="hidden" id="f-city"       name="city">
+            <input type="hidden" id="f-state"      name="state">
+        </form>
 
-        const pwdStrengthRow = document.getElementById('pwdStrengthRow');
-        const pwdStrengthLabel = document.getElementById('pwdStrengthLabel');
-        const pbar1 = document.getElementById('pbar1');
-        const pbar2 = document.getElementById('pbar2');
-        const pbar3 = document.getElementById('pbar3');
-        const pwdMatchHint = document.getElementById('pwdMatchHint');
-        const togglePwd1 = document.getElementById('togglePwd1');
-        const togglePwd2 = document.getElementById('togglePwd2');
+        <div class="step-dots" id="progressDots">
+            <div class="step-dot active" id="dot1"></div>
+            <div class="step-dot"        id="dot2"></div>
+            <div class="step-dot"        id="dot3"></div>
+            <div class="step-dot"        id="dot4"></div>
+        </div>
 
-        const realForm = document.getElementById('realForm');
-        const resumeUserText = document.getElementById('resumeUserText');
-        const resumeFullNameText = document.getElementById('resumeFullNameText');
-        const resumeEmailText = document.getElementById('resumeEmailText');
-        const successOverlay = document.getElementById('successOverlay');
-        const successUsername = document.getElementById('successUsername');
+        <!-- STEP 1 -->
+        <div class="step active" id="step1">
+            <div class="step-heading">
+                <h2>Identificação</h2>
+                <p>Usuário e e-mail para começar</p>
+            </div>
+            <div class="field">
+                <label for="inp-username">Nome de usuário</label>
+                <div class="input-wrap">
+                    <i class="fa-regular fa-user icon-left"></i>
+                    <input type="text" id="inp-username" placeholder="seu_usuario" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30">
+                </div>
+            </div>
+            <div class="field">
+                <label for="inp-email">E-mail</label>
+                <div class="input-wrap">
+                    <i class="fa-regular fa-envelope icon-left"></i>
+                    <input type="email" id="inp-email" placeholder="seu@email.com" autocomplete="email" autocapitalize="none" spellcheck="false">
+                </div>
+            </div>
+            <button class="btn-primary" type="button" id="btn1">Continuar <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
 
-        let currentStep = 1;
+        <!-- STEP 2 -->
+        <div class="step" id="step2">
+            <button class="btn-back" type="button" id="back2"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
+            <div class="step-heading">
+                <h2>Crie sua senha</h2>
+                <p>Escolha algo seguro</p>
+            </div>
+            <div class="field">
+                <label for="inp-pwd1">Senha</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-lock icon-left"></i>
+                    <input type="password" id="inp-pwd1" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+                    <i class="fa-regular fa-eye icon-right" id="togglePwd1"></i>
+                </div>
+                <div class="pwd-strength" id="pwdStrengthRow">
+                    <div class="pwd-strength-bars">
+                        <div class="pwd-bar" id="pbar1"></div>
+                        <div class="pwd-bar" id="pbar2"></div>
+                        <div class="pwd-bar" id="pbar3"></div>
+                    </div>
+                    <span class="pwd-strength-label" id="pwdStrengthLabel"></span>
+                </div>
+            </div>
+            <div class="field">
+                <label for="inp-pwd2">Confirmar senha</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-lock icon-left"></i>
+                    <input type="password" id="inp-pwd2" placeholder="Repita a senha" autocomplete="new-password">
+                    <i class="fa-regular fa-eye icon-right" id="togglePwd2"></i>
+                </div>
+                <p class="field-hint" id="pwdMatchHint" style="display:none"></p>
+            </div>
+            <button class="btn-primary" type="button" id="btn2">Continuar <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
 
-        inpUser?.focus();
+        <!-- STEP 3 -->
+        <div class="step" id="step3">
+            <button class="btn-back" type="button" id="back3"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
+            <div class="step-heading">
+                <h2>Seus dados</h2>
+                <p>Informações pessoais</p>
+            </div>
+            <div class="field">
+                <label for="inp-fullname">Nome completo</label>
+                <div class="input-wrap">
+                    <i class="fa-regular fa-user icon-left"></i>
+                    <input type="text" id="inp-fullname" placeholder="Seu nome completo">
+                </div>
+            </div>
+            <div class="field">
+                <label for="inp-cpf">CPF / CNPJ</label>
+                <div class="input-wrap">
+                    <i class="fa fa-id-card icon-left"></i>
+                    <input type="text" id="inp-cpf" placeholder="000.000.000-00" maxlength="18">
+                </div>
+            </div>
+            <div class="field-grid">
+                <div class="field">
+                    <label for="inp-phone">Telefone</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-phone icon-left"></i>
+                        <input type="tel" id="inp-phone" placeholder="(11) 3000-0000" maxlength="14">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="inp-mobile">Celular</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-mobile icon-left"></i>
+                        <input type="tel" id="inp-mobile" placeholder="(11) 90000-0000" maxlength="15">
+                    </div>
+                </div>
+            </div>
+            <button class="btn-primary" type="button" id="btn3">Continuar <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
 
-        // Navegação
-        function goTo(n) {
-            const prev = steps[currentStep];
-            if (!prev) return;
-            
-            prev.style.animation = 'stepOut 0.22s ease-in both';
-            setTimeout(() => {
-                prev.classList.remove('active');
-                prev.style.animation = '';
-                if (dots[currentStep]) dots[currentStep].classList.remove('active');
-                
-                currentStep = n;
-                if (dots[n]) dots[n].classList.add('active');
-                if (steps[n]) steps[n].classList.add('active');
-                
-                const firstInp = steps[n]?.querySelector('input:not([type=checkbox])');
-                if (firstInp && !firstInp.readOnly) setTimeout(() => firstInp.focus(), 80);
-            }, 200);
-        }
+        <!-- STEP 4 -->
+        <div class="step" id="step4">
+            <button class="btn-back" type="button" id="back4"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
+            <div class="step-heading">
+                <h2>Seu endereço</h2>
+                <p>Preencha o CEP para autocompletar</p>
+            </div>
+            <div class="field">
+                <label for="inp-cep">CEP</label>
+                <div class="input-wrap">
+                    <i class="fa fa-location-pin icon-left"></i>
+                    <input type="text" id="inp-cep" placeholder="00000-000" maxlength="9">
+                </div>
+            </div>
+            <div class="field">
+                <label for="inp-address">Endereço</label>
+                <div class="input-wrap">
+                    <i class="fa fa-road icon-left"></i>
+                    <input type="text" id="inp-address" placeholder="Rua, Avenida…" readonly>
+                </div>
+            </div>
+            <div class="field-grid">
+                <div class="field">
+                    <label for="inp-number">Número</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-hashtag icon-left"></i>
+                        <input type="text" id="inp-number" placeholder="123">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="inp-complement">Complemento</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-plus icon-left"></i>
+                        <input type="text" id="inp-complement" placeholder="Apto, Bloco…">
+                    </div>
+                </div>
+            </div>
+            <div class="field-grid">
+                <div class="field">
+                    <label for="inp-city">Cidade</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-city icon-left"></i>
+                        <input type="text" id="inp-city" placeholder="São Paulo" readonly>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="inp-state">Estado</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-map icon-left"></i>
+                        <input type="text" id="inp-state" placeholder="SP" readonly maxlength="2">
+                    </div>
+                </div>
+            </div>
+            <button class="btn-primary" type="button" id="btn4">Continuar <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
 
-        function shake(el) {
-            if (!el) return;
-            const wrap = el.closest('.input-wrap') || el.parentElement;
-            wrap.style.animation = 'none';
-            wrap.offsetHeight;
-            wrap.style.animation = 'shakeErr 0.4s cubic-bezier(0.34,1.56,0.64,1)';
-        }
+        <!-- STEP 5 -->
+        <div class="step" id="step5">
+            <button class="btn-back" type="button" id="back5"><i class="fa-solid fa-arrow-left"></i> Voltar</button>
+            <div class="step-heading">
+                <h2>Tudo pronto!</h2>
+                <p>Confirme seus dados</p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+                <div class="review-chip"><i class="fa-regular fa-user"></i><span id="resumeUserText">—</span></div>
+                <div class="review-chip"><i class="fa-solid fa-id-card"></i><span id="resumeFullNameText">—</span></div>
+                <div class="review-chip"><i class="fa-regular fa-envelope"></i><span id="resumeEmailText">—</span></div>
+            </div>
+            <label class="terms-check" for="inp-terms">
+                <input type="checkbox" id="inp-terms">
+                <span class="terms-text">Eu concordo com os <a href="#">Termos de Serviço</a> e <a href="#">Política de Privacidade</a>.</span>
+            </label>
+            <button class="btn-primary" type="button" id="btn5" disabled>
+                <i class="fa-solid fa-check"></i> Criar conta
+            </button>
+        </div>
 
-        // Validações
-        function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
-        function isValidUser(v) { return /^[a-zA-Z0-9_.]{3,30}$/.test(v); }
-        function pwdScore(pwd) {
-            let s = 0;
-            if (pwd.length >= 8) s++;
-            if (/[A-Z]/.test(pwd)) s++;
-            if (/[0-9]/.test(pwd)) s++;
-            if (/[^A-Za-z0-9]/.test(pwd)) s++;
-            return s;
-        }
+        <div class="form-footer">Já tem conta? <a href="{% url 'login' %}">Entrar</a></div>
 
-        // Força da senha
-        inpPwd1?.addEventListener('input', () => {
-            const pwd = inpPwd1.value;
-            if (!pwd) { 
-                pwdStrengthRow.style.opacity = '0'; 
-                return; 
-            }
-            pwdStrengthRow.style.opacity = '1';
+    </div>
 
-            const score = pwdScore(pwd);
-            [pbar1, pbar2, pbar3].forEach(b => b.className = 'pwd-bar');
+    <div class="deco-line">
+        <div class="deco-features">
+            <div class="deco-feat"><i class="fa-solid fa-bolt"></i> Alta qualidade</div>
+            <div class="deco-feat"><i class="fa-solid fa-list-music"></i> Playlists</div>
+            <div class="deco-feat"><i class="fa-solid fa-headphones"></i> Offline</div>
+        </div>
+    </div>
 
-            if (score <= 1) {
-                pbar1.classList.add('weak');
-                pwdStrengthLabel.textContent = 'Fraca';
-                pwdStrengthLabel.style.color = 'var(--accent)';
-            } else if (score <= 2) {
-                pbar1.classList.add('medium');
-                pbar2.classList.add('medium');
-                pwdStrengthLabel.textContent = 'Média';
-                pwdStrengthLabel.style.color = '#ffb700';
-            } else {
-                [pbar1, pbar2, pbar3].forEach(b => b.classList.add('strong'));
-                pwdStrengthLabel.textContent = 'Forte';
-                pwdStrengthLabel.style.color = 'var(--success)';
-            }
+</div>
 
-            if (inpPwd2?.value) checkMatch();
-        });
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="successOverlay">
+    <div class="music-particles" id="musicParticles"></div>
+    <div class="success-icon-wrap">
+        <div class="success-icon-ring-2"></div>
+        <div class="success-icon-ring"></div>
+        <div class="success-icon-box"><i class="fa-solid fa-music"></i></div>
+    </div>
+    <div class="success-text">
+        <h2>Conta criada<span style="color:var(--accent)">!</span></h2>
+        <p>Bem-vindo ao Beatflow, <span class="username-highlight" id="successUsername"></span>. Preparando sua experiência…</p>
+    </div>
+    <div class="success-progress">
+        <div class="progress-track"><div class="progress-fill"></div></div>
+        <div class="progress-label">PERSONALIZANDO EXPERIÊNCIA</div>
+    </div>
+</div>
 
-        function checkMatch() {
-            if (!inpPwd1 || !inpPwd2 || !pwdMatchHint) return;
-            const match = inpPwd1.value === inpPwd2.value && inpPwd2.value.length > 0;
-            
-            if (!inpPwd2.value.length) {
-                pwdMatchHint.style.display = 'none';
-                return;
-            }
-            
-            pwdMatchHint.style.display = 'block';
-            if (match) {
-                pwdMatchHint.textContent = '✓ Senhas coincidem';
-                pwdMatchHint.style.color = 'var(--success)';
-                inpPwd2.classList.remove('invalid');
-                inpPwd2.classList.add('valid');
-            } else {
-                pwdMatchHint.textContent = '✗ Senhas não coincidem';
-                pwdMatchHint.style.color = 'var(--accent)';
-                inpPwd2.classList.remove('valid');
-                inpPwd2.classList.add('invalid');
-            }
-        }
+<script>
+// ─── RISING MUSIC NOTES (sutil) ───
+(() => {
+    const stage = document.getElementById('musicNotesStage');
+    if (!stage) return;
 
-        inpPwd2?.addEventListener('input', checkMatch);
+    const symbols = ['♪', '♫', '♬', '♩', '𝅘𝅥𝅮', '𝄞'];
+    const colors  = [
+        'rgba(139,44,246,0.35)',
+        'rgba(192,38,211,0.30)',
+        'rgba(168,85,247,0.32)',
+        'rgba(216,180,254,0.28)',
+        'rgba(225,29,155,0.25)',
+        'rgba(139,44,246,0.30)',
+    ];
 
-        // Toggle senha
-        function makePwdToggle(btn, inp) {
-            if (!btn || !inp) return;
-            btn.addEventListener('click', () => {
-                const show = inp.type === 'password';
-                inp.type = show ? 'text' : 'password';
-                btn.className = show ? 'fa-regular fa-eye-slash icon-right' : 'fa-regular fa-eye icon-right';
-            });
-        }
-        makePwdToggle(togglePwd1, inpPwd1);
-        makePwdToggle(togglePwd2, inpPwd2);
+    function spawnNote() {
+        const note = document.createElement('span');
+        note.className = 'mnote';
+        note.textContent = symbols[Math.floor(Math.random() * symbols.length)];
 
-        // Termos → habilita botão
-        inpTerms?.addEventListener('change', () => {
-            btn5.disabled = !inpTerms.checked;
-        });
+        const size     = 0.7 + Math.random() * 1.1;
+        const leftPct  = 2 + Math.random() * 96;
+        const duration = 7 + Math.random() * 10;
+        const delay    = Math.random() * 2;
 
-        // ViaCEP
-        inpCep?.addEventListener('blur', async () => {
-            const cep = inpCep.value.replace(/\D/g, '');
-            if (cep.length !== 8) return;
-
-            try {
-                const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                const data = await res.json();
-
-                if (data.erro) {
-                    shake(inpCep);
-                    return;
-                }
-
-                inpAddress.value = data.logradouro;
-                inpCity.value = data.localidade;
-                inpState.value = data.uf;
-                inpNumber.focus();
-            } catch (e) {
-                console.error('Erro ao buscar CEP:', e);
-            }
-        });
-
-        // Máscara CEP
-        inpCep?.addEventListener('input', (e) => {
-            let v = e.target.value.replace(/\D/g, '');
-            if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
-            e.target.value = v;
-        });
-
-        // STEP 1 → 2
-        btn1?.addEventListener('click', () => {
-            const user = inpUser.value.trim();
-            const email = inpEmail.value.trim();
-            
-            if (!isValidUser(user)) { shake(inpUser); inpUser.focus(); return; }
-            if (!isValidEmail(email)) { shake(inpEmail); inpEmail.focus(); return; }
-            
-            goTo(2);
-        });
-        inpUser?.addEventListener('keydown', e => { if (e.key === 'Enter') inpEmail?.focus(); });
-        inpEmail?.addEventListener('keydown', e => { if (e.key === 'Enter') btn1?.click(); });
-
-        // STEP 2 → 3
-        btn2?.addEventListener('click', () => {
-            const pwd1 = inpPwd1.value;
-            const pwd2 = inpPwd2.value;
-            
-            if (!pwd1 || pwd1.length < 8) { shake(inpPwd1); inpPwd1.focus(); return; }
-            if (pwd1 !== pwd2) { shake(inpPwd2); inpPwd2.focus(); return; }
-            
-            goTo(3);
-        });
-        inpPwd1?.addEventListener('keydown', e => { if (e.key === 'Enter') inpPwd2?.focus(); });
-        inpPwd2?.addEventListener('keydown', e => { if (e.key === 'Enter') btn2?.click(); });
-
-        // STEP 3 → 4
-        btn3?.addEventListener('click', () => {
-            goTo(4);
-        });
-
-        // STEP 4 → 5
-        btn4?.addEventListener('click', () => {
-            const cep = inpCep.value.trim();
-            const address = inpAddress.value.trim();
-            const number = inpNumber.value.trim();
-            
-            if (!cep) { shake(inpCep); return; }
-            if (!address) { shake(inpAddress); return; }
-            if (!number) { shake(inpNumber); return; }
-            
-            // Preenche resumo
-            resumeUserText.textContent = inpUser.value.trim();
-            resumeFullNameText.textContent = inpFullname.value.trim();
-            resumeEmailText.textContent = inpEmail.value.trim();
-            
-            goTo(5);
-        });
-
-        // STEP 5 → SUBMIT
-        btn5?.addEventListener('click', () => {
-            if (!inpTerms?.checked) return;
-
-            // Preenche campos ocultos
-            document.getElementById('f-username').value = inpUser.value.trim();
-            document.getElementById('f-email').value = inpEmail.value.trim();
-            document.getElementById('f-password1').value = inpPwd1.value;
-            document.getElementById('f-password2').value = inpPwd2.value;
-            document.getElementById('f-fullname').value = inpFullname.value.trim();
-            document.getElementById('f-cpf').value = inpCpf.value.trim();
-            document.getElementById('f-phone').value = inpPhone.value.trim();
-            document.getElementById('f-mobile').value = inpMobile.value.trim();
-            document.getElementById('f-cep').value = inpCep.value.trim();
-            document.getElementById('f-address').value = inpAddress.value.trim();
-            document.getElementById('f-number').value = inpNumber.value.trim();
-            document.getElementById('f-complement').value = inpComplement.value.trim();
-            document.getElementById('f-city').value = inpCity.value.trim();
-            document.getElementById('f-state').value = inpState.value.trim();
-
-            btn5.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Criando conta…';
-            btn5.disabled = true;
-
-            successUsername.textContent = inpUser.value.trim();
-            steps[5].classList.remove('active');
-            successOverlay.classList.add('active');
-
-            spawnParticles();
-
-            setTimeout(() => realForm.submit(), 2300);
-        });
-
-        // Voltar
-        back2?.addEventListener('click', () => goTo(1));
-        back3?.addEventListener('click', () => goTo(2));
-        back4?.addEventListener('click', () => goTo(3));
-        back5?.addEventListener('click', () => goTo(4));
-
-        // Partículas
-        function spawnParticles() {
-            const container = document.getElementById('musicParticles');
-            const emojis = ['♪', '♫', '♬', '♩', '🎵', '🎶'];
-            for (let i = 0; i < 14; i++) {
-                setTimeout(() => {
-                    const p = document.createElement('span');
-                    p.className = 'particle';
-                    p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                    p.style.left = (Math.random() * 90 + 5) + '%';
-                    p.style.bottom = (15 + Math.random() * 35) + '%';
-                    p.style.animationDelay = (Math.random() * 0.6) + 's';
-                    p.style.animationDuration = (2 + Math.random() * 1.5) + 's';
-                    p.style.fontSize = (0.9 + Math.random() * 0.9) + 'rem';
-                    container.appendChild(p);
-                    setTimeout(() => p.remove(), 4500);
-                }, i * 90);
-            }
-        }
-
-        // Keyframes
-        const s = document.createElement('style');
-        s.textContent = `
-            @keyframes stepOut {
-                from { opacity:1; transform:translateX(0); }
-                to   { opacity:0; transform:translateX(-14px); }
-            }
-            @keyframes shakeErr {
-                0%,100% { transform:translateX(0); }
-                25%      { transform:translateX(-6px); }
-                75%      { transform:translateX(6px); }
-            }
+        note.style.cssText = `
+            left: ${leftPct}%;
+            font-size: ${size}rem;
+            color: ${colors[Math.floor(Math.random() * colors.length)]};
+            animation-duration: ${duration}s;
+            animation-delay: ${delay}s;
         `;
-        document.head.appendChild(s);
-    })();
-    </script>
+
+        stage.appendChild(note);
+        setTimeout(() => note.remove(), (duration + delay + 0.5) * 1000);
+    }
+
+    function loop() {
+        spawnNote();
+        setTimeout(loop, 550 + Math.random() * 900);
+    }
+
+    setTimeout(loop, 1000);
+})();
+
+// ─── FORM LOGIC ───
+(() => {
+    const steps = [null,
+        document.getElementById('step1'), document.getElementById('step2'),
+        document.getElementById('step3'), document.getElementById('step4'),
+        document.getElementById('step5')
+    ];
+    const dots = [null,
+        document.getElementById('dot1'), document.getElementById('dot2'),
+        document.getElementById('dot3'), document.getElementById('dot4')
+    ];
+
+    const inpUser       = document.getElementById('inp-username');
+    const inpEmail      = document.getElementById('inp-email');
+    const inpPwd1       = document.getElementById('inp-pwd1');
+    const inpPwd2       = document.getElementById('inp-pwd2');
+    const inpFullname   = document.getElementById('inp-fullname');
+    const inpCpf        = document.getElementById('inp-cpf');
+    const inpPhone      = document.getElementById('inp-phone');
+    const inpMobile     = document.getElementById('inp-mobile');
+    const inpCep        = document.getElementById('inp-cep');
+    const inpAddress    = document.getElementById('inp-address');
+    const inpCity       = document.getElementById('inp-city');
+    const inpState      = document.getElementById('inp-state');
+    const inpNumber     = document.getElementById('inp-number');
+    const inpComplement = document.getElementById('inp-complement');
+    const inpTerms      = document.getElementById('inp-terms');
+
+    const pwdStrengthRow   = document.getElementById('pwdStrengthRow');
+    const pwdStrengthLabel = document.getElementById('pwdStrengthLabel');
+    const pbar1 = document.getElementById('pbar1');
+    const pbar2 = document.getElementById('pbar2');
+    const pbar3 = document.getElementById('pbar3');
+    const pwdMatchHint = document.getElementById('pwdMatchHint');
+
+    const realForm        = document.getElementById('realForm');
+    const resumeUserText  = document.getElementById('resumeUserText');
+    const resumeFullName  = document.getElementById('resumeFullNameText');
+    const resumeEmailText = document.getElementById('resumeEmailText');
+    const successOverlay  = document.getElementById('successOverlay');
+    const successUsername = document.getElementById('successUsername');
+
+    let currentStep = 1;
+    inpUser?.focus();
+
+    function goTo(n) {
+        const prev = steps[currentStep];
+        if (!prev) return;
+        prev.style.animation = 'stepOut 0.22s ease-in both';
+        setTimeout(() => {
+            prev.classList.remove('active'); prev.style.animation = '';
+            if (dots[currentStep]) dots[currentStep].classList.remove('active');
+            currentStep = n;
+            if (dots[n]) dots[n].classList.add('active');
+            if (steps[n]) steps[n].classList.add('active');
+            const firstInp = steps[n]?.querySelector('input:not([type=checkbox])');
+            if (firstInp && !firstInp.readOnly) setTimeout(() => firstInp.focus(), 80);
+        }, 200);
+    }
+
+    function shake(el) {
+        if (!el) return;
+        const wrap = el.closest('.input-wrap') || el.parentElement;
+        wrap.style.animation = 'none'; wrap.offsetHeight;
+        wrap.style.animation = 'shakeErr 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+    }
+
+    function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+    function isValidUser(v)  { return /^[a-zA-Z0-9_.]{3,30}$/.test(v); }
+
+    function pwdScore(pwd) {
+        let s = 0;
+        if (pwd.length >= 8) s++;
+        if (/[A-Z]/.test(pwd)) s++;
+        if (/[0-9]/.test(pwd)) s++;
+        if (/[^A-Za-z0-9]/.test(pwd)) s++;
+        return s;
+    }
+
+    inpPwd1?.addEventListener('input', () => {
+        const pwd = inpPwd1.value;
+        if (!pwd) { pwdStrengthRow.style.opacity = '0'; return; }
+        pwdStrengthRow.style.opacity = '1';
+        const score = pwdScore(pwd);
+        [pbar1, pbar2, pbar3].forEach(b => b.className = 'pwd-bar');
+        if (score <= 1) {
+            pbar1.classList.add('weak');
+            pwdStrengthLabel.textContent = 'Fraca'; pwdStrengthLabel.style.color = '#e55';
+        } else if (score <= 2) {
+            pbar1.classList.add('medium'); pbar2.classList.add('medium');
+            pwdStrengthLabel.textContent = 'Média'; pwdStrengthLabel.style.color = '#ffb700';
+        } else {
+            [pbar1, pbar2, pbar3].forEach(b => b.classList.add('strong'));
+            pwdStrengthLabel.textContent = 'Forte'; pwdStrengthLabel.style.color = 'var(--success)';
+        }
+        if (inpPwd2?.value) checkMatch();
+    });
+
+    function checkMatch() {
+        if (!inpPwd2?.value.length) { pwdMatchHint.style.display = 'none'; return; }
+        const match = inpPwd1.value === inpPwd2.value;
+        pwdMatchHint.style.display = 'block';
+        if (match) {
+            pwdMatchHint.textContent = '✓ Senhas coincidem'; pwdMatchHint.style.color = 'var(--success)';
+            inpPwd2.classList.replace('invalid','valid');
+        } else {
+            pwdMatchHint.textContent = '✗ Senhas não coincidem'; pwdMatchHint.style.color = '#c084fc';
+            inpPwd2.classList.replace('valid','invalid');
+        }
+    }
+
+    inpPwd2?.addEventListener('input', checkMatch);
+
+    function makePwdToggle(btnId, inp) {
+        const btn = document.getElementById(btnId);
+        if (!btn || !inp) return;
+        btn.addEventListener('click', () => {
+            const show = inp.type === 'password';
+            inp.type = show ? 'text' : 'password';
+            btn.className = show ? 'fa-regular fa-eye-slash icon-right' : 'fa-regular fa-eye icon-right';
+        });
+    }
+    makePwdToggle('togglePwd1', inpPwd1);
+    makePwdToggle('togglePwd2', inpPwd2);
+
+    inpTerms?.addEventListener('change', () => {
+        document.getElementById('btn5').disabled = !inpTerms.checked;
+    });
+
+    inpCep?.addEventListener('blur', async () => {
+        const cep = inpCep.value.replace(/\D/g,'');
+        if (cep.length !== 8) return;
+        try {
+            const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+            const data = await res.json();
+            if (data.erro) { shake(inpCep); return; }
+            inpAddress.value = data.logradouro;
+            inpCity.value    = data.localidade;
+            inpState.value   = data.uf;
+            inpNumber.focus();
+        } catch(e) { console.error(e); }
+    });
+
+    inpCep?.addEventListener('input', e => {
+        let v = e.target.value.replace(/\D/g,'');
+        if (v.length > 5) v = v.slice(0,5) + '-' + v.slice(5);
+        e.target.value = v;
+    });
+
+    document.getElementById('btn1')?.addEventListener('click', () => {
+        const user = inpUser.value.trim(), email = inpEmail.value.trim();
+        if (!isValidUser(user))   { shake(inpUser);  inpUser.focus();  return; }
+        if (!isValidEmail(email)) { shake(inpEmail); inpEmail.focus(); return; }
+        goTo(2);
+    });
+    inpUser?.addEventListener('keydown',  e => { if(e.key==='Enter') inpEmail?.focus(); });
+    inpEmail?.addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('btn1')?.click(); });
+
+    document.getElementById('btn2')?.addEventListener('click', () => {
+        if (!inpPwd1.value || inpPwd1.value.length < 8) { shake(inpPwd1); inpPwd1.focus(); return; }
+        if (inpPwd1.value !== inpPwd2.value)             { shake(inpPwd2); inpPwd2.focus(); return; }
+        goTo(3);
+    });
+    inpPwd1?.addEventListener('keydown', e => { if(e.key==='Enter') inpPwd2?.focus(); });
+    inpPwd2?.addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('btn2')?.click(); });
+
+    document.getElementById('btn3')?.addEventListener('click', () => goTo(4));
+
+    document.getElementById('btn4')?.addEventListener('click', () => {
+        if (!inpCep.value.trim())     { shake(inpCep); return; }
+        if (!inpAddress.value.trim()) { shake(inpAddress); return; }
+        if (!inpNumber.value.trim())  { shake(inpNumber); inpNumber.focus(); return; }
+        resumeUserText.textContent  = inpUser.value.trim();
+        resumeFullName.textContent  = inpFullname.value.trim() || '—';
+        resumeEmailText.textContent = inpEmail.value.trim();
+        goTo(5);
+    });
+
+    document.getElementById('btn5')?.addEventListener('click', () => {
+        if (!inpTerms?.checked) return;
+
+        document.getElementById('f-username').value   = inpUser.value.trim();
+        document.getElementById('f-email').value      = inpEmail.value.trim();
+        document.getElementById('f-password1').value  = inpPwd1.value;
+        document.getElementById('f-password2').value  = inpPwd2.value;
+        document.getElementById('f-fullname').value   = inpFullname.value.trim();
+        document.getElementById('f-cpf').value        = inpCpf.value.trim();
+        document.getElementById('f-phone').value      = inpPhone.value.trim();
+        document.getElementById('f-mobile').value     = inpMobile.value.trim();
+        document.getElementById('f-cep').value        = inpCep.value.trim();
+        document.getElementById('f-address').value    = inpAddress.value.trim();
+        document.getElementById('f-number').value     = inpNumber.value.trim();
+        document.getElementById('f-complement').value = inpComplement.value.trim();
+        document.getElementById('f-city').value       = inpCity.value.trim();
+        document.getElementById('f-state').value      = inpState.value.trim();
+
+        const btn5 = document.getElementById('btn5');
+        btn5.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Criando conta…';
+        btn5.disabled = true;
+
+        successUsername.textContent = inpUser.value.trim();
+        steps[5].classList.remove('active');
+        successOverlay.classList.add('active');
+        spawnParticles();
+
+        const pageContent = document.querySelector('.page-content');
+        pageContent.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        pageContent.style.opacity = '0';
+        pageContent.style.transform = 'translateY(-16px)';
+
+        setTimeout(() => realForm.submit(), 2300);
+    });
+
+    document.getElementById('back2')?.addEventListener('click', () => goTo(1));
+    document.getElementById('back3')?.addEventListener('click', () => goTo(2));
+    document.getElementById('back4')?.addEventListener('click', () => goTo(3));
+    document.getElementById('back5')?.addEventListener('click', () => goTo(4));
+
+    function spawnParticles() {
+        const container = document.getElementById('musicParticles');
+        const emojis = ['♪','♫','♬','♩','🎵','🎶'];
+        for (let i = 0; i < 14; i++) {
+            setTimeout(() => {
+                const p = document.createElement('span');
+                p.className = 'particle';
+                p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                p.style.left              = (Math.random() * 90 + 5) + '%';
+                p.style.bottom            = (15 + Math.random() * 35) + '%';
+                p.style.animationDelay    = (Math.random() * 0.6) + 's';
+                p.style.animationDuration = (2 + Math.random() * 1.5) + 's';
+                p.style.fontSize          = (0.9 + Math.random() * 0.9) + 'rem';
+                container.appendChild(p);
+                setTimeout(() => p.remove(), 4500);
+            }, i * 90);
+        }
+    }
+
+    const s = document.createElement('style');
+    s.textContent = `
+        @keyframes stepOut { from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(-14px);} }
+        @keyframes shakeErr { 0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);} }
+    `;
+    document.head.appendChild(s);
+})();
+</script>
 
 </body>
 </html>
