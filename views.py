@@ -595,7 +595,7 @@ def asaas_create_pix(request):
     """
     user = request.user
     amount = request.data.get('amount')
-    description = request.data.get('description', 'Cobrança Melodya')
+    description = request.data.get('description', 'Cobrança Beatflow')
 
     if not amount:
         return Response({'error': 'amount is required'}, status=400)
@@ -652,7 +652,7 @@ def asaas_create_pix(request):
         'value': str(amount),
         'dueDate': (timezone.now() + timedelta(days=1)).strftime('%Y-%m-%d'),
         'description': description,
-        'externalReference': f"melodya:{user.id}:{uuid.uuid4()}"
+        'externalReference': f"beatflow:{user.id}:{uuid.uuid4()}"
     }
 
     try:
@@ -1140,7 +1140,16 @@ def register(request):
                 except Exception:
                     pass
 
-            auth_login(request, user)
+            # Ensure backend is set when multiple authentication backends exist
+            # use the first backend from settings or default to ModelBackend
+            backend = None
+            backends = getattr(settings, 'AUTHENTICATION_BACKENDS', [])
+            if backends:
+                backend = backends[0]
+            else:
+                backend = 'django.contrib.auth.backends.ModelBackend'
+            user.backend = backend
+            auth_login(request, user, backend=backend)
             messages.success(request, 'Conta criada com sucesso')
             next_url = request.POST.get('next') or request.GET.get('next') or settings.LOGIN_REDIRECT_URL or '/'
             return redirect(next_url)
@@ -1317,6 +1326,24 @@ def buscar_musicas_html(request):
 
         playlists_usuario = []
         for playlist in playlists_queryset:
+            # collect up to four thumbnail URLs from the first tracks
+            covers = []
+            items = playlist.playlistitem_set.select_related('musica').order_by('ordem')[:4]
+            for item in items:
+                m = item.musica
+                url = ''
+                # prefer album cover if available
+                if m.album and getattr(m.album, 'capa', None):
+                    url = m.album.capa.url if hasattr(m.album.capa, 'url') else m.album.capa
+                elif m.youtube_id:
+                    url = f"https://i.ytimg.com/vi/{m.youtube_id}/hqdefault.jpg"
+                else:
+                    url = m.capa or ''
+                covers.append(url)
+            # pad to always have four entries (empty strings fill with placeholder)
+            while len(covers) < 4:
+                covers.append('')
+
             playlists_usuario.append({
                 'id': playlist.id,
                 'nome': playlist.nome,
@@ -1327,6 +1354,7 @@ def buscar_musicas_html(request):
                 'capa': playlist.capa.url if playlist.capa else None,
                 'is_shared': getattr(playlist, 'is_shared', False),
                 'share_uuid': str(getattr(playlist, 'share_uuid', '')) if getattr(playlist, 'share_uuid', None) else None,
+                'covers': covers,
             })
 
         from .serializers import FavoritoSerializer
