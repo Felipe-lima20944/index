@@ -1381,6 +1381,47 @@ def buscar_musicas_html(request):
         except Exception:
             assinatura_ativa = None
 
+    # prepare genres JSON so frontend doesn't have to request it later
+    try:
+        generos_qs = Genero.objects.all().order_by('nome')
+        # basic serialized data (id, nome, slug, descricao, icone, cor)
+        from .serializers import GeneroSerializer
+        base = GeneroSerializer(generos_qs, many=True).data
+        # extra metadata that used to live in the template (emoji, gradient, image)
+        from django.templatetags.static import static
+        # build metadata map; only include json_url if file actually exists so client
+        # won't try to fetch a non‑existent resource and fall back to API.  we use
+        # staticfiles.finders in case static files are collected or stored elsewhere.
+        from django.contrib.staticfiles import finders
+        def maybe_static(path):
+            url = static(path)
+            if finders.find(path):
+                return url
+            return None
+
+        GENRE_META = {
+            'pop':        {'emoji':'✨','gradient':'linear-gradient(135deg,#ec4899,#f97316)','image':static('popcapa.jpg'),'json_url':maybe_static('pop.json')},
+            'rock':       {'emoji':'🎸','gradient':'linear-gradient(135deg,#1f2937,#dc2626)','image':static('rock_capa.jpg'),'json_url':maybe_static('rock.json')},
+            'sertanejo':  {'emoji':'🤠','gradient':'linear-gradient(135deg,#d97706,#b45309)','image':static('sertanejocapa.jpg'),'json_url':maybe_static('sertanejo.json')},
+            'funk':       {'emoji':'🔥','gradient':'linear-gradient(135deg,#16a34a,#15803d)','image':static('funkcapa.jpg'),'json_url':maybe_static('funk.json')},
+            'jazz':       {'emoji':'🎷','gradient':'linear-gradient(135deg,#1d4ed8,#1e3a8a)','image':static('jazzcapa.jpg'),'json_url':maybe_static('jazz.json')},
+            'eletrônico': {'emoji':'⚡','gradient':'linear-gradient(135deg,#0ea5e9,#7c3aed)','image':static('eletrocapa.jpg'),'json_url':maybe_static('eletrônico.json')},
+            'r&b':        {'emoji':'🎤','gradient':'linear-gradient(135deg,#7c3aed,#db2777)','image':static('rbcapa.jpg'),'json_url':maybe_static('r&b.json')},
+            'pagode':     {'emoji':'🥁','gradient':'linear-gradient(135deg,#ea580c,#c2410c)','image':static('pagode.jpg'),'json_url':maybe_static('pagode.json')},
+            'hip-hop':    {'emoji':'🎧','gradient':'linear-gradient(135deg,#374151,#111827)','image':static('hiphop.jpg'),'json_url':maybe_static('hip-hop.json')},
+            'mpb':        {'emoji':'🌿','gradient':'linear-gradient(135deg,#059669,#047857)','image':static('mpb.jpg'),'json_url':maybe_static('mpb.json')},
+            'clássico':   {'emoji':'🎻','gradient':'linear-gradient(135deg,#92400e,#78350f)','image':static('classicacapa.jpg'),'json_url':maybe_static('clássico.json')},
+            'gospel':     {'emoji':'🙏','gradient':'linear-gradient(135deg,#6d28d9,#4c1d95)','image':static('gospel.jpg'),'json_url':maybe_static('gospel.json')},
+        }
+        # attach metadata to each serialized genre if available
+        for g in base:
+            meta = GENRE_META.get(g.get('slug'))
+            if meta:
+                g.update(meta)
+        generos_json = json.dumps(base)
+    except Exception:
+        generos_json = '[]'
+
     return render(request, 'core/buscar_musicas.html', {
         'results': results,
         'albums': albums,
@@ -1394,6 +1435,7 @@ def buscar_musicas_html(request):
         'playlists_usuario': playlists_usuario,
         'favoritos_usuario': favoritos_usuario,
         'assinatura_ativa': assinatura_ativa,
+        'generos_json': generos_json,
     })
 
 
