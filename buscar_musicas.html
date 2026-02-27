@@ -2074,6 +2074,7 @@
     })();
 
     const IS_AUTHENTICATED = {{ user.is_authenticated|yesno:"true,false" }};
+    const REGISTER_URL = '{% url "register" %}';
 
     // ═══════════════════════════════════════════════════════════════
     // UTILITIES
@@ -2420,6 +2421,15 @@
                 this.loadLikedTracks();
                 this._restorePlayerState();
                 this._initFavoritos();
+
+                // if url contains openAlbumId param, open that album right away
+                const urlParams = new URLSearchParams(window.location.search);
+                const openId = urlParams.get('openAlbumId');
+                if (openId) {
+                    // album panel will fetch data itself
+                    this.openAlbum(openId, '', '', 0);
+                }
+
                 if (this.hasQuery) { this.activeNav = 'search'; this.search(this.query); }
                 else { this.loadExplorar(); }
                 if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
@@ -2428,12 +2438,43 @@
                 setInterval(() => { this._savePlayerState(); }, 5000);
                 window.appStore = this;
 
+                // set up media session action handlers so controls work with screen off
+                if ('mediaSession' in navigator) {
+                    try {
+                        navigator.mediaSession.setActionHandler('play', () => { this.togglePlay(); });
+                        navigator.mediaSession.setActionHandler('pause', () => { this.togglePlay(); });
+                        navigator.mediaSession.setActionHandler('previoustrack', () => { this.previous(); });
+                        navigator.mediaSession.setActionHandler('nexttrack', () => { this.next(); });
+                        navigator.mediaSession.setActionHandler('stop', () => { this.audio.pause(); this.isPlaying = false; if (navigator.mediaSession) navigator.mediaSession.playbackState = 'paused'; });
+                        navigator.mediaSession.setActionHandler('seekbackward', (details) => { this.audio.currentTime = Math.max(0, this.audio.currentTime - (details.seekOffset || 10)); });
+                        navigator.mediaSession.setActionHandler('seekforward', (details) => { this.audio.currentTime = Math.min(this.audio.duration || 0, this.audio.currentTime + (details.seekOffset || 10)); });
+                    } catch(e) {
+                        console.warn('MediaSession handler setup failed', e);
+                    }
+                }
+
                 // keep overlay visible while navigation occurs
 
 
                 // Update browser title when track changes
                 this.$watch('currentTrack', (val) => {
                     document.title = val ? ( (val.title || '') + (val.artist ? ' - ' + val.artist : '') ) : 'Beatflow';
+                    // update lock‑screen / notification metadata via MediaSession API
+                    if ('mediaSession' in navigator) {
+                        if (val) {
+                            navigator.mediaSession.metadata = new MediaMetadata({
+                                title: val.title || '',
+                                artist: val.artist || '',
+                                album: val.album || '',
+                                artwork: [
+                                    { src: val.thumb || '/static/icones.ico', sizes: '512x512', type: 'image/png' }
+                                ]
+                            });
+                        } else {
+                            navigator.mediaSession.metadata = null;
+                        }
+                        navigator.mediaSession.playbackState = this.isPlaying ? 'playing' : 'paused';
+                    }
                 });
 
                 // Receive shared playlist from the public share page
@@ -2604,7 +2645,11 @@
             // ─── SELECT / PLAY ─────────────────────────────────────────
             async selectTrack(track, index = null, sourceList = null, queueType = 'single') {
                 if (!this.hasActivePlan) {
-                    this.showNotification('Reproduzindo versão limitada (30s). Assine um plano para ouvir completo', 'info');
+                    let msg = 'Reproduzindo versão limitada (30s). Assine um plano para ouvir completo';
+                    if (!IS_AUTHENTICATED) {
+                        msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> para receber 3 dias grátis de teste`;
+                    }
+                    this.showNotification(msg, 'info');
                 }
                 const normalized = normalizeTrack(track);
                 if (!normalized) return;
@@ -2903,7 +2948,13 @@
                 if (!this.hasActivePlan && this.currentTime >= this.previewLimit) {
                     if (!this._previewWarned) {
                         this._previewWarned = true;
-                        this.showNotification('Você atingiu 30 segundos de reprodução. Assine um plano para continuar ouvindo', 'error');
+                        let msg = 'Você atingiu 30 segundos de reprodução.';
+                        if (IS_AUTHENTICATED) {
+                            msg += ' Assine um plano para continuar ouvindo';
+                        } else {
+                            msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 3 dias grátis de teste`;
+                        }
+                        this.showNotification(msg, 'error');
                     }
                     return;
                 }
@@ -2925,6 +2976,9 @@
                 } else {
                     this.audio.play().then(() => { this.isPlaying = true; }).catch(console.error);
                 }
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.playbackState = this.isPlaying ? 'playing' : 'paused';
+                }
             },
 
             updateProgress() {
@@ -2939,7 +2993,13 @@
                     this.progress = 0;
                     if (!this._previewWarned) {
                         this._previewWarned = true;
-                        this.showNotification('Você atingiu 30 segundos de reprodução. Assine um plano para continuar ouvindo', 'error');
+                        let msg = 'Você atingiu 30 segundos de reprodução.';
+                        if (IS_AUTHENTICATED) {
+                            msg += ' Assine um plano para continuar ouvindo';
+                        } else {
+                            msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 3 dias grátis de teste`;
+                        }
+                        this.showNotification(msg, 'error');
                     }
                 }
             },
