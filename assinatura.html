@@ -4,430 +4,429 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Assinatura Premium · Melodya</title>
+    <title>Assinatura Premium · Beatflow</title>
     <meta name="csrf-token" content="{{ csrf_token }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="/static/icone.ico" type="image/x-icon">
+    <link rel="icon" href="/static/icones.ico" type="image/x-icon">
 
     <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-        --bg-primary:      #070709;
-        --bg-secondary:    #0f0f12;
-        --bg-tertiary:     #0d0d0f;
-        --border-light:    rgba(255,255,255,0.05);
-        --border-med:      rgba(255,255,255,0.09);
-        --text-primary:    #f4f4f6;
-        --text-secondary:  #8b8b9a;
-        --text-muted:      #6b6b78;
-        --accent-orange:   #ff8a00;
-        --accent-dark:     #e67e00;
-        --success:         #00c864;
-        --warning:         #f5c518;
-        --danger:          #ff3c6e;
+        --bg-primary: #0a000f;
+        --bg-secondary: #14001a;
+        --bg-tertiary: #1f0028;
+        --border-light: rgba(255,255,255,0.05);
+        --border-med: rgba(255,255,255,0.1);
+        --text-primary: #ffffff;
+        --text-secondary: #e0b0ff;
+        --text-muted: #b08fc7;
+        --accent-1: #8b2cf6;
+        --accent-2: #c026d3;
+        --accent-3: #e11d9b;
+        --accent-4: #f472b6;
+        --success: #a855f7;
+        --warning: #d946ef;
+        --danger: #f43f5e;
+        --glow: rgba(168,85,247,0.5);
     }
 
     html { scroll-behavior: smooth; }
-    
+
     body {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+        background: #000000;
         color: var(--text-primary);
         min-height: 100vh;
         overflow-x: hidden;
         position: relative;
     }
 
-    /* ─── Dynamic background effects ─── */
     body::before {
         content: '';
         position: fixed;
         inset: 0;
-        background: 
-            radial-gradient(circle at 20% 30%, rgba(255, 138, 0, 0.15) 0%, transparent 40%),
-            radial-gradient(circle at 80% 70%, rgba(255, 138, 0, 0.12) 0%, transparent 45%),
-            radial-gradient(circle at 40% 80%, rgba(255, 138, 0, 0.08) 0%, transparent 50%);
+        background:
+            radial-gradient(circle at 20% 30%, rgba(139,44,246,0.1) 0%, transparent 60%),
+            radial-gradient(circle at 80% 70%, rgba(192,38,211,0.08) 0%, transparent 60%),
+            radial-gradient(circle at 40% 80%, rgba(225,29,155,0.06) 0%, transparent 60%),
+            radial-gradient(circle at 90% 20%, rgba(244,114,182,0.04) 0%, transparent 60%);
         pointer-events: none;
         z-index: 0;
-        animation: bgShift 15s ease-in-out infinite;
+        animation: bgPulse 20s ease-in-out infinite;
     }
 
-    @keyframes bgShift {
-        0%, 100% { transform: translate(0, 0) scale(1); }
-        50% { transform: translate(15px, -10px) scale(1.05); }
+    @keyframes bgPulse {
+        0%,100% { opacity:.8; transform:scale(1); }
+        50% { opacity:1; transform:scale(1.05); }
     }
 
-    /* ─── Animated grid pattern ─── */
     body::after {
         content: '';
         position: fixed;
         inset: 0;
-        background-image: 
-            linear-gradient(0deg, transparent 24%, rgba(255,255,255,.05) 25%, rgba(255,255,255,.05) 26%, transparent 27%, transparent 74%, rgba(255,255,255,.05) 75%, rgba(255,255,255,.05) 76%, transparent 77%, transparent),
-            linear-gradient(90deg, transparent 24%, rgba(255,255,255,.05) 25%, rgba(255,255,255,.05) 26%, transparent 27%, transparent 74%, rgba(255,255,255,.05) 75%, rgba(255,255,255,.05) 76%, transparent 77%, transparent);
+        background-image:
+            linear-gradient(0deg, transparent 24%, rgba(168,85,247,0.08) 25%, rgba(168,85,247,0.08) 26%, transparent 27%, transparent 74%, rgba(168,85,247,0.08) 75%, rgba(168,85,247,0.08) 76%, transparent 77%, transparent),
+            linear-gradient(90deg, transparent 24%, rgba(192,38,211,0.08) 25%, rgba(192,38,211,0.08) 26%, transparent 27%, transparent 74%, rgba(192,38,211,0.08) 75%, rgba(192,38,211,0.08) 76%, transparent 77%, transparent);
         background-size: 60px 60px;
         pointer-events: none;
         z-index: 0;
-        opacity: 0.3;
+        opacity: .4;
+        animation: gridMove 30s linear infinite;
     }
 
+    @keyframes gridMove {
+        0% { background-position: 0 0; }
+        100% { background-position: 60px 60px; }
+    }
+
+    /* ===================== WRAPPER ===================== */
     .wrapper {
         position: relative;
-        z-index: 1;
-        max-width: 1100px;
+        z-index: 2;
+        max-width: 960px;
         margin: 0 auto;
-        padding: 60px 24px 100px;
+        padding: 56px 20px 100px;
     }
 
-    /* ─── Page header with dramatic entry ─── */
+    /* ===================== BACK BUTTON ===================== */
+    .btn-back {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        left: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        background: rgba(20,0,26,0.85);
+        border: 1px solid rgba(168,85,247,0.4);
+        border-radius: 50px;
+        color: #fff;
+        cursor: pointer;
+        text-decoration: none;
+        font-family: 'Clash Display', sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 0 20px rgba(168,85,247,0.2);
+        z-index: 999;
+        transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    .btn-back:hover {
+        background: linear-gradient(135deg, rgba(139,44,246,0.4), rgba(225,29,155,0.4));
+        border-color: var(--accent-2);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(168,85,247,0.4);
+    }
+
+    /* ===================== PAGE HEADER ===================== */
     .page-header {
-        margin-bottom: 60px;
-        animation: headerReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        margin-bottom: 40px;
+        padding-top: 8px;
+        animation: slideDown 0.8s cubic-bezier(0.34,1.56,0.64,1) both;
+        position: relative;
     }
 
-    @keyframes headerReveal {
-        from { opacity: 0; transform: translateY(30px) scale(0.95); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
+
+
+    @keyframes slideDown {
+        from { opacity:0; transform:translateY(-24px); }
+        to { opacity:1; transform:translateY(0); }
     }
 
     .logo-badge {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: linear-gradient(135deg, rgba(255, 138, 0, 0.2), rgba(255, 138, 0, 0.15));
-        border: 1px solid rgba(255, 138, 0, 0.4);
+        background: linear-gradient(135deg, rgba(139,44,246,0.25), rgba(225,29,155,0.15));
+        border: 1px solid rgba(168,85,247,0.35);
         border-radius: 50px;
-        padding: 7px 16px;
+        padding: 7px 18px;
         font-family: 'Clash Display', sans-serif;
-        font-size: 12px;
-        font-weight: 600;
-        color: #ff8a00;
-        letter-spacing: 0.1em;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--accent-2);
+        letter-spacing: 0.12em;
         text-transform: uppercase;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
         backdrop-filter: blur(10px);
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .logo-badge:hover {
-        transform: translateY(-2px);
-        background: linear-gradient(135deg, rgba(255, 138, 0, 0.3), rgba(255, 138, 0, 0.25));
-        border-color: rgba(255, 138, 0, 0.6);
-        box-shadow: 0 8px 32px rgba(255, 138, 0, 0.2);
     }
 
     .page-header h1 {
         font-family: 'Clash Display', sans-serif;
-        font-size: clamp(36px, 7vw, 52px);
-        font-weight: 700;
-        line-height: 1.15;
+        font-size: clamp(32px, 7vw, 56px);
+        font-weight: 800;
+        line-height: 1.1;
         letter-spacing: -0.02em;
-        background: linear-gradient(135deg, var(--text-primary) 0%, #ff8a00 100%);
+        background: linear-gradient(135deg, #fff, var(--accent-1), var(--accent-3), var(--accent-4));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        margin-bottom: 16px;
-        animation: textShimmer 3s ease-in-out infinite;
-    }
-
-    @keyframes textShimmer {
-        0%, 100% { -webkit-text-fill-color: transparent; }
-        50% { filter: brightness(1.1); }
+        margin-bottom: 12px;
     }
 
     .page-header p {
-        font-size: 16px;
+        font-size: 15px;
         color: var(--text-secondary);
-        max-width: 480px;
+        max-width: 520px;
         line-height: 1.7;
-        font-weight: 400;
     }
 
-    /* ─── Navigation back button ─── */
-    .btn-back {
-        position: absolute;
-        top: 24px;
-        right: 24px;
-        width: 44px;
-        height: 44px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(255,255,255,0.04);
-        border: 1px solid var(--border-med);
-        border-radius: 12px;
-        color: var(--text-primary);
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        z-index: 100;
-        text-decoration: none;
-    }
-
-    .btn-back:hover {
-        background: rgba(255, 138, 0, 0.2);
-        border-color: rgba(255, 138, 0, 0.4);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(255, 138, 0, 0.15);
-    }
-
-    /* ─── Active subscription banner with pulse effect ─── */
+    /* ===================== ACTIVE BANNER ===================== */
     .active-banner {
-        background: linear-gradient(135deg, #ff8a00, #ff6b00, #ff5000);
+        background: linear-gradient(135deg, #14532d, #166534, #15803d);
         background-size: 300% 300%;
-        color: #fff;
-        padding: 18px 28px;
-        border-radius: 16px;
+        color: #bbf7d0;
+        padding: 16px 24px;
+        border-radius: 18px;
         text-align: center;
-        font-size: 1rem;
+        font-size: 15px;
         font-weight: 600;
-        margin-bottom: 24px;
-        box-shadow: 0 20px 60px rgba(255, 138, 0, 0.25);
-        animation: gradientShift 6s ease infinite, bannerPulse 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-        border: 1px solid rgba(255,255,255,0.2);
+        margin-bottom: 28px;
+        box-shadow: 0 16px 40px rgba(34,197,94,0.2);
+        animation: gradientMove 5s ease infinite, floatUp 3s ease-in-out infinite;
+        border: 1px solid rgba(34,197,94,0.4);
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
     }
 
-    @keyframes gradientShift {
+    .active-banner::after {
+        content: '';
+        position: absolute;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1), transparent);
+        transform: rotate(45deg);
+        animation: shimmer 4s infinite;
+    }
+
+    @keyframes gradientMove {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
     }
 
-    @keyframes bannerPulse {
-        from { opacity: 0; transform: translateY(-15px) scale(0.95); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
+    @keyframes floatUp {
+        0%,100% { transform:translateY(0); }
+        50% { transform:translateY(-4px); }
     }
 
-    /* ─── No plan banner ─── */
+    @keyframes shimmer {
+        0% { transform:translateX(-100%) rotate(45deg); }
+        100% { transform:translateX(100%) rotate(45deg); }
+    }
+
+    /* ===================== NO PLAN BANNER ===================== */
     .no-plan-banner {
-        background: linear-gradient(135deg, rgba(255, 138, 0, 0.1), rgba(255, 138, 0, 0.06));
-        border: 1px solid var(--border-med);
+        background: linear-gradient(135deg, rgba(139,44,246,0.15), rgba(225,29,155,0.08));
+        border: 1px solid rgba(168,85,247,0.25);
         border-radius: 20px;
-        padding: 24px;
+        padding: 20px;
         display: flex;
         align-items: center;
-        gap: 18px;
-        margin-bottom: 32px;
-        position: relative;
+        gap: 16px;
+        margin-bottom: 28px;
+        backdrop-filter: blur(10px);
+        animation: slideUp 0.7s ease both;
         overflow: hidden;
-        animation: slideInUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    }
-
-    @keyframes slideInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        position: relative;
     }
 
     .no-plan-banner::before {
         content: '';
         position: absolute;
         inset: 0;
-        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ff8a00' fill-opacity='0.03'%3E%3Cpath d='M0 60L60 0H30L0 30M60 60V30L30 60'/%3E%3C/g%3E%3C/svg%3E");
-        pointer-events: none;
+        background: linear-gradient(45deg, transparent 30%, rgba(168,85,247,0.08) 50%, transparent 70%);
+        animation: shine 3s infinite;
+    }
+
+    @keyframes shine {
+        0% { transform:translateX(-100%); }
+        100% { transform:translateX(100%); }
+    }
+
+    @keyframes slideUp {
+        from { opacity:0; transform:translateY(16px); }
+        to { opacity:1; transform:translateY(0); }
     }
 
     .no-plan-icon {
-        width: 56px;
-        height: 56px;
-        border-radius: 14px;
-        background: linear-gradient(135deg, rgba(255, 138, 0, 0.2), rgba(255, 138, 0, 0.12));
-        border: 1px solid rgba(255, 138, 0, 0.3);
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 24px;
-        color: #ff8a00;
-        flex-shrink: 0;
-        animation: float 3s ease-in-out infinite;
-    }
-
-    @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
+        font-size: 22px;
+        color: #fff;
+        box-shadow: 0 8px 24px rgba(168,85,247,0.35);
     }
 
     .no-plan-text h3 {
         font-family: 'Clash Display', sans-serif;
-        font-size: 16px;
+        font-size: 17px;
         font-weight: 700;
         margin-bottom: 4px;
-        color: var(--text-primary);
+        background: linear-gradient(135deg, #fff, var(--accent-2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
     .no-plan-text p {
-        font-size: 14px;
+        font-size: 13px;
         color: var(--text-secondary);
-        line-height: 1.6;
+        line-height: 1.5;
     }
 
     .no-plan-arrow {
         margin-left: auto;
-        flex-shrink: 0;
         font-size: 20px;
-        color: #ff8a00;
-        animation: bounce-right 2s ease-in-out infinite;
+        color: var(--accent-2);
+        flex-shrink: 0;
+        animation: bounce 2s infinite;
     }
 
-    @keyframes bounce-right {
-        0%, 100% { transform: translateX(0); }
-        50% { transform: translateX(8px); }
+    @keyframes bounce {
+        0%,100% { transform:translateX(0); }
+        50% { transform:translateX(8px); }
     }
 
-    /* ─── Pending subscription banner ─── */
+    /* ===================== PENDING BANNER ===================== */
     .pending-subscription-banner {
-        position: relative;
         border-radius: 24px;
         overflow: hidden;
-        margin-bottom: 32px;
-        border: 1px solid rgba(245, 158, 11, 0.4);
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(255, 152, 0, 0.05));
-        box-shadow: 0 16px 60px rgba(245, 158, 11, 0.12);
-        animation: bannerIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-        backdrop-filter: blur(20px);
+        margin-bottom: 28px;
+        border: 1px solid rgba(192,38,211,0.35);
+        background: linear-gradient(135deg, rgba(139,44,246,0.12), rgba(225,29,155,0.08));
+        box-shadow: 0 16px 48px rgba(168,85,247,0.18);
+        animation: glowPulse 3s infinite;
+        backdrop-filter: blur(10px);
+        position: relative;
     }
 
-    @keyframes bannerIn {
-        from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
+    @keyframes glowPulse {
+        0%,100% { box-shadow:0 16px 48px rgba(168,85,247,0.18); }
+        50% { box-shadow:0 24px 60px rgba(192,38,211,0.35); }
     }
 
     .pending-subscription-banner::before {
         content: '';
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, transparent, #f59e0b 30%, #ff8a00 70%, transparent);
-        animation: shimmer-line 2.5s ease-in-out infinite;
+        top: 0; left: -100%;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, transparent, var(--accent-1), var(--accent-2), var(--accent-3), transparent);
+        animation: borderSlide 3s linear infinite;
     }
 
-    @keyframes shimmer-line {
-        0%, 100% { opacity: 0.5; }
-        50% { opacity: 1; }
+    @keyframes borderSlide {
+        0% { left:-100%; }
+        100% { left:100%; }
     }
 
-    .psb-inner {
-        position: relative;
-        z-index: 1;
-        padding: 28px;
-    }
+    .psb-inner { padding: 24px; position: relative; z-index: 1; }
 
     .psb-header {
         display: flex;
-        align-items: flex-start;
         gap: 16px;
         margin-bottom: 20px;
+        flex-wrap: wrap;
+        align-items: flex-start;
     }
 
     .psb-icon-wrap {
-        width: 56px;
-        height: 56px;
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
         border-radius: 16px;
-        flex-shrink: 0;
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(255, 152, 0, 0.1));
-        border: 1px solid rgba(245, 158, 11, 0.3);
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 24px;
-        position: relative;
-        animation: pulse-glow 2s ease-in-out infinite;
+        font-size: 26px;
+        box-shadow: 0 8px 24px rgba(168,85,247,0.35);
     }
 
-    @keyframes pulse-glow {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
-        50% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
-    }
-
-    .psb-titles {
-        flex: 1;
-        min-width: 0;
-    }
+    .psb-titles { flex: 1; min-width: 0; }
 
     .psb-eyebrow {
         font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: var(--warning);
+        color: var(--accent-2);
         margin-bottom: 6px;
         display: flex;
         align-items: center;
-        gap: 7px;
+        gap: 6px;
     }
 
     .psb-eyebrow .live-dot {
-        width: 6px;
-        height: 6px;
+        width: 7px;
+        height: 7px;
         border-radius: 50%;
-        background: var(--warning);
-        animation: blink-dot 1.1s step-start infinite;
+        background: var(--accent-2);
+        animation: blink 1s infinite;
     }
 
-    @keyframes blink-dot {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.3; }
+    @keyframes blink {
+        0%,100% { opacity:1; }
+        50% { opacity:.3; }
     }
 
     .psb-headline {
         font-family: 'Clash Display', sans-serif;
-        font-size: clamp(18px, 4vw, 24px);
+        font-size: clamp(17px, 4vw, 22px);
         font-weight: 700;
-        color: #fff;
-        line-height: 1.2;
+        background: linear-gradient(135deg, #fff, var(--accent-2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         margin-bottom: 6px;
     }
 
     .psb-sub {
-        font-size: 14px;
-        color: rgba(255,255,255, 0.55);
-        line-height: 1.6;
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.55;
     }
 
     .psb-badge {
-        flex-shrink: 0;
-        background: rgba(245, 158, 11, 0.15);
-        border: 1px solid rgba(245, 158, 11, 0.35);
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
         border-radius: 100px;
         padding: 6px 14px;
         font-size: 12px;
         font-weight: 700;
-        color: var(--warning);
+        color: #fff;
         white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(168,85,247,0.3);
         align-self: flex-start;
-    }
-
-    @media (max-width: 480px) {
-        .psb-badge { display: none; }
     }
 
     .psb-divider {
         height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.2), transparent);
+        background: linear-gradient(90deg, transparent, var(--accent-1), var(--accent-2), var(--accent-3), transparent);
         margin: 20px 0;
     }
 
     .psb-pix-label {
         font-size: 12px;
-        font-weight: 600;
+        font-weight: 700;
         letter-spacing: 0.1em;
         text-transform: uppercase;
-        color: rgba(255,255,255, 0.35);
+        color: var(--text-secondary);
         margin-bottom: 12px;
         display: flex;
         align-items: center;
-        gap: 7px;
+        gap: 8px;
     }
 
-    .psb-pix-label::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: rgba(245, 158, 11, 0.15);
-    }
+    .psb-pix-label i { color: var(--accent-2); }
 
     .psb-pix-row {
         display: grid;
@@ -436,59 +435,40 @@
         align-items: start;
     }
 
-    @media (max-width: 480px) {
-        .psb-pix-row { grid-template-columns: 1fr; }
-        .psb-qr-box { width: 100%; height: 160px; }
-    }
-
     .psb-pix-code {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(245, 158, 11, 0.2);
-        border-radius: 12px;
-        color: rgba(255,255,255, 0.8);
+        background: rgba(0,0,0,0.4);
+        border: 1px solid rgba(168,85,247,0.25);
+        border-radius: 14px;
+        color: #fff;
         font-family: 'Courier New', monospace;
         font-size: 12px;
-        padding: 12px;
+        padding: 14px;
         resize: none;
         min-height: 90px;
-        line-height: 1.6;
         width: 100%;
-        transition: all 0.3s ease;
+        transition: all .3s ease;
+        backdrop-filter: blur(5px);
     }
 
     .psb-pix-code:focus {
         outline: none;
-        border-color: rgba(245, 158, 11, 0.5);
-        background: rgba(0, 0, 0, 0.5);
-        box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+        border-color: var(--accent-2);
+        box-shadow: 0 0 24px rgba(168,85,247,0.25);
     }
 
     .psb-qr-box {
         width: 110px;
         height: 110px;
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(245, 158, 11, 0.05));
-        border: 1px solid rgba(245, 158, 11, 0.2);
-        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(139,44,246,0.2), rgba(225,29,155,0.1));
+        border: 1px solid rgba(168,85,247,0.25);
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        flex-shrink: 0;
     }
 
-    .psb-qr-box img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        border-radius: 10px;
-    }
-
-    .psb-qr-empty {
-        font-size: 12px;
-        color: rgba(255,255,255, 0.2);
-        text-align: center;
-        padding: 10px;
-    }
+    .psb-qr-box img { width:100%; height:100%; object-fit:contain; }
 
     .psb-actions {
         display: flex;
@@ -497,161 +477,167 @@
         margin-top: 16px;
     }
 
-    .psb-copy-btn {
-        background: linear-gradient(135deg, #f59e0b, #ff8a00);
-        border: none;
-        border-radius: 10px;
-        color: #000;
+    .psb-copy-btn, .psb-confirm-btn {
+        padding: 13px 20px;
+        border-radius: 12px;
         font-family: 'Clash Display', sans-serif;
         font-size: 13px;
         font-weight: 700;
-        padding: 11px 20px;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        -webkit-tap-highlight-color: transparent;
+        transition: all .3s cubic-bezier(0.34,1.56,0.64,1);
+        border: none;
+        flex: 1;
+        justify-content: center;
+        min-width: 130px;
     }
 
-    .psb-copy-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 30px rgba(245, 158, 11, 0.3);
-    }
-
-    .psb-copy-btn:active {
-        transform: scale(0.97);
+    .psb-copy-btn {
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(139,44,246,0.25);
     }
 
     .psb-confirm-btn {
-        position: relative;
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.08));
-        border: 1px solid rgba(16, 185, 129, 0.35);
-        border-radius: 10px;
-        color: var(--success);
-        font-family: 'Clash Display', sans-serif;
-        font-size: 13px;
-        font-weight: 700;
-        padding: 11px 20px;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        -webkit-tap-highlight-color: transparent;
-        overflow: hidden;
-        white-space: nowrap;
+        background: linear-gradient(135deg, var(--accent-3), var(--accent-4));
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(225,29,155,0.25);
     }
 
-    .psb-confirm-btn:hover:not(:disabled) {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.15));
-        border-color: rgba(16, 185, 129, 0.6);
-        transform: translateY(-2px);
-        box-shadow: 0 12px 30px rgba(16, 185, 129, 0.2);
-    }
-
-    .psb-confirm-btn:active:not(:disabled) {
-        transform: scale(0.97);
-    }
-
-    .psb-confirm-btn:disabled {
-        opacity: 0.5;
-        cursor: default;
-    }
-
-    .psb-confirm-spinner {
-        display: none;
-        width: 14px;
-        height: 14px;
-        border: 2px solid rgba(16, 185, 129, 0.3);
-        border-top-color: var(--success);
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-        flex-shrink: 0;
-    }
-
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-
-    .psb-confirm-btn.loading .psb-confirm-spinner {
-        display: block;
-    }
-
-    .psb-confirm-btn.loading .psb-confirm-label {
-        opacity: 0;
+    .psb-copy-btn:hover, .psb-confirm-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 28px rgba(168,85,247,0.4);
     }
 
     .psb-help {
         margin-top: 16px;
         font-size: 13px;
-        color: rgba(255,255,255, 0.35);
-        line-height: 1.65;
+        color: var(--text-secondary);
         display: flex;
-        align-items: flex-start;
         gap: 8px;
+        padding: 12px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 10px;
+        line-height: 1.5;
     }
 
-    .psb-help i {
-        margin-top: 3px;
-        flex-shrink: 0;
-        color: rgba(245, 158, 11, 0.4);
+    .psb-help i { flex-shrink:0; margin-top:2px; color:var(--accent-2); }
+
+    /* ===================== PLANS GRID ===================== */
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 14px;
+        margin-bottom: 28px;
     }
 
-    /* ─── Plan card ─── */
-    .plan-card {
-        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
-        border: 1px solid var(--border-med);
-        border-radius: 24px;
-        overflow: hidden;
+    .plan-option {
+        background: linear-gradient(135deg, rgba(20,0,26,0.7), rgba(31,0,40,0.7));
+        border: 1px solid rgba(168,85,247,0.2);
+        border-radius: 20px;
+        padding: 20px 14px;
+        text-align: center;
+        cursor: pointer;
+        transition: all .3s ease;
+        backdrop-filter: blur(5px);
         position: relative;
-        animation: cardReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
     }
 
-    @keyframes cardReveal {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
+    .plan-option:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 36px rgba(168,85,247,0.3);
+        border-color: rgba(168,85,247,0.5);
+    }
+
+    .po-name {
+        font-family: 'Clash Display', sans-serif;
+        font-weight: 700;
+        font-size: 15px;
+        margin-bottom: 8px;
+        color: #fff;
+    }
+
+    .po-price {
+        font-size: 26px;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 6px;
+    }
+
+    .po-duration {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-bottom: 14px;
+    }
+
+    .btn-select {
+        display: inline-block;
+        padding: 9px 18px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+        color: #fff;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+        transition: all .3s ease;
+        border: none;
+    }
+
+    .btn-select:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 20px rgba(168,85,247,0.4);
+    }
+
+    /* ===================== PLAN CARD ===================== */
+    .plan-card {
+        background: linear-gradient(135deg, rgba(20,0,26,0.9), rgba(31,0,40,0.9));
+        border: 1px solid rgba(168,85,247,0.2);
+        border-radius: 28px;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 24px 56px rgba(0,0,0,0.5);
+        animation: cardAppear 0.8s ease both;
+        position: relative;
+    }
+
+    @keyframes cardAppear {
+        from { opacity:0; transform:translateY(24px) scale(0.97); }
+        to { opacity:1; transform:translateY(0) scale(1); }
     }
 
     .plan-card::before {
         content: '';
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
+        top: 0; left: 0; right: 0;
         height: 3px;
-        background: linear-gradient(90deg, #ff8a00, #ff6b00, #ff5000, #f4f4f6);
-        background-size: 200% 100%;
-        animation: gradientShift 4s ease infinite;
+        background: linear-gradient(90deg, var(--accent-1), var(--accent-2), var(--accent-3), var(--accent-4));
     }
 
     .plan-body {
         display: grid;
         grid-template-columns: 1.2fr 1fr;
-        min-height: 100%;
     }
 
     .plan-info {
-        padding: 40px;
-        border-right: 1px solid var(--border-light);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+        padding: 36px 32px;
+        border-right: 1px solid rgba(168,85,247,0.15);
+        background: linear-gradient(135deg, rgba(139,44,246,0.04), rgba(225,29,155,0.02));
     }
 
     .plan-action {
-        padding: 40px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 16px;
+        padding: 36px 32px;
     }
 
-    @media (max-width: 680px) {
+    /* Stack vertically on small screens */
+    @media (max-width: 620px) {
         .plan-body { grid-template-columns: 1fr; }
-        .plan-info { border-right: none; border-bottom: 1px solid var(--border-light); padding: 28px; }
-        .plan-action { padding: 28px; }
+        .plan-info { border-right: none; border-bottom: 1px solid rgba(168,85,247,0.15); padding: 28px 20px; }
+        .plan-action { padding: 28px 20px; }
     }
 
     .plan-tag {
@@ -660,7 +646,9 @@
         font-weight: 700;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: #ff8a00;
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         margin-bottom: 8px;
     }
 
@@ -669,52 +657,44 @@
         font-size: 28px;
         font-weight: 700;
         margin-bottom: 6px;
-        background: linear-gradient(135deg, var(--text-primary), #ff8a00);
+        background: linear-gradient(135deg, #fff, var(--accent-2));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
 
     .plan-price {
         display: flex;
         align-items: baseline;
-        gap: 4px;
+        gap: 5px;
         margin-bottom: 24px;
+        flex-wrap: wrap;
     }
 
     .plan-price .currency {
         font-size: 18px;
         color: var(--text-secondary);
-        font-weight: 500;
     }
 
     .plan-price .amount {
         font-family: 'Clash Display', sans-serif;
-        font-size: 48px;
+        font-size: clamp(36px, 8vw, 52px);
         font-weight: 800;
         line-height: 1;
-        background: linear-gradient(135deg, #ff8a00, #ff6b00);
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
 
     .plan-price .period {
-        font-size: 14px;
+        font-size: 15px;
         color: var(--text-secondary);
-    }
-
-    .active-price {
-        font-size: 1.4rem;
-        color: var(--success);
-        margin-bottom: 24px !important;
     }
 
     .feature-list {
         list-style: none;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 13px;
     }
 
     .feature-list li {
@@ -723,91 +703,78 @@
         gap: 12px;
         font-size: 14px;
         color: var(--text-secondary);
-        line-height: 1.5;
     }
 
     .feature-list li .icon {
-        width: 20px;
-        height: 20px;
-        background: linear-gradient(135deg, rgba(255, 138, 0, 0.2), rgba(255, 138, 0, 0.12));
-        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        min-width: 22px;
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+        border-radius: 7px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 9px;
-        color: #ff8a00;
-        flex-shrink: 0;
-        transition: all 0.3s ease;
+        font-size: 11px;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(168,85,247,0.25);
     }
 
-    .feature-list li:hover .icon {
-        transform: scale(1.15);
-        background: linear-gradient(135deg, rgba(255, 138, 0, 0.35), rgba(255, 138, 0, 0.25));
-    }
-
-    /* ─── Status pill ─── */
+    /* ===================== STATUS PILL ===================== */
     .status-pill {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 8px 16px;
+        padding: 9px 18px;
         border-radius: 100px;
         font-size: 13px;
         font-weight: 600;
-        background: rgba(255,255,255, 0.06);
-        border: 1px solid var(--border-med);
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(168,85,247,0.25);
         color: var(--text-secondary);
-        width: fit-content;
-        transition: all 0.3s ease;
+        margin-bottom: 18px;
     }
 
     .status-pill .dot {
         width: 7px;
         height: 7px;
         border-radius: 50%;
-        background: var(--text-secondary);
     }
 
     .status-pill.active {
-        background: rgba(16, 185, 129, 0.1);
-        border-color: rgba(16, 185, 129, 0.3);
-        color: var(--success);
+        background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(16,185,129,0.1));
+        border-color: rgba(34,197,94,0.5);
+        color: #4ade80;
     }
 
     .status-pill.active .dot {
-        background: var(--success);
-        box-shadow: 0 0 8px var(--success);
-        animation: pulse-dot 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse-dot {
-        0%, 100% { box-shadow: 0 0 0 0 var(--success); }
-        50% { box-shadow: 0 0 12px 2px var(--success); }
+        background: #4ade80;
+        animation: pulse 2s infinite;
     }
 
     .status-pill.pending {
-        background: rgba(245, 158, 11, 0.1);
-        border-color: rgba(245, 158, 11, 0.3);
-        color: var(--warning);
+        background: linear-gradient(135deg, rgba(192,38,211,0.2), rgba(244,114,182,0.15));
+        border-color: var(--accent-3);
+        color: var(--accent-4);
     }
 
     .status-pill.pending .dot {
-        background: var(--warning);
-        box-shadow: 0 0 8px var(--warning);
-        animation: pulse-dot-warn 1.1s step-start infinite;
+        background: var(--accent-3);
+        animation: pulse 1s infinite;
     }
 
-    @keyframes pulse-dot-warn {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.4; }
+    @keyframes pulse {
+        0%,100% { box-shadow:0 0 0 0 currentColor; }
+        50% { box-shadow:0 0 12px 3px currentColor; }
     }
 
+    /* ===================== SUBSCRIBE BUTTON ===================== */
     .btn-subscribe {
         width: 100%;
         padding: 16px 24px;
-        background: linear-gradient(135deg, #ff8a00, #ff6b00);
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-2), var(--accent-3));
+        background-size: 200% 200%;
         border: none;
-        border-radius: 14px;
+        border-radius: 18px;
         color: #fff;
         font-family: 'Clash Display', sans-serif;
         font-size: 15px;
@@ -817,325 +784,187 @@
         align-items: center;
         justify-content: center;
         gap: 10px;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: all .3s cubic-bezier(0.34,1.56,0.64,1);
+        box-shadow: 0 12px 36px rgba(139,44,246,0.4);
         position: relative;
         overflow: hidden;
-        -webkit-tap-highlight-color: transparent;
-        touch-action: manipulation;
-        text-decoration: none;
-        box-shadow: 0 12px 40px rgba(255, 138, 0, 0.3);
     }
 
-    .btn-subscribe::after {
+    .btn-subscribe::before {
         content: '';
         position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, rgba(255,255,255, 0.2) 0%, transparent 60%);
-        pointer-events: none;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: linear-gradient(135deg, transparent, rgba(255,255,255,0.25), transparent);
+        transform: rotate(45deg);
+        animation: shimmer 3s infinite;
     }
 
-    .btn-subscribe:hover:not(:disabled) {
+    .btn-subscribe:hover {
         transform: translateY(-3px);
-        box-shadow: 0 16px 50px rgba(255, 138, 0, 0.4);
-    }
-
-    .btn-subscribe:active:not(:disabled) {
-        transform: scale(0.98);
+        box-shadow: 0 18px 48px rgba(168,85,247,0.5);
     }
 
     .btn-subscribe:disabled {
-        opacity: 0.6;
-        cursor: default;
-    }
-
-    .btn-subscribe .spinner {
-        width: 16px;
-        height: 16px;
-        border: 2px solid rgba(255,255,255, 0.3);
-        border-top-color: #fff;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-        display: none;
-    }
-
-    .btn-subscribe.loading .spinner {
-        display: block;
-    }
-
-    .btn-subscribe.loading .btn-label {
-        opacity: 0;
+        opacity: .7;
+        cursor: not-allowed;
+        transform: none;
     }
 
     .subscribe-footnote {
+        margin-top: 12px;
         font-size: 12px;
         color: var(--text-muted);
-        line-height: 1.6;
         text-align: center;
-        margin-top: 14px;
-    }
-
-    .active-plan-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
-        border: 1px solid rgba(16, 185, 129, 0.2);
-        border-radius: 12px;
-        padding: 13px 16px;
-        font-size: 13px;
-        color: var(--success);
         line-height: 1.5;
     }
 
-    /* ─── Data card ─── */
+    /* ===================== DATA CARD ===================== */
     .data-card {
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border-light);
-        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(20,0,26,0.5), rgba(31,0,40,0.5));
+        border: 1px solid rgba(168,85,247,0.15);
+        border-radius: 20px;
         overflow: hidden;
-        margin-top: 28px;
-        animation: cardReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+        margin-top: 20px;
+        backdrop-filter: blur(5px);
     }
 
-    /* ─── Subscription items ─── */
+    .data-card-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(168,85,247,0.12);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--accent-2);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
     .sub-item {
-        padding: 18px 22px;
-        border-top: 1px solid var(--border-light);
+        padding: 16px 20px;
+        border-top: 1px solid rgba(168,85,247,0.1);
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
-        gap: 14px;
-        flex-wrap: wrap;
-        transition: all 0.3s ease;
+        align-items: center;
+        gap: 12px;
+        transition: all .3s ease;
     }
 
-    .sub-item:first-child {
-        border-top: none;
-    }
-
-    .sub-item:hover {
-        background: rgba(124, 58, 237, 0.05);
-    }
+    .sub-item:hover { background: rgba(168,85,247,0.07); }
+    .sub-item:first-child { border-top: none; }
 
     .sub-item-name {
         font-family: 'Clash Display', sans-serif;
         font-size: 14px;
         font-weight: 700;
-        margin-bottom: 4px;
+        margin-bottom: 3px;
+        color: #fff;
     }
 
-    .sub-item-meta {
-        font-size: 12px;
-        color: var(--text-secondary);
-        line-height: 1.65;
-    }
-
-    .sub-item-right {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 8px;
-        flex-shrink: 0;
-    }
+    .sub-item-meta { font-size: 12px; color: var(--text-secondary); }
 
     .status-badge {
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        padding: 4px 11px;
+        padding: 5px 12px;
         border-radius: 100px;
         font-size: 11px;
         font-weight: 700;
-        background: rgba(255,255,255, 0.06);
-        color: var(--text-secondary);
         white-space: nowrap;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
     }
 
     .status-badge.paid {
-        background: rgba(16, 185, 129, 0.12);
-        color: var(--success);
+        background: linear-gradient(135deg, rgba(139,44,246,0.2), rgba(168,85,247,0.15));
+        color: var(--accent-2);
+        border: 1px solid var(--accent-1);
     }
 
     .status-badge.pending {
-        background: rgba(245, 158, 11, 0.12);
-        color: var(--warning);
+        background: linear-gradient(135deg, rgba(192,38,211,0.2), rgba(225,29,155,0.15));
+        color: var(--accent-3);
+        border: 1px solid var(--accent-2);
     }
 
-    .status-badge.failed {
-        background: rgba(239, 68, 68, 0.12);
-        color: var(--danger);
-    }
-
-    .id-chip {
-        font-family: 'Courier New', monospace;
-        font-size: 10px;
-        background: rgba(124, 58, 237, 0.1);
-        padding: 4px 9px;
-        border-radius: 6px;
-        color: var(--text-secondary);
-        word-break: break-all;
-        max-width: 160px;
-        text-align: right;
-        border: 1px solid rgba(124, 58, 237, 0.15);
-    }
-
-    /* ─── Plans grid ─── */
-    .plans-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 14px;
-        margin-bottom: 28px;
-    }
-
-    .plan-option {
-        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
-        border: 1px solid var(--border-med);
+    /* ===================== ACTIVE INFO BOX ===================== */
+    .active-info-box {
+        background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(16,185,129,0.07));
+        border: 1px solid rgba(34,197,94,0.3);
         border-radius: 14px;
-        padding: 14px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        animation: cardReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    }
-
-    .plan-option:hover {
-        border-color: #ff8a00;
-        background: linear-gradient(135deg, rgba(255, 138, 0, 0.1), rgba(255, 138, 0, 0.06));
-        transform: translateY(-4px);
-        box-shadow: 0 12px 40px rgba(255, 138, 0, 0.15);
-    }
-
-    .plan-option .po-name {
-        font-family: 'Clash Display', sans-serif;
-        font-weight: 700;
-        font-size: 14px;
-        margin-bottom: 7px;
-        color: var(--text-primary);
-    }
-
-    .plan-option .po-price {
-        font-size: 20px;
-        font-weight: 800;
-        background: linear-gradient(135deg, #ff8a00, #ff6b00);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 6px;
-    }
-
-    .plan-option .po-duration {
-        font-size: 12px;
-        color: var(--text-secondary);
-        margin-bottom: 10px;
-    }
-
-    .plan-option .btn-select {
-        display: inline-block;
-        padding: 8px 12px;
-        border-radius: 9px;
-        border: 1px solid var(--border-med);
-        background: transparent;
-        color: var(--text-primary);
-        text-decoration: none;
-        font-size: 12px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .plan-option .btn-select:hover {
-        background: rgba(255, 138, 0, 0.2);
-        border-color: #ff8a00;
-        color: #ff8a00;
-    }
-
-    /* ─── CTA banner ─── */
-    .cta-banner {
-        background: linear-gradient(135deg, rgba(255, 138, 0, 0.08), rgba(255, 138, 0, 0.04));
-        border: 1px solid var(--border-med);
-        border-radius: 18px;
-        padding: 28px;
-        margin: 32px 0;
-        display: flex;
-        gap: 16px;
-        align-items: center;
-        justify-content: space-between;
-        animation: slideInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    }
-
-    .cta-title {
-        font-family: 'Clash Display', sans-serif;
-        font-weight: 800;
-        font-size: 20px;
-        color: var(--text-primary);
-        margin-bottom: 6px;
-    }
-
-    .cta-sub {
-        color: var(--text-secondary);
-        font-size: 14px;
-        max-width: 600px;
+        padding: 14px 18px;
+        margin-bottom: 18px;
+        font-size: 13px;
+        color: #86efac;
         line-height: 1.6;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
-    @media (max-width: 768px) {
-        .cta-banner { flex-direction: column; align-items: flex-start; }
-    }
+    .active-info-box i { color: #4ade80; flex-shrink: 0; }
 
-    /* ─── Empty state ─── */
-    .empty-state {
-        padding: 40px 24px;
-        text-align: center;
-        color: var(--text-secondary);
-        font-size: 14px;
-    }
-
-    .empty-state i {
-        font-size: 32px;
-        display: block;
-        margin-bottom: 14px;
-        opacity: 0.4;
-    }
-
-    /* ─── Bottom CTA ─── */
+    /* ===================== BOTTOM CTA ===================== */
     .bottom-cta {
         text-align: center;
-        padding: 28px 24px;
-        background: linear-gradient(135deg, rgba(255, 138, 0, 0.1), rgba(255, 138, 0, 0.06));
-        color: var(--text-primary);
+        padding: 28px 20px;
+        background: linear-gradient(135deg, rgba(139,44,246,0.1), rgba(225,29,155,0.07));
+        color: var(--text-secondary);
         font-size: 14px;
-        border-top: 1px solid var(--border-light);
-        line-height: 1.7;
+        line-height: 1.6;
+        border-top: 1px solid rgba(168,85,247,0.15);
+        margin-top: 40px;
+        backdrop-filter: blur(10px);
     }
 
-    /* ─── Responsive improvements ─── */
+    /* ===================== MOBILE GLOBAL ===================== */
     @media (max-width: 480px) {
-        .wrapper { padding: 48px 16px 80px; }
-        .page-header { margin-bottom: 40px; }
+        .wrapper { padding: 56px 14px 80px; }
+        .page-header { margin-bottom: 32px; }
+        .page-header h1 { font-size: 30px; }
+        .page-header p { font-size: 14px; }
+        .no-plan-banner { padding: 16px; gap: 12px; }
+        .no-plan-arrow { display: none; }
+        .psb-inner { padding: 18px; }
         .psb-pix-row { grid-template-columns: 1fr; }
         .psb-qr-box { width: 100%; height: 160px; }
+        .plans-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+        .plan-option { padding: 16px 10px; }
+        .po-price { font-size: 22px; }
+        .btn-subscribe { font-size: 14px; padding: 15px 20px; }
+        .plan-name { font-size: 22px; }
+        .plan-price .amount { font-size: 32px; }
+        .sub-item { flex-wrap: wrap; gap: 8px; }
+    }
+
+    @media (max-width: 360px) {
+        .page-header h1 { font-size: 26px; }
+        .psb-actions { flex-direction: column; }
+        .psb-copy-btn, .psb-confirm-btn { width: 100%; }
     }
     </style>
 </head>
 <body>
 
-<div class="wrapper">
+<!-- Back button (fixed) -->
+<a href="{% url 'home' %}" class="btn-back" aria-label="Voltar">
+    <i class="fa fa-arrow-left" aria-hidden="true"></i>
+    Voltar
+</a>
 
-    <!-- Back button -->
-    <a href="{% url 'home' %}" class="btn-back" aria-label="Voltar">
-        <i class="fa fa-arrow-left" aria-hidden="true"></i>
-    </a>
+<div class="wrapper">
 
     <!-- Page Header -->
     <div class="page-header">
         <div class="logo-badge">
             <i class="fa fa-music"></i>
-            Melodya Premium
+            Beatflow Premium
         </div>
         <h1>Sua Assinatura</h1>
         {% if assinatura_ativa %}
-        <p>Você já possui o <strong>{{ assinatura_ativa.plano_id|default:'Plano Mensal Premium' }}</strong> ativo até <strong>{{ assinatura_ativa.periodo_termina_em|date:'d/m/Y' }}</strong>.</p>
+            {% if assinatura_ativa.plano_id == 'trial_3dias' %}
+                <p>Seu <strong>teste grátis de 3 dias</strong> está ativo até <strong>{{ assinatura_ativa.periodo_termina_em|date:'d/m/Y' }}</strong> ({{ assinatura_ativa.dias_restantes }} dias restantes).</p>
+            {% else %}
+                <p>Você já possui o <strong>{{ assinatura_ativa.plano_id|default:'Plano Mensal Premium' }}</strong> ativo até <strong>{{ assinatura_ativa.periodo_termina_em|date:'d/m/Y' }}</strong>.</p>
+            {% endif %}
         {% else %}
         <p>Acesso ilimitado a músicas, downloads e recursos exclusivos. Escolha o plano perfeito para você.</p>
         {% endif %}
@@ -1149,20 +978,28 @@
     </div>
     {% endif %}
 
+    <!-- No plan banner (only if no plan AND no pending payment) -->
+    {% if not assinatura_ativa and not has_pending_payment %}
+    <div class="no-plan-banner">
+        <div class="no-plan-icon">
+            <i class="fa fa-crown"></i>
+        </div>
+        <div class="no-plan-text">
+            <h3>Você ainda não tem um plano ativo</h3>
+            <p>Escolha abaixo o plano que mais combina com você e ative agora mesmo!</p>
+        </div>
+        <div class="no-plan-arrow">
+            <i class="fa fa-arrow-right"></i>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Pending payment banner -->
     {% if has_pending_payment and pagamento_pendente %}
     <div class="pending-subscription-banner" id="pending-banner">
-        <div class="psb-confirm-overlay" id="psb-overlay" style="display: none;">
-            <div class="psb-overlay-icon">
-                <i class="fa fa-rotate-right fa-spin" id="psb-overlay-icon-inner"></i>
-            </div>
-            <div class="psb-overlay-text" id="psb-overlay-text">Verificando pagamento…</div>
-            <div class="psb-overlay-sub" id="psb-overlay-sub">Aguarde um instante</div>
-        </div>
-
         <div class="psb-inner">
             <div class="psb-header">
-                <div class="psb-icon-wrap">⏳</div>
+                <div class="psb-icon-wrap">✨</div>
                 <div class="psb-titles">
                     <div class="psb-eyebrow"><span class="live-dot"></span> Aguardando pagamento</div>
                     <div class="psb-headline">Sua assinatura está quase lá!</div>
@@ -1184,8 +1021,9 @@
                     {% if pagamento_pendente.pix_qr_image %}
                         <img src="{{ pagamento_pendente.pix_qr_image }}" alt="QR Code PIX" />
                     {% else %}
-                        <div class="psb-qr-empty">
-                            <i class="fa fa-qrcode" style="font-size:28px;display:block;margin-bottom:6px;opacity:.2;"></i>QR não<br>disponível
+                        <div style="text-align:center;color:var(--text-muted);">
+                            <i class="fa fa-qrcode" style="font-size:28px;display:block;margin-bottom:6px;"></i>
+                            <small>QR Code</small>
                         </div>
                     {% endif %}
                 </div>
@@ -1196,8 +1034,7 @@
                     <i class="fa fa-copy"></i>Copiar código PIX
                 </button>
                 <button class="psb-confirm-btn" id="psb-confirm-btn" onclick="confirmPayment()">
-                    <span class="psb-confirm-spinner"></span>
-                    <span class="psb-confirm-label"><i class="fa fa-circle-check"></i> Já paguei — Confirmar</span>
+                    <i class="fa fa-circle-check"></i>Já paguei
                 </button>
             </div>
 
@@ -1209,16 +1046,8 @@
     </div>
     {% endif %}
 
-    <!-- CTA Banner -->
-    <div class="cta-banner">
-        <div>
-            <div class="cta-title">Escolha seu plano perfeito</div>
-            <div class="cta-sub">Selecione o plano que mais combina com você e ative seu acesso Premium agora — músicas ilimitadas, sem anúncios e recursos exclusivos.</div>
-        </div>
-    </div>
-
-    <!-- Plans Grid -->
-    {% if plans %}
+    <!-- Plans Grid: ONLY shown if user has NO active subscription -->
+    {% if plans and not assinatura_ativa %}
     <div id="plans" class="plans-grid">
         {% for p in plans %}
         <div class="plan-option">
@@ -1237,17 +1066,18 @@
         <div class="plan-body">
             <div class="plan-info">
                 {% if assinatura_ativa %}
-                    <div class="plan-tag" style="color:var(--success);">✓ Plano Ativo</div>
+                    <div class="plan-tag" style="background:linear-gradient(135deg,#22c55e,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">✓ Plano Ativo</div>
                 {% elif selected_plan %}
                     <div class="plan-tag">Plano Selecionado</div>
                 {% else %}
                     <div class="plan-tag">Plano Disponível</div>
                 {% endif %}
+
                 <div class="plan-name">{{ SELECTED_PLAN_NAME|default:PLAN_NAME }}</div>
 
                 {% if assinatura_ativa %}
-                    <div class="plan-price active-price">
-                        <strong>{{ assinatura_ativa.plano_id|default:PLAN_NAME }}</strong>
+                    <div class="plan-price">
+                        <span class="amount">{{ assinatura_ativa.plano_id|default:PLAN_NAME }}</span>
                     </div>
                 {% else %}
                     <div class="plan-price">
@@ -1269,32 +1099,26 @@
                 {% if assinatura_ativa %}
                     <div class="status-pill active">
                         <span class="dot"></span>
-                        <span><strong>Status: Ativo</strong></span>
+                        <span>Status: Ativo</span>
                     </div>
-                    <div class="active-plan-info">
+
+                    <div class="active-info-box">
                         <i class="fa fa-shield-halved"></i>
-                        <span>Seu acesso é válido até <strong>{{ assinatura_ativa.periodo_termina_em|date:'d/m/Y' }}</strong></span>
+                        <span>Seu acesso é válido até <strong>{{ assinatura_ativa.periodo_termina_em|date:'d/m/Y' }}</strong>. Aproveite todos os benefícios Premium!</span>
                     </div>
 
                     {% if pagamentos %}
                     <div class="data-card">
-                        <div style="padding: 18px 22px; border-bottom: 1px solid var(--border-light);">
-                            <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">Histórico de pagamentos</div>
-                        </div>
+                        <div class="data-card-header">Histórico de pagamentos</div>
                         {% for p in pagamentos %}
                         <div class="sub-item">
                             <div>
                                 <div class="sub-item-name">{{ p.criado_em|date:'d/m/Y H:i' }}</div>
-                                <div class="sub-item-meta">
-                                    {{ p.method }} · R$ {{ p.amount }}
-                                    {% if p.pago_em %} · Pago em {{ p.pago_em|date:'d/m/Y' }}{% endif %}
-                                </div>
+                                <div class="sub-item-meta">R$ {{ p.amount }}</div>
                             </div>
-                            <div class="sub-item-right">
-                                <span class="status-badge {% if p.status == 'paid' %}paid{% elif p.status == 'pending' %}pending{% elif p.status == 'failed' %}failed{% endif %}">
-                                    {{ p.get_status_display }}
-                                </span>
-                            </div>
+                            <span class="status-badge {% if p.status == 'paid' %}paid{% elif p.status == 'pending' %}pending{% endif %}">
+                                {{ p.get_status_display }}
+                            </span>
                         </div>
                         {% endfor %}
                     </div>
@@ -1303,27 +1127,25 @@
                 {% elif has_pending_payment %}
                     <div class="status-pill pending">
                         <span class="dot"></span>
-                        <span><strong id="status-strong">Pagamento Pendente</strong></span>
+                        <span>Pagamento Pendente</span>
                     </div>
-                    <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; padding: 13px 16px; font-size: 13px; color: var(--warning); display: flex; align-items: center; gap: 10px;">
-                        <i class="fa fa-clock"></i>
-                        <span>PIX gerado — aguardando confirmação do pagamento.</span>
-                    </div>
-                    
-                    <button class="btn-subscribe" style="width: 100%; justify-content: center;" onclick="confirmPayment()">
-                        <span class="spinner"></span>
-                        <span class="btn-label"><i class="fa fa-circle-check"></i> Já paguei — Confirmar</span>
+
+                    <button class="btn-subscribe" onclick="confirmPayment()">
+                        <i class="fa fa-circle-check"></i>
+                        <span>Já paguei</span>
                     </button>
 
                 {% else %}
                     <div class="status-pill">
                         <span class="dot"></span>
-                        <span><strong>Sem plano ativo</strong></span>
+                        <span>Sem plano ativo</span>
                     </div>
+
                     <button id="assinatura-btn" class="btn-subscribe">
-                        <span class="spinner"></span>
-                        <span class="btn-label"><i class="fa fa-bolt"></i> Ativar por {{ SELECTED_PLAN_LABEL|default:PLAN_LABEL }}</span>
+                        <i class="fa fa-bolt"></i>
+                        <span class="btn-label">Ativar por {{ SELECTED_PLAN_LABEL|default:PLAN_LABEL }}</span>
                     </button>
+
                     <p class="subscribe-footnote">Pagamento via PIX · Cancele quando quiser · Sem fidelidade</p>
                 {% endif %}
             </div>
@@ -1333,9 +1155,8 @@
 
 </div><!-- /wrapper -->
 
-<!-- Bottom CTA -->
 <div class="bottom-cta">
-    <p>Escolha seu plano para ficar por dentro de tudo na Melodya — mais músicas, menos limites e acesso premium instantâneo.</p>
+    <p>Escolha seu plano para ficar por dentro de tudo na Beatflow — mais músicas, menos limites e acesso premium instantâneo.</p>
 </div>
 
 <script>
@@ -1346,28 +1167,15 @@ function copyPsbPix() {
         const btn = document.getElementById('psb-copy-btn');
         const orig = btn.innerHTML;
         btn.innerHTML = '<i class="fa fa-check"></i> Copiado!';
-        btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-        setTimeout(function() { btn.innerHTML = orig; btn.style.background = ''; }, 2800);
-    }).catch(function() { alert('Não foi possível copiar.'); });
+        setTimeout(function() { btn.innerHTML = orig; }, 2000);
+    });
 }
 
 function confirmPayment() {
     document.querySelectorAll('.psb-confirm-btn, .btn-subscribe').forEach(function(b) {
-        if (b.textContent.includes('paguei') || b.textContent.includes('Confirmar')) {
-            b.classList.add('loading');
-            b.disabled = true;
-        }
+        b.disabled = true;
+        b.style.opacity = '.7';
     });
-    const overlay = document.getElementById('psb-overlay');
-    if (overlay) overlay.style.display = 'flex';
-    setTimeout(function() {
-        const icon = document.getElementById('psb-overlay-icon-inner');
-        const txt = document.getElementById('psb-overlay-text');
-        const sub = document.getElementById('psb-overlay-sub');
-        if (icon) { icon.className = 'fa fa-circle-check'; }
-        if (txt) { txt.textContent = 'Pagamento verificado!'; }
-        if (sub) { sub.textContent = 'Atualizando sua página'; }
-    }, 1000);
     setTimeout(function() { window.location.reload(); }, 1800);
 }
 
@@ -1378,51 +1186,44 @@ function confirmPayment() {
     }
 
     const btn = document.getElementById('assinatura-btn');
+    if (btn) {
+        btn.addEventListener('click', async function() {
+            btn.disabled = true;
+            btn.style.opacity = '.7';
+            try {
+                const payload = {
+                    amount: '{{ SELECTED_PLAN_PRICE|default:PLAN_PRICE }}',
+                    description: 'Assinatura {{ SELECTED_PLAN_LABEL|default:PLAN_LABEL }}'
+                };
+                {% if profile and profile.cpf_cnpj %}
+                payload.document = '{{ profile.cpf_cnpj }}';
+                {% endif %}
 
-    async function createPix() {
-        if (!btn) return;
-        btn.classList.add('loading');
-        btn.disabled = true;
-        try {
-            const payload = {
-                amount: '{{ SELECTED_PLAN_PRICE|default:PLAN_PRICE }}',
-                description: 'Assinatura {{ SELECTED_PLAN_LABEL|default:PLAN_LABEL }}'
-            };
-            {% if profile and profile.cpf_cnpj %}
-            payload.document = '{{ profile.cpf_cnpj }}';
-            {% endif %}
+                const resp = await fetch('/api/payments/asaas/create-pix/', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-            const resp = await fetch('/api/payments/asaas/create-pix/', {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await resp.json();
-
-            if (!resp.ok) {
-                let msg = data.error || 'Erro ao criar cobrança';
-                if (data.message) msg += '\n' + data.message;
-                if (data.asaas_error) msg += '\n' + JSON.stringify(data.asaas_error);
-                alert(msg);
-                return;
+                if (resp.ok) {
+                    window.location.reload();
+                } else {
+                    const data = await resp.json();
+                    alert(data.error || 'Erro ao criar cobrança');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao comunicar com o servidor.');
+            } finally {
+                btn.disabled = false;
+                btn.style.opacity = '1';
             }
-
-            window.location.reload();
-        } catch (e) {
-            console.error(e);
-            alert('Erro ao comunicar com o servidor.');
-        } finally {
-            btn.classList.remove('loading');
-            btn.disabled = false;
-        }
+        });
     }
-
-    if (btn) btn.addEventListener('click', createPix);
 })();
 </script>
 
