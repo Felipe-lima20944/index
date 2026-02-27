@@ -2043,7 +2043,13 @@ def playlist_detail_api(request, playlist_id):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def shared_playlist_view(request, share_uuid):
-    """View pública para playlist compartilhada por UUID."""
+    """View pública para playlist compartilhada por UUID.
+
+    Supports both HTML and JSON output. When format=json or an AJAX
+    request is detected, the playlist and normalized track data are
+    returned as JSON; otherwise the normal template is rendered with the
+    same information embedded for client-side scripts.
+    """
     try:
         uuid_val = uuid.UUID(str(share_uuid))
     except Exception:
@@ -2055,7 +2061,51 @@ def shared_playlist_view(request, share_uuid):
 
     items = PlaylistItem.objects.filter(playlist=playlist).select_related('musica').order_by('ordem')
     tracks = [it.musica for it in items]
-    return render(request, 'core/shared_playlist.html', {'playlist': playlist, 'tracks': tracks})
+
+    # normalize for JS / API consumers
+    normalized = []
+    for t in tracks:
+        thumb = ''
+        if getattr(t, 'thumb', None):
+            thumb = t.thumb
+        elif getattr(t, 'thumbnail', None):
+            thumb = t.thumbnail
+        elif getattr(t, 'youtube_id', None):
+            thumb = f'https://i.ytimg.com/vi/{t.youtube_id}/hqdefault.jpg'
+        elif getattr(t, 'capa', None):
+            thumb = t.capa.url if hasattr(t.capa, 'url') else t.capa
+        # convert artist object to string if necessary
+        artist_val = ''
+        if getattr(t, 'artista', None):
+            artist_val = str(t.artista)
+        elif getattr(t, 'artist', None):
+            artist_val = str(t.artist)
+        normalized.append({
+            'id': str(t.id),
+            'titulo': t.titulo or t.title or '',
+            'artista': artist_val,
+            'youtube_id': t.youtube_id or '',
+            'capa': thumb,
+        })
+
+    # respond with JSON if requested (DRF Request has no is_ajax)
+    wants_json = request.GET.get('format') == 'json' or request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+    if wants_json:
+        return Response({'playlist': {
+            'id': playlist.id,
+            'nome': playlist.nome,
+            'descricao': playlist.descricao,
+            'usuario': str(playlist.usuario) if playlist.usuario else None,
+            'total_musicas': len(tracks),
+        }, 'tracks': normalized})
+
+    # otherwise render template, passing both model list and JSON string
+    context = {
+        'playlist': playlist,
+        'tracks': tracks,
+        'tracks_json': json.dumps(normalized),
+    }
+    return render(request, 'core/shared_playlist.html', context)
 
 
 def shared_track_view(request):
