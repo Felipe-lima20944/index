@@ -209,6 +209,7 @@ class PlaylistSerializer(serializers.ModelSerializer):
     capa_url = serializers.SerializerMethodField()
     visibilidade_display = serializers.CharField(source='get_visibilidade_display', read_only=True)
     total_musicas = serializers.SerializerMethodField()
+    covers = serializers.SerializerMethodField()
 
     class Meta:
         model = Playlist
@@ -216,7 +217,7 @@ class PlaylistSerializer(serializers.ModelSerializer):
             'id', 'nome', 'descricao', 'usuario', 'usuario_username',
             'capa', 'capa_url', 'visibilidade', 'visibilidade_display',
             'curtidas', 'duracao_total', 'criada_em', 'updated_at',
-            'total_musicas'
+            'total_musicas', 'covers'
         ]
         read_only_fields = ['usuario', 'curtidas', 'criada_em', 'updated_at']
 
@@ -238,6 +239,24 @@ class PlaylistSerializer(serializers.ModelSerializer):
         
         # Fallback: contar diretamente
         return obj.musicas.count()
+
+    def get_covers(self, obj):
+        """Devolve lista de até quatro URLs de capa das primeiras faixas da playlist."""
+        items = obj.playlistitem_set.select_related('musica').order_by('ordem')[:4]
+        covers = []
+        for item in items:
+            m = item.musica
+            url = ''
+            if m.album and getattr(m.album, 'capa', None):
+                url = m.album.capa.url if hasattr(m.album.capa, 'url') else m.album.capa
+            elif m.youtube_id:
+                url = f"https://i.ytimg.com/vi/{m.youtube_id}/hqdefault.jpg"
+            else:
+                url = m.capa or ''
+            covers.append(url)
+        while len(covers) < 4:
+            covers.append('')
+        return covers
 
 
 class PlaylistDetailSerializer(PlaylistSerializer):
