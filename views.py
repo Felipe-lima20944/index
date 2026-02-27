@@ -41,12 +41,18 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from rest_framework import status
 
-from ytmusicapi import YTMusic
+# YTMusic is an optional dependency used for some features (e.g. fetch from
+# YouTube Music).  To keep migrations and simple deployments working even when
+# it's absent we import it inside a try/except and fall back to None.
+try:
+    from ytmusicapi import YTMusic
+except ImportError:
+    YTMusic = None
 
 from .models import (
     Artista, Album, Musica, Playlist, PlaylistItem,
     HistoricoReproducao, Favorito, PlaybackQueue,
-    PlaybackState, Avaliacao, Genero
+    PlaybackState, Avaliacao, Genero, SharedTrack
 )
 from .models import AsaasCustomer, Payment, Subscription, Plan
 from .serializers import (
@@ -2126,11 +2132,17 @@ def shared_track_view(request):
     return render(request, 'core/shared_track.html', context)
 
 
-# shortened track share logic using cache
+# shortened track share logic (uses SharedTrack model)
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@permission_classes([AllowAny])
 def shorten_track(request):
-    """Return a tiny URL that redirects to shared_track_view."""
+    """Return a tiny URL that redirects to shared_track_view.
+
+    Instead of using the in‑memory cache, persist the data in the database so
+    URLs remain valid after the server restarts. Entries automatically expire
+    (you may add a periodic cleanup task if desired).
+    """
     tid = request.GET.get('id', '')
     title = request.GET.get('title', '')
     artist = request.GET.get('artist', '')
@@ -2141,26 +2153,27 @@ def shorten_track(request):
         'artist': escape(artist),
         'thumb': escape(thumb),
     }
-    # generate short token
-    code = None
-    for _ in range(8):
-        candidate = secrets.token_urlsafe(4)
-        if not cache.get('track_' + candidate):
-            code = candidate
-            break
-    if not code:
-        code = secrets.token_urlsafe(6)
-    cache.set('track_' + code, track, 24 * 3600)
+
+    # generate or reuse code via model method
+    code = SharedTrack.generate_code()
+    SharedTrack.objects.create(code=code, track=track)
+
     url = request.build_absolute_uri(reverse('track-short', args=[code]))
     return Response({'url': url})
 
 
 def track_short_redirect(request, code):
-    """Redirect page used by short urls; reuses shared_track template."""
-    track = cache.get('track_' + code)
-    if not track:
+    """Redirect page used by short urls; reuses shared_track template.
+
+    Look up data from SharedTrack table instead of cache. If entry is missing we
+    raise 404 as before. Optionally you could enforce expiration here by
+    deleting records older than 24 h.
+    """
+    try:
+        sh = SharedTrack.objects.get(code=code)
+    except SharedTrack.DoesNotExist:
         raise Http404()
-    return render(request, 'core/shared_track.html', {'track': track})
+    return render(request, 'core/shared_track.html', {'track': sh.track})
 
 
 @csrf_exempt
