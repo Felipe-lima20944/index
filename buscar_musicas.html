@@ -862,6 +862,17 @@
         }
         .welcome-button:hover { background: #6d28d9; transform: scale(1.05); }
         .welcome-button:active { transform: scale(0.95); }
+
+        /* links inside overlay text (register) get gradient highlight */
+        .overlay-text a {
+            color: #fff;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .overlay-text a:hover { opacity: 0.9; }
     </style>
 </head>
 <body x-data="app()" x-init="init()" @keydown.escape="closeModal()">
@@ -884,6 +895,38 @@
     });
 </script>
 {% endif %}
+
+<!-- preview limit full-screen overlay (hidden by default) -->
+<div id="preview-overlay" class="welcome-overlay" style="display:none;">
+    <div class="welcome-content">
+        <h1>Atenção</h1>
+        <p class="overlay-text"></p>
+        <a href="{% url 'register' %}" 
+   id="preview-close" 
+   class="welcome-button" 
+   style="background-color: #6a1b9a; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+   Obter plano grátis
+</a>
+    </div>
+</div>
+<script>
+function showPreviewOverlay(msg) {
+    const ov = document.getElementById('preview-overlay');
+    if (ov) {
+        ov.querySelector('.overlay-text').innerHTML = msg;
+        ov.style.display = 'flex';
+    }
+}
+// preview overlay close link navigates to register; optional close
+// behavior if JavaScript needed
+/*document.addEventListener('DOMContentLoaded', () => {
+    const btn2 = document.getElementById('preview-close');
+    const ov2 = document.getElementById('preview-overlay');
+    if (btn2 && ov2) {
+        btn2.addEventListener('click', () => { ov2.style.display = 'none'; });
+    }
+});*/
+</script>
     <form style="display:none">{% csrf_token %}</form>
 
     <!-- Gesture Feedback Overlay -->
@@ -3003,9 +3046,10 @@
                         if (IS_AUTHENTICATED) {
                             msg += ' Assine um plano para continuar ouvindo';
                         } else {
-                            msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 1 dia grátis de teste`;
+                            msg += ' Obtenha seu plano grátis usando o botão abaixo.';
                         }
                         this.showNotification(msg, 'error');
+                        if (typeof showPreviewOverlay === 'function') showPreviewOverlay(msg);
                     }
                     return;
                 }
@@ -3048,9 +3092,10 @@
                         if (IS_AUTHENTICATED) {
                             msg += ' Assine um plano para continuar ouvindo';
                         } else {
-                            msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 1 dia grátis de teste`;
+                            msg += ' Obtenha seu plano grátis usando o botão abaixo.';
                         }
                         this.showNotification(msg, 'error');
+                        if (typeof showPreviewOverlay === 'function') showPreviewOverlay(msg);
                     }
                 }
             },
