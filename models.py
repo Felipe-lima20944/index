@@ -804,19 +804,59 @@ class Plan(models.Model):
 
 
 def _ensure_trial_plan_exists(app_config, **kwargs):
-    """Post-migrate hook que garante que o plano trial esteja presente."""
+    """Post-migrate hook que garante que o plano trial esteja presente.
+
+    A função foi ajustada para usar o slug ``trial_1dia`` e duração de 1 dia.
+    Caso exista um plano antigo com slug ``trial_3dias`` ele será renomeado e
+    atualizado para evitar duplicação. Os atributos (nome, preço, duração)
+    também são normalizados a cada execução para garantir consistência.
+    """
     if app_config.name != 'core':
         return
     from decimal import Decimal
-    Plan.objects.get_or_create(
-        slug='trial_3dias',
+    new_slug = 'trial_1dia'
+    old_slug = 'trial_3dias'
+
+    plan, created = Plan.objects.get_or_create(
+        slug=new_slug,
         defaults={
-            'name': 'Teste grátis 3 dias',
+            'name': 'Teste grátis 1 dia',
             'price': Decimal('0.00'),
-            'duration_days': 3,
+            'duration_days': 1,
             'is_active': True,
         }
     )
+    # ensure attributes are correct even if plan already existed
+    if not created:
+        updated = False
+        if plan.name != 'Teste grátis 1 dia':
+            plan.name = 'Teste grátis 1 dia'
+            updated = True
+        if plan.price != Decimal('0.00'):
+            plan.price = Decimal('0.00')
+            updated = True
+        if plan.duration_days != 1:
+            plan.duration_days = 1
+            updated = True
+        if not plan.is_active:
+            plan.is_active = True
+            updated = True
+        if updated:
+            plan.save()
+
+    # migrate old slug if present
+    if old_slug != new_slug:
+        try:
+            old = Plan.objects.get(slug=old_slug)
+        except Plan.DoesNotExist:
+            old = None
+        if old:
+            old.slug = new_slug
+            old.name = 'Teste grátis 1 dia'
+            old.price = Decimal('0.00')
+            old.duration_days = 1
+            old.is_active = True
+            old.save()
 
 # registrar o handler após definição da função
 post_migrate.connect(_ensure_trial_plan_exists)
@@ -855,7 +895,7 @@ class Subscription(models.Model):
 
         Usa ``timezone.now()`` para garantir que a contagem parte da data/hora atual
         e arredonda para cima se houver horas restantes. Se a assinatura já estiver
-        expirada, retorna 0. Esta propriedade facilita mostrar "3 dias de teste"
+        expirada, retorna 0. Esta propriedade facilita mostrar "1 dia de teste"
         ou similar no front-end.
         """
         if not self.periodo_termina_em:
@@ -945,7 +985,7 @@ class UserProfile(models.Model):
 def ensure_user_profile(sender, instance, created, **kwargs):
     """Garante que todo User tenha um UserProfile criado automaticamente.
 
-    Além disso, concede automaticamente o plano de teste grátis de 3 dias na
+    Além disso, concede automaticamente o plano de teste grátis de 1 dia na
     primeira criação da conta. Caso o plano de teste já exista no banco, não
     será duplicado; se o usuário já tiver sido beneficiado, nada acontece.
     """
@@ -956,11 +996,11 @@ def ensure_user_profile(sender, instance, created, **kwargs):
             from decimal import Decimal
             # buscar ou criar o plano trial
             trial, _ = Plan.objects.get_or_create(
-                slug='trial_3dias',
+                slug='trial_1dia',
                 defaults={
-                    'name': 'Teste grátis 3 dias',
+                    'name': 'Teste grátis 1 dia',
                     'price': Decimal('0.00'),
-                    'duration_days': 3,
+                    'duration_days': 1,
                     'is_active': True,
                 }
             )
