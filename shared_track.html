@@ -14,23 +14,37 @@
             --accent:      #8b2cf6;
             --accent-2:    #c026d3;
             --accent-glow: rgba(139, 44, 246, 0.45);
+            --accent-dim:  rgba(139, 44, 246, 0.18);
+            --bg:          #07070a;
+            --surface-1:   #0d0d12;
+            --surface-2:   #121218;
+            --surface-3:   #18181f;
+            --surface-glass: rgba(255,255,255,0.04);
+            --border:        rgba(255,255,255,0.07);
+            --border-accent: rgba(139, 44, 246, 0.4);
             --txt-1: #f0f0f4;
             --txt-2: #7a7a90;
             --txt-3: #44445a;
+            --player-h: 72px;
+            --safe-b: env(safe-area-inset-bottom, 0px);
             --font-display: 'Syne', sans-serif;
             --font-body:    'DM Sans', sans-serif;
             --ease-out:     cubic-bezier(0.22, 1, 0.36, 1);
             --ease-bounce:  cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-soft:    cubic-bezier(0.16, 1, 0.3, 1);
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
         }
 
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         html, body { width: 100%; height: 100%; overflow: hidden; }
 
         body {
             font-family: var(--font-body);
             -webkit-font-smoothing: antialiased;
-            background: #07070a;
+            background: var(--bg);
             color: var(--txt-1);
             display: flex;
             align-items: center;
@@ -38,42 +52,26 @@
             position: relative;
         }
 
-        /* Grain */
         body::before {
             content: '';
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
             opacity: 0.028;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
-
-        /* Dot grid */
         body::after {
             content: '';
-            position: fixed;
-            inset: 0;
+            position: fixed; inset: 0;
             background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
             background-size: 28px 28px;
-            pointer-events: none;
-            z-index: 0;
+            pointer-events: none; z-index: 0;
         }
 
         /* ─── ORBS ─── */
         .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(110px);
-            animation: orbDrift 12s ease-in-out infinite;
-        }
-
+        .orb { position: absolute; border-radius: 50%; filter: blur(110px); animation: orbDrift 12s ease-in-out infinite; }
         .orb-a { width:600px;height:400px;background:rgba(139,44,246,0.12);top:-140px;left:-120px;animation-delay:0s; }
         .orb-b { width:500px;height:500px;background:rgba(192,38,211,0.08);bottom:-180px;right:-100px;animation-delay:-6s; }
         .orb-c { width:320px;height:320px;background:rgba(90,50,200,0.07);top:40%;left:55%;animation-delay:-3s; }
-
         @keyframes orbDrift {
             0%,100% { transform:translate(0,0); }
             33%      { transform:translate(28px,-36px); }
@@ -82,179 +80,205 @@
 
         /* ─── CONTAINER ─── */
         .container {
-            position: relative;
-            z-index: 1;
+            position: relative; z-index: 1;
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             gap: 28px;
             max-width: 500px;
             padding: 40px 24px;
             animation: containerReveal 0.6s var(--ease-out) both;
         }
-
         @keyframes containerReveal {
             from { opacity:0; transform:translateY(16px); }
             to   { opacity:1; transform:translateY(0); }
         }
 
-        /* ─── ICON ─── */
-        .icon-wrap {
-            position: relative;
-            width: 110px;
-            height: 110px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .icon-wrap { position: relative; width: 110px; height: 110px; display: flex; align-items: center; justify-content: center; }
+        .icon-ring { position:absolute; width:110px;height:110px; border-radius:50%; border:1.5px solid rgba(139,44,246,0.28); animation:ringPulse 2.4s ease-in-out infinite; }
+        .icon-ring-2 { position:absolute; width:140px;height:140px; border-radius:50%; border:1px solid rgba(139,44,246,0.12); animation:ringPulse 2.4s ease-in-out 0.4s infinite; }
+        @keyframes ringPulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.07);opacity:0.45;} }
+        .icon-box { position:relative;z-index:2;width:76px;height:76px;border-radius:22px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:1.9rem;color:#fff;box-shadow:0 14px 42px var(--accent-glow);animation:iconPop 0.7s var(--ease-bounce) 0.1s both; }
+        @keyframes iconPop { from{transform:scale(0.4) rotate(-14deg);opacity:0;} to{transform:scale(1) rotate(0);opacity:1;} }
 
-        .icon-ring {
-            position: absolute;
-            width: 110px; height: 110px;
-            border-radius: 50%;
-            border: 1.5px solid rgba(139,44,246,0.28);
-            animation: ringPulse 2.4s ease-in-out infinite;
-        }
+        .content { display:flex;flex-direction:column;gap:10px;animation:fadeUp 0.5s var(--ease-out) 0.2s both; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
 
-        .icon-ring-2 {
-            position: absolute;
-            width: 140px; height: 140px;
-            border-radius: 50%;
-            border: 1px solid rgba(139,44,246,0.12);
-            animation: ringPulse 2.4s ease-in-out 0.4s infinite;
-        }
+        .title { font-family:var(--font-display);font-size:clamp(1.6rem,5vw,2.2rem);font-weight:800;letter-spacing:-0.04em;line-height:1.15;background:linear-gradient(130deg,#fff 40%,rgba(255,255,255,0.55));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent; }
+        .subtitle { font-size:0.9rem;color:var(--txt-2);line-height:1.65;max-width:340px;margin:0 auto; }
 
-        @keyframes ringPulse {
-            0%,100% { transform:scale(1); opacity:1; }
-            50%      { transform:scale(1.07); opacity:0.45; }
-        }
+        .progress-wrap { width:180px;animation:fadeUp 0.5s var(--ease-out) 0.35s both; }
+        .progress-track { width:100%;height:3px;border-radius:2px;background:rgba(255,255,255,0.07);overflow:hidden; }
+        .progress-fill { height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2));box-shadow:0 0 10px var(--accent-glow);width:0%;animation:progressGrow 0.8s var(--ease-out) 0.3s forwards; }
+        @keyframes progressGrow { from{width:0%;} to{width:100%;} }
+        .progress-label { margin-top:8px;font-size:0.68rem;color:var(--txt-3);letter-spacing:0.08em;text-transform:uppercase;animation:fadeUp 0.4s var(--ease-out) 0.5s both; }
 
-        .icon-box {
-            position: relative;
-            z-index: 2;
-            width: 76px; height: 76px;
-            border-radius: 22px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.9rem;
-            color: #fff;
-            box-shadow: 0 14px 42px var(--accent-glow);
-            animation: iconPop 0.7s var(--ease-bounce) 0.1s both;
-        }
+        .brand { display:flex;align-items:center;gap:10px;animation:fadeUp 0.5s var(--ease-out) 0.45s both; }
+        .brand-icon { width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:0.8rem;color:#fff;box-shadow:0 4px 12px var(--accent-glow); }
+        .brand-name { font-family:var(--font-display);font-size:1rem;font-weight:800;letter-spacing:-0.04em;background:linear-gradient(130deg,#fff 40%,rgba(255,255,255,0.45));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent; }
 
-        @keyframes iconPop {
-            from { transform:scale(0.4) rotate(-14deg); opacity:0; }
-            to   { transform:scale(1) rotate(0); opacity:1; }
+        /* ═══════════════════════════════════════════════════════════
+           MINI PLAYER BAR
+        ═══════════════════════════════════════════════════════════ */
+        .player-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(8,8,11,0.98);
+            backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px);
+            border-top: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            padding: 0; z-index: 500; overflow: hidden; width: 100%; max-width: 100vw;
         }
+        .player-progress-top { width:100%;height:3px;background:var(--surface-3);cursor:pointer;flex-shrink:0;position:relative; }
+        .player-progress-top-fill { height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width 0.1s linear;border-radius:0 2px 2px 0; }
+        .player-progress-top:hover { height:5px; }
+        .player-main-row { display:flex;align-items:center;gap:6px;padding:0 8px 0 10px;height:69px;overflow:hidden;width:100%;min-width:0; }
+        .player-close-btn { position:relative;z-index:20;flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--surface-3);border:1px solid var(--border);color:var(--txt-3);font-size:0.7rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.18s var(--ease-bounce); }
+        .player-close-btn:hover { background:rgba(255,85,114,0.2);color:#ff5572;border-color:rgba(255,85,114,0.3);transform:scale(1.12); }
+        .player-gesture-area { position:absolute;top:0;left:0;right:0;height:40px;z-index:10;cursor:pointer; }
+        .now-playing-mini { display:flex;align-items:center;gap:9px;cursor:pointer;min-width:0;max-width:100%;flex:1 1 auto;overflow:hidden; }
+        .now-playing-art { position:relative;flex-shrink:0;width:40px;height:40px; }
+        .now-playing-art img { width:40px;height:40px;border-radius:8px;object-fit:cover;box-shadow:0 4px 14px rgba(0,0,0,0.6);transition:transform 0.3s var(--ease-bounce); }
+        .now-playing-mini:hover .now-playing-art img { transform:scale(1.07) rotate(-2deg); }
+        .playing-indicator { position:absolute;inset:0;border-radius:8px;border:2px solid var(--accent);opacity:0;transition:opacity 0.3s; }
+        .playing-indicator.active { opacity:1;animation:pulse-border 2s ease-in-out infinite; }
+        @keyframes pulse-border { 0%,100%{box-shadow:0 0 0 0 var(--accent-glow);}50%{box-shadow:0 0 0 5px rgba(139,44,246,0);} }
+        .track-info-bar { min-width:0;flex:1 1 auto;overflow:hidden; }
+        .track-info-bar .ti-title { font-family:var(--font-display);font-size:0.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em;display:block; }
+        .track-info-bar .ti-artist { font-size:0.67rem;color:var(--txt-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;display:block; }
+        .ctrl-btn { background:none;border:none;color:var(--txt-3);cursor:pointer;padding:6px;font-size:0.95rem;transition:color 0.2s,transform 0.15s var(--ease-bounce);border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px; }
+        .ctrl-btn:hover { color:var(--txt-1);transform:scale(1.15); }
+        .ctrl-btn:active { transform:scale(0.88); }
+        .ctrl-btn.skip-btn { color:var(--txt-2);font-size:1.1rem; }
+        .ctrl-btn.liked { color:var(--accent); }
+        .ctrl-btn.skip-btn:hover { color:var(--txt-1);transform:scale(1.2); }
+        .btn-play-main { width:42px;height:42px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none;border-radius:50%;color:white;font-size:0.95rem;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 18px var(--accent-glow);transition:transform 0.18s var(--ease-bounce),box-shadow 0.18s;position:relative;flex-shrink:0; }
+        .btn-play-main::before { content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(139,44,246,0.3);opacity:0;transform:scale(0.8);transition:opacity 0.3s,transform 0.3s var(--ease-bounce); }
+        .btn-play-main.is-playing::before { opacity:1;transform:scale(1);animation:play-ring 2.5s ease-in-out infinite; }
+        @keyframes play-ring { 0%,100%{transform:scale(1);opacity:0.4;}50%{transform:scale(1.15);opacity:0.1;} }
+        .btn-play-main:hover { transform:scale(1.1);box-shadow:0 6px 26px var(--accent-glow); }
+        .btn-play-main:active { transform:scale(0.93); }
+        .btn-play-main .fa-play { margin-left:2px; }
+        .panel-icon-btn { width:40px;height:40px;background:var(--surface-2);border:1px solid var(--border);border-radius:50%;color:var(--txt-2);font-size:1rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.18s var(--ease-bounce); }
+        .panel-icon-btn:hover { color:var(--txt-1);background:var(--surface-3);transform:scale(1.1); }
+        .panel-icon-btn.liked { color:var(--accent);border-color:var(--border-accent);background:var(--accent-dim); }
 
-        /* ─── TEXT ─── */
-        .content {
+        /* ═══════════════════════════════════════════════════════════
+           BOTTOM SHEET — PLAYER EXPANDIDO
+        ═══════════════════════════════════════════════════════════ */
+        .bottom-sheet {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--surface-1);
+            transform: translateY(100%);
+            transition: transform 0.45s var(--ease-soft);
+            z-index: 3000;
+            touch-action: pan-y;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            animation: fadeUp 0.5s var(--ease-out) 0.2s both;
+        }
+        .bottom-sheet.active { transform: translateY(0); }
+        .bottom-sheet.dragging { transition: none; }
+
+        .bottom-sheet::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse at 50% 0%, rgba(139,44,246,0.18) 0%, transparent 65%),
+                        radial-gradient(ellipse at 80% 100%, rgba(192,38,211,0.12) 0%, transparent 55%);
+            pointer-events: none; z-index: 0;
         }
 
-        @keyframes fadeUp {
-            from { opacity:0; transform:translateY(14px); }
-            to   { opacity:1; transform:translateY(0); }
-        }
+        .sheet-handle { width:40px;height:4px;background:var(--surface-3);border-radius:2px;margin:12px auto;cursor:grab; }
 
-        .title {
-            font-family: var(--font-display);
-            font-size: clamp(1.6rem, 5vw, 2.2rem);
-            font-weight: 800;
-            letter-spacing: -0.04em;
-            line-height: 1.15;
-            background: linear-gradient(130deg, #fff 40%, rgba(255,255,255,0.55));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .subtitle {
-            font-size: 0.9rem;
-            color: var(--txt-2);
-            line-height: 1.65;
-            max-width: 340px;
-            margin: 0 auto;
-        }
-
-        /* ─── PROGRESS BAR ─── */
-        .progress-wrap {
-            width: 180px;
-            animation: fadeUp 0.5s var(--ease-out) 0.35s both;
-        }
-
-        .progress-track {
-            width: 100%; height: 3px;
-            border-radius: 2px;
-            background: rgba(255,255,255,0.07);
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%; border-radius: 2px;
-            background: linear-gradient(90deg, var(--accent), var(--accent-2));
-            box-shadow: 0 0 10px var(--accent-glow);
-            width: 0%;
-            animation: progressGrow 0.8s var(--ease-out) 0.3s forwards;
-        }
-
-        @keyframes progressGrow {
-            from { width:0%; }
-            to   { width:100%; }
-        }
-
-        .progress-label {
-            margin-top: 8px;
-            font-size: 0.68rem;
-            color: var(--txt-3);
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            animation: fadeUp 0.4s var(--ease-out) 0.5s both;
-        }
-
-        /* ─── BRAND ─── */
-        .brand {
+        .sheet-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 0 24px calc(env(safe-area-inset-bottom, 0px) + 32px);
+            position: relative; z-index: 1;
             display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: fadeUp 0.5s var(--ease-out) 0.45s both;
+            flex-direction: column;
         }
 
-        .brand-icon {
-            width: 30px; height: 30px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.8rem; color: #fff;
-            box-shadow: 0 4px 12px var(--accent-glow);
+        /* Arte */
+        .sheet-art-wrap {
+            position: relative;
+            display: flex; justify-content: center;
+            margin-bottom: 28px;
         }
+        .sheet-art-wrap img {
+            width: min(72vw, 320px);
+            height: min(72vw, 320px);
+            border-radius: 22px;
+            object-fit: cover;
+            box-shadow: 0 28px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.06);
+        }
+        .sheet-art-wrap::before {
+            content: '';
+            position: absolute; inset: -30px;
+            background: radial-gradient(ellipse at center, var(--accent-glow), transparent 70%);
+            filter: blur(28px); opacity: 0.5;
+            border-radius: 50%;
+            animation: art-pulse 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes art-pulse { 0%,100%{transform:scale(0.92);opacity:0.4;} 50%{transform:scale(1.06);opacity:0.65;} }
 
-        .brand-name {
-            font-family: var(--font-display);
-            font-size: 1rem;
-            font-weight: 800;
-            letter-spacing: -0.04em;
-            background: linear-gradient(130deg, #fff 40%, rgba(255,255,255,0.45));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        /* Progresso */
+        .progress-section { display:flex;flex-direction:column;gap:8px; }
+        .progress-bar-wrap { position:relative;height:4px;background:var(--surface-3);border-radius:2px;cursor:pointer;overflow:hidden;transition:height 0.2s var(--ease-bounce); }
+        .progress-bar-wrap:hover { height:6px; }
+        .progress-bar-fill { height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:2px;transition:width 0.1s linear; }
+        .progress-times { display:flex;justify-content:space-between;font-size:0.72rem;color:var(--txt-2); }
+
+        /* Controles */
+        .panel-controls { display:flex;align-items:center;justify-content:space-between;padding:0 8px; }
+        .panel-ctrl-btn { background:none;border:none;color:var(--txt-2);cursor:pointer;padding:10px;font-size:1.2rem;transition:color 0.2s,transform 0.15s var(--ease-bounce);border-radius:50%;position:relative;overflow:hidden;width:44px;height:44px;display:flex;align-items:center;justify-content:center; }
+        .panel-ctrl-btn:hover { color:var(--txt-1);transform:scale(1.15); }
+        .panel-ctrl-btn:active { transform:scale(0.88); }
+        .panel-ctrl-btn.shuffle-active { color:var(--accent); }
+        .panel-ctrl-btn.repeat-one { color:var(--accent); }
+        .panel-play-btn { width:64px;height:64px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none;border-radius:50%;color:white;font-size:1.5rem;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 28px var(--accent-glow);transition:transform 0.18s var(--ease-bounce),box-shadow 0.18s;position:relative; }
+        .panel-play-btn::before { content:'';position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(139,44,246,0.25);opacity:0;transition:opacity 0.3s; }
+        .panel-play-btn.is-playing::before { opacity:1;animation:play-ring 2.5s ease-in-out infinite; }
+        .panel-play-btn:hover { transform:scale(1.1);box-shadow:0 12px 36px var(--accent-glow); }
+        .panel-play-btn:active { transform:scale(0.94); }
+        .panel-play-btn .fa-play { margin-left:3px; }
+
+        /* Ações */
+        .panel-action-row { display:grid;grid-template-columns:repeat(2,1fr);gap:8px; }
+        .panel-act-btn { padding:13px;border-radius:var(--radius-lg);border:1px solid var(--border);background:var(--surface-2);color:var(--txt-2);font-family:var(--font-body);font-weight:600;font-size:0.82rem;cursor:pointer;transition:all 0.18s var(--ease-bounce);display:flex;align-items:center;justify-content:center;gap:6px; }
+        .panel-act-btn:hover { background:var(--surface-3);color:var(--txt-1);transform:translateY(-2px); }
+        .panel-act-btn:active { transform:scale(0.97); }
+
+        /* TOAST */
+        .notification { position:fixed;bottom:calc(var(--player-h) + 14px);left:14px;right:14px;padding:13px 20px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-xl);color:var(--txt-1);font-weight:600;font-size:0.88rem;z-index:900;box-shadow:0 12px 36px rgba(0,0,0,0.6);text-align:center;backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;gap:8px; }
+        .notification::before { content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0; }
+        .notification.error::before { background:#ff5572; }
+        .notification.success::before { background:#00d68f; }
+
+        /* SHARE MODAL */
+        .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:4000;display:flex;align-items:flex-end;justify-content:center; }
+        .modal { background:var(--surface-1);border-radius:24px 24px 0 0;padding:20px 18px 28px;width:100%;max-height:82vh;overflow-y:auto;border-top:1px solid var(--border);box-shadow:0 -20px 60px rgba(0,0,0,0.7); }
+        .modal-drag-handle { width:36px;height:4px;background:var(--surface-3);border-radius:2px;margin:0 auto 18px; }
+        .modal-btn { flex:1;padding:14px;border:none;border-radius:var(--radius-xl);font-family:var(--font-display);font-weight:700;font-size:0.92rem;cursor:pointer;transition:all 0.18s var(--ease-bounce);text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px; }
+        .modal-btn.secondary { background:var(--surface-2);border:1px solid var(--border);color:var(--txt-2); }
+        .modal-btn.secondary:hover { background:var(--surface-3);color:var(--txt-1); }
+        .modal-buttons { display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center; }
+        .btn-icon { display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;padding:6px 8px;background:var(--surface-glass);border:1px solid var(--border);border-radius:8px;color:var(--txt-2);cursor:pointer;transition:all 0.12s var(--ease-bounce);font-size:0.95rem; }
+        .btn-icon:hover { color:var(--txt-1);background:var(--surface-3);transform:scale(1.05); }
+
+        [x-cloak] { display: none !important; }
 
         @media (max-width: 480px) {
             .container { gap: 22px; padding: 32px 20px; }
-            .icon-wrap { width: 90px; height: 90px; }
+            .icon-wrap { width:90px;height:90px; }
             .icon-ring { width:90px;height:90px; }
             .icon-ring-2 { width:118px;height:118px; }
             .icon-box { width:64px;height:64px;font-size:1.6rem; }
         }
     </style>
 </head>
-<body>
+<body x-data="trackApp()" x-init="init()">
 
 <div class="bg-orbs" aria-hidden="true">
     <div class="orb orb-a"></div>
@@ -262,41 +286,399 @@
     <div class="orb orb-c"></div>
 </div>
 
-<div class="container">
+<!-- ═══════════════════════════════════════════════════════════
+     BOTTOM SHEET — PLAYER EXPANDIDO (abre automaticamente)
+═══════════════════════════════════════════════════════════ -->
+<div class="bottom-sheet"
+     :class="{ 'active': bottomSheetActive, 'dragging': sheetDragging }"
+     x-ref="bottomSheet"
+     @touchstart="sheetTouchStart" @touchmove="sheetTouchMove" @touchend="sheetTouchEnd">
 
-    <div class="brand">
-        <div class="brand-icon"><i class="fa-solid fa-music"></i></div>
-        <div class="brand-name">Beatflow</div>
+    <!-- Topo: apenas handle centralizado -->
+    <div style="position:relative;display:flex;align-items:center;justify-content:center;padding-top:calc(env(safe-area-inset-top,0px)+10px);padding-bottom:4px;flex-shrink:0;z-index:2;">
+        <div class="sheet-handle" style="margin:0;"></div>
     </div>
 
-    <div class="icon-wrap">
-        <div class="icon-ring-2"></div>
-        <div class="icon-ring"></div>
-        <div class="icon-box">
+    <div class="sheet-content">
+
+        <!-- Arte com halo + botão voltar sobreposto (canto superior esquerdo da arte) -->
+        <div class="sheet-art-wrap" style="margin-top:auto;margin-bottom:28px;">
+
+            <!-- Botão voltar posicionado acima-esquerda da arte -->
+            <button class="panel-icon-btn" @click.stop="goToBeatflow()" title="Voltar ao Beatflow"
+                    style="position:absolute;left:0;top:-52px;z-index:10;">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+
+            <img :src="currentTrack?.thumb || '/static/icone.ico'" alt="Capa">
+        </div>
+
+        <!-- Info + curtir -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <div style="min-width:0;flex:1;">
+                <h2 style="font-family:var(--font-display);font-size:1.5rem;font-weight:800;letter-spacing:-0.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" x-text="currentTrack?.title"></h2>
+                <p style="color:var(--txt-2);font-size:1rem;" x-text="currentTrack?.artist"></p>
+            </div>
+            <button class="panel-icon-btn" :class="likedTracks.includes(currentTrack?.id) ? 'liked' : ''"
+                    @click="toggleLike(currentTrack)" title="Curtir">
+                <i :class="likedTracks.includes(currentTrack?.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+            </button>
+        </div>
+
+        <!-- Badge Beatflow -->
+        <div style="display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:999px;background:var(--accent-dim);border:1px solid var(--border-accent);font-size:0.72rem;color:var(--accent);font-weight:600;margin-bottom:20px;">
             <i class="fa-solid fa-music"></i>
+            <span>Beatflow · Música compartilhada</span>
         </div>
-    </div>
 
-    <div class="content">
-        <h1 class="title">Conectando ao Beatflow</h1>
-        <p class="subtitle">Sincronizando sua conta para carregar a música compartilhada.</p>
-    </div>
-
-    <div class="progress-wrap">
-        <div class="progress-track">
-            <div class="progress-fill"></div>
+        <!-- Progresso -->
+        <div class="progress-section" style="margin-bottom:20px;">
+            <div class="progress-bar-wrap" @click="seek($event)">
+                <div class="progress-bar-fill" :style="{ width: progress + '%' }"></div>
+            </div>
+            <div class="progress-times">
+                <span x-text="formatTime(currentTime)"></span>
+                <span x-text="formatTime(duration)"></span>
+            </div>
         </div>
-        <div class="progress-label">Carregando…</div>
-    </div>
 
+        <!-- Controles -->
+        <div class="panel-controls" style="margin-bottom:24px;">
+            <button class="panel-ctrl-btn" @click="shuffle = !shuffle" :class="shuffle ? 'shuffle-active' : ''" title="Aleatório">
+                <i class="fa-solid fa-shuffle"></i>
+            </button>
+            <button class="panel-ctrl-btn" @click="previous()">
+                <i class="fa-solid fa-backward-step"></i>
+            </button>
+            <button class="panel-play-btn" :class="isPlaying ? 'is-playing' : ''" @click="togglePlay()">
+                <i :class="isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play'"></i>
+            </button>
+            <button class="panel-ctrl-btn" @click="next()">
+                <i class="fa-solid fa-forward-step"></i>
+            </button>
+            <button class="panel-ctrl-btn" :class="repeatMode === 'one' ? 'repeat-one' : ''" @click="cycleRepeat()" title="Repetir">
+                <i class="fa-solid fa-repeat"></i>
+            </button>
+        </div>
+
+        <!-- Ações: Compartilhar | Abrir Beatflow -->
+        <div class="panel-action-row" style="margin-bottom:calc(env(safe-area-inset-bottom,0px) + 8px);">
+            <button class="panel-act-btn" @click="shareTrack()">
+                <i class="fa-solid fa-share-alt"></i> Compartilhar
+            </button>
+            <button class="panel-act-btn"
+                    style="background:linear-gradient(135deg,var(--accent),var(--accent-2));color:white;border-color:transparent;box-shadow:0 4px 16px var(--accent-glow);"
+                    @click="goToBeatflow()">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Beatflow
+            </button>
+        </div>
+
+    </div>
 </div>
 
+<!-- ═══ MINI PLAYER (visível quando sheet está fechado) ═══ -->
+<footer class="player-bar"
+        x-show="currentTrack && !bottomSheetActive"
+        x-cloak
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 transform translate-y-full"
+        x-transition:enter-end="opacity-100 transform translate-y-0"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 transform translate-y-0"
+        x-transition:leave-end="opacity-0 transform translate-y-full">
+
+    <div class="player-gesture-area" @click="bottomSheetActive = true"></div>
+    <div class="player-progress-top" @click="seekFromBar($event)">
+        <div class="player-progress-top-fill" :style="{ width: progress + '%' }"></div>
+    </div>
+    <div class="player-main-row">
+        <div class="now-playing-mini" @click.stop="bottomSheetActive = true">
+            <div class="now-playing-art">
+                <img :src="currentTrack?.thumb || ''" alt="Capa">
+                <div class="playing-indicator" :class="isPlaying ? 'active' : ''"></div>
+            </div>
+            <div class="track-info-bar">
+                <p class="ti-title" x-text="currentTrack?.title"></p>
+                <p class="ti-artist" x-text="currentTrack?.artist"></p>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+            <button class="btn-play-main" :class="isPlaying ? 'is-playing' : ''" @click.stop="togglePlay()">
+                <i :class="isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play'"></i>
+            </button>
+        </div>
+        <button class="player-close-btn"
+                @click.stop="currentTrack = null; isPlaying = false; audio && audio.pause(); bottomSheetActive = false"
+                title="Fechar player">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+</footer>
+
+<!-- AUDIO -->
+<audio id="main-audio" preload="auto"
+       @timeupdate="updateProgress"
+       @loadedmetadata="duration = audio.duration"
+       @ended="next()"
+       @waiting="showNotification('Preparando áudio…','info')"
+       @playing="hideNotification()"
+       @error="showNotification('Erro ao carregar áudio','error'); isPlaying=false;"></audio>
+
+<!-- TOAST -->
+<div class="notification" :class="notification.type"
+     x-show="notification.show"
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0 transform translate-y-4"
+     x-transition:enter-end="opacity-100 transform translate-y-0"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     x-cloak>
+    <span x-text="notification.message"></span>
+</div>
+
+<!-- SHARE MODAL -->
+<div x-show="shareModalVisible" class="modal-overlay" x-cloak
+     @click.self="shareModalVisible = false">
+    <div class="modal">
+        <div class="modal-drag-handle"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h3 style="margin:0;font-family:var(--font-display);">Compartilhar</h3>
+            <button @click="shareModalVisible=false" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="margin:16px 0;text-align:center;color:var(--txt-2);" x-text="shareModalTitle"></div>
+        <div class="modal-buttons">
+            <a class="modal-btn secondary" target="_blank"
+               :href="'https://api.whatsapp.com/send?text='+encodeURIComponent(shareModalTitle+' '+shareModalUrl)">
+                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+            </a>
+            <a class="modal-btn secondary" target="_blank"
+               :href="'https://twitter.com/intent/tweet?text='+encodeURIComponent(shareModalTitle)+'&url='+encodeURIComponent(shareModalUrl)">
+                <i class="fa-brands fa-twitter"></i> Twitter
+            </a>
+            <button class="modal-btn secondary"
+                    @click="navigator.clipboard.writeText(shareModalUrl); showNotification('Link copiado!','success'); shareModalVisible=false;">
+                <i class="fa-solid fa-copy"></i> Copiar link
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TRACK DATA + APP
+═══════════════════════════════════════════════════════════ -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-            window.location.href = '/';
-        }, 50);
-    });
+const SHARED_TRACK = {
+    id: '{{ track.id|escapejs }}',
+    title: '{{ track.title|escapejs }}',
+    artist: '{{ track.artist|escapejs }}',
+    thumb: '{{ track.thumb|escapejs }}'
+};
+
+function normalizeTrack(t) {
+    if (!t || typeof t !== 'object') return null;
+    const ytId = t.youtube_id || (t.id && /^[A-Za-z0-9_-]{11}$/.test(String(t.id)) ? String(t.id) : null);
+    const canonicalId = ytId || (t.id ? String(t.id) : null);
+    if (!canonicalId) return null;
+    return {
+        id: canonicalId,
+        youtube_id: ytId || '',
+        title: t.title || t.titulo || t.nome || 'Sem título',
+        artist: t.artist || t.artista || t.artista_nome || 'Artista desconhecido',
+        thumb: t.thumb || t.thumbnail || t.capa || '',
+        audio_url: ytId ? '/api/streaming-url/?video_id=' + encodeURIComponent(ytId) : ''
+    };
+}
+
+function trackApp() {
+    return {
+        audio: null,
+        queue: [],
+        currentTrack: null,
+        currentQueueIndex: -1,
+        isPlaying: false,
+        currentTime: 0,
+        duration: 0,
+        progress: 0,
+        shuffle: false,
+        repeatMode: 'off',
+        bottomSheetActive: false,
+        sheetDragging: false,
+        sheetStartY: 0,
+        sheetCurrentY: 0,
+        likedTracks: [],
+        notification: { show: false, message: '', type: 'info' },
+        shareModalVisible: false,
+        shareModalUrl: '',
+        shareModalTitle: '',
+
+        init() {
+            this.audio = document.getElementById('main-audio');
+            try { this.likedTracks = JSON.parse(localStorage.getItem('likedTracks') || '[]'); } catch(e) { this.likedTracks = []; }
+
+            if (SHARED_TRACK && SHARED_TRACK.id) {
+                const n = normalizeTrack(SHARED_TRACK);
+                if (n) {
+                    this.queue = [n];
+                    this.currentQueueIndex = 0;
+                    this.currentTrack = n;
+                    this.bottomSheetActive = true;
+                    this._playSrc(n);
+                }
+            }
+
+            if ('mediaSession' in navigator) {
+                try {
+                    navigator.mediaSession.setActionHandler('play', () => this.togglePlay());
+                    navigator.mediaSession.setActionHandler('pause', () => this.togglePlay());
+                    navigator.mediaSession.setActionHandler('previoustrack', () => this.previous());
+                    navigator.mediaSession.setActionHandler('nexttrack', () => this.next());
+                } catch(e) {}
+            }
+        },
+
+        async _playSrc(track) {
+            if (!track) return;
+            try { this.audio.pause(); } catch(e) {}
+            let src = track.audio_url || '';
+            if (!src && track.youtube_id) src = '/api/streaming-url/?video_id=' + encodeURIComponent(track.youtube_id);
+            if (!src) { this.showNotification('Áudio indisponível', 'error'); return; }
+            if (src.startsWith('/api/streaming-url/')) {
+                try {
+                    const r = await fetch(src, { credentials: 'same-origin' });
+                    if (r.ok) { const d = await r.json(); if (d?.stream_url) src = d.stream_url; }
+                } catch(e) {}
+            }
+            if (!src) { this.showNotification('Não foi possível carregar o áudio', 'error'); return; }
+            try {
+                this.audio.src = src;
+                await this.audio.play();
+                this.isPlaying = true;
+                if ('mediaSession' in navigator && this.currentTrack) {
+                    navigator.mediaSession.metadata = new MediaMetadata({
+                        title: this.currentTrack.title || '',
+                        artist: this.currentTrack.artist || '',
+                        artwork: [{ src: this.currentTrack.thumb || '', sizes: '512x512', type: 'image/png' }]
+                    });
+                    navigator.mediaSession.playbackState = 'playing';
+                }
+            } catch(e) { this.isPlaying = false; }
+        },
+
+        selectByIndex(i) {
+            if (i < 0 || i >= this.queue.length) return;
+            this.currentQueueIndex = i;
+            this.currentTrack = this.queue[i];
+            this.currentTime = 0; this.progress = 0;
+            this._playSrc(this.currentTrack);
+            this.bottomSheetActive = true;
+        },
+
+        previous() { if (this.audio.currentTime > 3) { this.audio.currentTime = 0; return; } this.selectByIndex(0); },
+        next() { this.selectByIndex(0); },
+
+        togglePlay() {
+            if (!this.currentTrack) return;
+            if (this.isPlaying) { this.audio.pause(); this.isPlaying = false; }
+            else { this.audio.play().then(() => { this.isPlaying = true; }).catch(console.error); }
+            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = this.isPlaying ? 'playing' : 'paused';
+        },
+
+        updateProgress() {
+            if (this.audio.duration) {
+                this.currentTime = this.audio.currentTime;
+                this.duration = this.audio.duration;
+                this.progress = (this.currentTime / this.duration) * 100;
+            }
+        },
+
+        cycleRepeat() {
+            const order = ['off', 'once', 'one'];
+            let idx = order.indexOf(this.repeatMode);
+            this.repeatMode = order[(idx + 1) % order.length];
+            const msgs = { off: '🔁 Repetição desligada', once: '🔂 Repetir 1 vez', one: '🔁 Repetindo' };
+            this.showNotification(msgs[this.repeatMode], 'info');
+        },
+
+        seek(e) {
+            const r = e.currentTarget.getBoundingClientRect();
+            this.audio.currentTime = ((e.clientX - r.left) / r.width) * (this.audio.duration || 0);
+        },
+        seekFromBar(e) {
+            if (this.audio?.duration) {
+                const r = e.currentTarget.getBoundingClientRect();
+                this.audio.currentTime = ((e.clientX - r.left) / r.width) * this.audio.duration;
+            }
+        },
+        formatTime(s) { if (!s || isNaN(s)) return '0:00'; return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'); },
+
+        csrfToken() {
+            let v = null;
+            document.cookie.split(';').forEach(c => { c=c.trim(); if(c.startsWith('csrftoken=')) v=decodeURIComponent(c.slice(10)); });
+            return v || document.querySelector('meta[name="csrf-token"]')?.content || null;
+        },
+        toggleLike(track) {
+            if (!track) return;
+            const i = this.likedTracks.indexOf(track.id);
+            const method = i === -1 ? 'POST' : 'DELETE';
+            if (i === -1) { this.likedTracks.push(track.id); this.showNotification('Curtido! ♥', 'success'); }
+            else { this.likedTracks.splice(i, 1); this.showNotification('Removido dos curtidos', 'info'); }
+            localStorage.setItem('likedTracks', JSON.stringify(this.likedTracks));
+            fetch(i === -1 ? '/api/favorites/' : '/api/favorites/?musica_id=' + track.id, {
+                method, credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': this.csrfToken() || '' },
+                body: method === 'POST' ? JSON.stringify({ musica_id: track.id }) : undefined
+            }).then(r => {
+                if (r.status === 401 || r.status === 403) { this.showNotification('Faça login para curtir músicas', 'error'); }
+            }).catch(() => {});
+        },
+
+        shareTrack() {
+            const t = this.currentTrack;
+            if (!t) return;
+            const url = window.location.href;
+            const text = `${t.title} – ${t.artist} · Beatflow`;
+            if (navigator.share) {
+                navigator.share({ title: t.title, text, url }).catch(() => {
+                    this.shareModalUrl = url; this.shareModalTitle = text; this.shareModalVisible = true;
+                });
+            } else {
+                this.shareModalUrl = url; this.shareModalTitle = text; this.shareModalVisible = true;
+            }
+        },
+
+        goToBeatflow() { window.location.href = '/'; },
+
+        sheetTouchStart(e) {
+            if (e.touches[0].clientY < 100) return;
+            this.sheetDragging = true;
+            this.sheetStartY = e.touches[0].clientY;
+            this.$refs.bottomSheet.style.transition = 'none';
+        },
+        sheetTouchMove(e) {
+            if (!this.sheetDragging) return;
+            const delta = e.touches[0].clientY - this.sheetStartY;
+            if (delta > 0) { this.sheetCurrentY = delta; this.$refs.bottomSheet.style.transform = `translateY(${delta}px)`; }
+        },
+        sheetTouchEnd() {
+            if (!this.sheetDragging) return;
+            this.sheetDragging = false;
+            this.$refs.bottomSheet.style.transition = '';
+            this.$refs.bottomSheet.style.transform = '';
+            if (this.sheetCurrentY > 150) this.bottomSheetActive = false;
+            this.sheetCurrentY = 0;
+        },
+
+        showNotification(msg, type = 'info') {
+            this.notification = { show: true, message: msg, type };
+            clearTimeout(this._nt);
+            this._nt = setTimeout(() => this.hideNotification(), 3200);
+        },
+        hideNotification() { this.notification.show = false; }
+    };
+}
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
 </body>
 </html>
