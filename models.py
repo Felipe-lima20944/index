@@ -844,19 +844,28 @@ def _ensure_trial_plan_exists(app_config, **kwargs):
         if updated:
             plan.save()
 
-    # migrate old slug if present
+    # migrate or clean up old slug if present
     if old_slug != new_slug:
         try:
             old = Plan.objects.get(slug=old_slug)
         except Plan.DoesNotExist:
             old = None
         if old:
-            old.slug = new_slug
-            old.name = 'Teste grátis 1 dia'
-            old.price = Decimal('0.00')
-            old.duration_days = 1
-            old.is_active = True
-            old.save()
+            if old.pk != plan.pk:
+                # if a plan with new_slug already exists we just delete old
+                # to avoid UNIQUE constraint; otherwise rename it.
+                try:
+                    old.delete()
+                except Exception:
+                    # as last resort log/ignore
+                    pass
+            else:
+                # same record, just ensure attributes
+                old.name = 'Teste grátis 1 dia'
+                old.price = Decimal('0.00')
+                old.duration_days = 1
+                old.is_active = True
+                old.save()
 
 # registrar o handler após definição da função
 post_migrate.connect(_ensure_trial_plan_exists)
@@ -1169,3 +1178,37 @@ class PlaybackQueueAnon(models.Model):
 
     def __str__(self):
         return f"Queue - {self.session_key}"
+
+
+# ============================================================================
+# MODELO: COMPARTILHAMENTO DE MÚSICA (persistente)
+# ============================================================================
+
+class SharedTrack(models.Model):
+    """Guarda informações de uma faixa para o compartilhamento.
+
+    Em vez de usar cache volátil, persistimos no banco para que links
+    permaneçam válidos após reinicialização do servidor.
+    """
+    code = models.CharField(max_length=16, unique=True, db_index=True)
+    # usar JSONField se disponível para armazenar dicionário diretamente
+    track = JSONField(default=dict) if JSONField else models.TextField(default='{}')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Compartilhamento de Faixa'
+        verbose_name_plural = 'Compartilhamentos de Faixa'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"SharedTrack {self.code}"
+
+    @classmethod
+    def generate_code(cls):
+        """Gera um código aleatório não colidindo com existentes."""
+        import secrets
+        for _ in range(8):
+            candidate = secrets.token_urlsafe(4)
+            if not cls.objects.filter(code=candidate).exists():
+                return candidate
+        return secrets.token_urlsafe(6)
