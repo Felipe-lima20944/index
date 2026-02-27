@@ -829,10 +829,61 @@
         
         @keyframes eq { 0%, 100% { transform: scaleY(0.5); } 50% { transform: scaleY(1); } }
         .cache-badge { font-size: 0.62rem; color: var(--txt-3); padding: 2px 6px; border-radius: 4px; background: var(--surface-3); border: 1px solid var(--border); vertical-align: middle; margin-left: 6px; opacity: 0.7; }
+
+        /* welcome overlay styles (dark purple / black) */
+        .welcome-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            /* dark purple-to-black gradient with subtle shifting animation */
+            background: linear-gradient(135deg, #1a002e, #000, #1a002e);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 10000;
+            color: #fff;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .welcome-content { text-align: center; max-width: 90%; }
+        .welcome-content h1 { font-size: 3rem; margin-bottom: 1rem; }
+        .welcome-content p { font-size: 1.5rem; margin-bottom: 1.5rem; }
+        .welcome-button {
+            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: #4c1d95; /* dark purple button */
+            color: #fff;
+            border: 2px solid #a855f7;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .welcome-button:hover { background: #6d28d9; transform: scale(1.05); }
+        .welcome-button:active { transform: scale(0.95); }
     </style>
 </head>
 <body x-data="app()" x-init="init()" @keydown.escape="closeModal()">
 
+    {% if show_welcome %}
+<div id="welcome-overlay" class="welcome-overlay">
+    <div class="welcome-content">
+        <h1>Parabéns!</h1>
+        <p>Você está usando <strong>1 dia de teste grátis</strong>.<br> Aproveite e curta suas músicas!</p>
+        <button id="welcome-close" class="welcome-button">Começar</button>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const overlay = document.getElementById('welcome-overlay');
+        const btn = document.getElementById('welcome-close');
+        if (btn && overlay) {
+            btn.addEventListener('click', () => { overlay.style.display='none'; });
+        }
+    });
+</script>
+{% endif %}
     <form style="display:none">{% csrf_token %}</form>
 
     <!-- Gesture Feedback Overlay -->
@@ -2647,7 +2698,7 @@
                 if (!this.hasActivePlan) {
                     let msg = 'Reproduzindo versão limitada (30s). Assine um plano para ouvir completo';
                     if (!IS_AUTHENTICATED) {
-                        msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> para receber 3 dias grátis de teste`;
+                        msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> para receber 1 dia grátis de teste`;
                     }
                     this.showNotification(msg, 'info');
                 }
@@ -2952,7 +3003,7 @@
                         if (IS_AUTHENTICATED) {
                             msg += ' Assine um plano para continuar ouvindo';
                         } else {
-                            msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 3 dias grátis de teste`;
+                            msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 1 dia grátis de teste`;
                         }
                         this.showNotification(msg, 'error');
                     }
@@ -2997,7 +3048,7 @@
                         if (IS_AUTHENTICATED) {
                             msg += ' Assine um plano para continuar ouvindo';
                         } else {
-                            msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 3 dias grátis de teste`;
+                            msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 1 dia grátis de teste`;
                         }
                         this.showNotification(msg, 'error');
                     }
