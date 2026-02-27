@@ -538,8 +538,9 @@ function trackApp() {
                 try {
                     navigator.mediaSession.setActionHandler('play', () => this.togglePlay());
                     navigator.mediaSession.setActionHandler('pause', () => this.togglePlay());
-                    navigator.mediaSession.setActionHandler('previoustrack', () => this.previous());
-                    navigator.mediaSession.setActionHandler('nexttrack', () => this.next());
+                    // not registering previous/next so mobile notification shows only
+                    // the play/pause control and the artwork. skipping is disabled
+                    // for shared-track view as requested.
                 } catch(e) {}
             }
         },
@@ -576,7 +577,7 @@ function trackApp() {
             if (i < 0 || i >= this.queue.length) return;
             if (!HAS_ACTIVE_PLAN) {
                 let msg = 'Reproduzindo versão limitada (30s). Assine um plano para ouvir completo';
-                if (!IS_AUTHENTICATED) msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> para receber 3 dias grátis de teste`;
+                if (!IS_AUTHENTICATED) msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> para receber 1 dia grátis de teste`;
                 this.showNotification(msg, 'info');
             }
             this.currentQueueIndex = i;
@@ -612,7 +613,7 @@ function trackApp() {
                     if (IS_AUTHENTICATED) {
                         msg += ' Assine um plano para continuar ouvindo';
                     } else {
-                        msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 3 dias grátis de teste`;
+                        msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 1 dia grátis de teste`;
                     }
                     this.showNotification(msg, 'error');
                 }
