@@ -861,6 +861,15 @@
 ═══════════════════════════════════════════════════════════════ -->
 <script>
 const CACHE_TTL = { streaming: 1000 * 60 * 45, recs: 1000 * 60 * 20 };
+
+// authentication / plan helpers (in share pages we may not know plan, but
+// we still offer registration link to anonymous users). The view supplies
+// `user` via context processor and may optionally supply `assinatura_ativa`.
+const IS_AUTHENTICATED = {{ user.is_authenticated|yesno:"true,false" }};
+const REGISTER_URL = '{% url "register" %}';
+const HAS_ACTIVE_PLAN = {{ assinatura_ativa|default_if_none:False|yesno:"true,false" }};
+const PREVIEW_LIMIT = 30;
+
 const AppCache = {
     _mem: {},
     _key(ns, k) { return `mdy_${ns}_${encodeURIComponent(String(k||''))}`.slice(0,200); },
@@ -939,6 +948,9 @@ function sharedApp() {
         progress: 0,
         shuffle: false,
         repeatMode: 'off',   // 'off' | 'once' | 'one'
+
+        // preview limit handling
+        _previewWarned: false,
 
 
         bottomSheetActive: false,
@@ -1025,6 +1037,11 @@ function sharedApp() {
         // ─── SELECT / PLAY ─────────────────────────────────────────
         selectByIndex(index) {
             if (index < 0 || index >= this.queue.length) return;
+            if (!HAS_ACTIVE_PLAN) {
+                let msg = 'Reproduzindo versão limitada (30s). Assine um plano para ouvir completo';
+                if (!IS_AUTHENTICATED) msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> para receber 3 dias grátis de teste`;
+                this.showNotification(msg, 'info');
+            }
             this.currentQueueIndex = index;
             this.currentTrack = this.queue[index];
             this.currentTime = 0;
@@ -1256,6 +1273,21 @@ function sharedApp() {
                 this.currentTime = this.audio.currentTime;
                 this.duration    = this.audio.duration;
                 this.progress    = (this.currentTime / this.duration) * 100;
+            }
+            if (!HAS_ACTIVE_PLAN && this.currentTime >= PREVIEW_LIMIT) {
+                this.audio.pause();
+                this.isPlaying = false;
+                this.progress = 0;
+                if (!this._previewWarned) {
+                    this._previewWarned = true;
+                    let msg = 'Você atingiu 30 segundos de reprodução.';
+                    if (IS_AUTHENTICATED) {
+                        msg += ' Assine um plano para continuar ouvindo';
+                    } else {
+                        msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 3 dias grátis de teste`;
+                    }
+                    this.showNotification(msg, 'error');
+                }
             }
         },
 
