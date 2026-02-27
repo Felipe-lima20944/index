@@ -1156,7 +1156,10 @@ def register(request):
                 backend = 'django.contrib.auth.backends.ModelBackend'
             user.backend = backend
             auth_login(request, user, backend=backend)
-            messages.success(request, 'Conta criada com sucesso')
+            # mensagem de toast normal
+            messages.success(request, 'Parabéns! Você está usando 1 dia de teste grátis. Aproveite e curta suas músicas!')
+            # flag para overlay grande que aparecerá na próxima página de busca
+            request.session['welcome_overlay'] = True
             next_url = request.POST.get('next') or request.GET.get('next') or settings.LOGIN_REDIRECT_URL or '/'
             return redirect(next_url)
 
@@ -1318,6 +1321,9 @@ def buscar_musicas_html(request):
     musicas_list = []
     explorar_default = {}
 
+    # check if we should show the big welcome overlay (set after registro)
+    show_welcome = request.session.pop('welcome_overlay', False)
+
     if not query:
         featured = _get_featured_albums()
         musicas_list = _get_local_musicas()
@@ -1442,6 +1448,7 @@ def buscar_musicas_html(request):
         'favoritos_usuario': favoritos_usuario,
         'assinatura_ativa': assinatura_ativa,
         'generos_json': generos_json,
+        'show_welcome': show_welcome,
     })
 
 
