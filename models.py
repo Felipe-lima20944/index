@@ -10,6 +10,9 @@ from django.urls import reverse
 import uuid
 import os
 
+# signals import needed before any handlers are connected
+from django.db.models.signals import post_migrate
+
 
 # authentication backend used for login with either email or username
 class EmailOrUsernameModelBackend(ModelBackend):
@@ -800,6 +803,25 @@ class Plan(models.Model):
         return f"{self.name} ({self.price})"
 
 
+def _ensure_trial_plan_exists(app_config, **kwargs):
+    """Post-migrate hook que garante que o plano trial esteja presente."""
+    if app_config.name != 'core':
+        return
+    from decimal import Decimal
+    Plan.objects.get_or_create(
+        slug='trial_3dias',
+        defaults={
+            'name': 'Teste grátis 3 dias',
+            'price': Decimal('0.00'),
+            'duration_days': 3,
+            'is_active': True,
+        }
+    )
+
+# registrar o handler após definição da função
+post_migrate.connect(_ensure_trial_plan_exists)
+
+
 class Subscription(models.Model):
     """Assinatura recorrente (representação local da assinatura no Asaas)."""
     STATUS_CHOICES = [
@@ -826,6 +848,26 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"Assinatura: {self.usuario.username} ({self.status})"
+
+    @property
+    def dias_restantes(self):
+        """Número de dias inteiros que ainda faltam até o término.
+
+        Usa ``timezone.now()`` para garantir que a contagem parte da data/hora atual
+        e arredonda para cima se houver horas restantes. Se a assinatura já estiver
+        expirada, retorna 0. Esta propriedade facilita mostrar "3 dias de teste"
+        ou similar no front-end.
+        """
+        if not self.periodo_termina_em:
+            return 0
+        delta = self.periodo_termina_em - timezone.now()
+        if delta.total_seconds() <= 0:
+            return 0
+        # dias inteiros restantes; se houver qualquer fração de dia conta como 1
+        days = delta.days
+        if delta.seconds > 0:
+            days += 1
+        return days
 
 
 class Payment(models.Model):
@@ -867,7 +909,7 @@ class Payment(models.Model):
         return f"Pagamento {self.asaas_payment_id} - {self.amount} {self.currency} ({self.status})"
 
 
-from django.db.models.signals import post_save, post_delete, m2m_changed
+from django.db.models.signals import post_save, post_delete, m2m_changed, post_migrate
 from django.dispatch import receiver
 
 
@@ -901,9 +943,40 @@ class UserProfile(models.Model):
 
 @receiver(post_save, sender=User)
 def ensure_user_profile(sender, instance, created, **kwargs):
-    """Garante que todo User tenha um UserProfile criado automaticamente."""
+    """Garante que todo User tenha um UserProfile criado automaticamente.
+
+    Além disso, concede automaticamente o plano de teste grátis de 3 dias na
+    primeira criação da conta. Caso o plano de teste já exista no banco, não
+    será duplicado; se o usuário já tiver sido beneficiado, nada acontece.
+    """
     if created:
         UserProfile.objects.create(usuario=instance)
+        # atribuir trial
+        try:
+            from decimal import Decimal
+            # buscar ou criar o plano trial
+            trial, _ = Plan.objects.get_or_create(
+                slug='trial_3dias',
+                defaults={
+                    'name': 'Teste grátis 3 dias',
+                    'price': Decimal('0.00'),
+                    'duration_days': 3,
+                    'is_active': True,
+                }
+            )
+            # só cria assinatura se o usuário ainda não teve uma
+            if not Subscription.objects.filter(usuario=instance, plano_id=trial.slug).exists():
+                Subscription.objects.create(
+                    usuario=instance,
+                    plano_id=trial.slug,
+                    status='active',
+                    iniciado_em=timezone.now(),
+                    periodo_termina_em=timezone.now() + timedelta(days=trial.duration_days),
+                    dados={'note': 'assinatura automática de teste'}
+                )
+        except Exception:
+            # falhas não devem impedir criação de perfil
+            pass
 
 
 @receiver(post_save, sender=Musica)
