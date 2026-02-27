@@ -475,6 +475,12 @@ const SHARED_TRACK = {
     thumb: '{{ track.thumb|escapejs }}'
 };
 
+// auth/plan helpers (anonymous visitors get link to register)
+const IS_AUTHENTICATED = {{ user.is_authenticated|yesno:"true,false" }};
+const REGISTER_URL = '{% url "register" %}';
+const HAS_ACTIVE_PLAN = {{ assinatura_ativa|default_if_none:False|yesno:"true,false" }};
+const PREVIEW_LIMIT = 30;
+
 function normalizeTrack(t) {
     if (!t || typeof t !== 'object') return null;
     const ytId = t.youtube_id || (t.id && /^[A-Za-z0-9_-]{11}$/.test(String(t.id)) ? String(t.id) : null);
@@ -502,6 +508,7 @@ function trackApp() {
         progress: 0,
         shuffle: false,
         repeatMode: 'off',
+        _previewWarned: false,
         bottomSheetActive: false,
         sheetDragging: false,
         sheetStartY: 0,
@@ -567,6 +574,11 @@ function trackApp() {
 
         selectByIndex(i) {
             if (i < 0 || i >= this.queue.length) return;
+            if (!HAS_ACTIVE_PLAN) {
+                let msg = 'Reproduzindo versão limitada (30s). Assine um plano para ouvir completo';
+                if (!IS_AUTHENTICATED) msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> para receber 3 dias grátis de teste`;
+                this.showNotification(msg, 'info');
+            }
             this.currentQueueIndex = i;
             this.currentTrack = this.queue[i];
             this.currentTime = 0; this.progress = 0;
@@ -589,6 +601,21 @@ function trackApp() {
                 this.currentTime = this.audio.currentTime;
                 this.duration = this.audio.duration;
                 this.progress = (this.currentTime / this.duration) * 100;
+            }
+            if (!HAS_ACTIVE_PLAN && this.currentTime >= PREVIEW_LIMIT) {
+                this.audio.pause();
+                this.isPlaying = false;
+                this.progress = 0;
+                if (!this._previewWarned) {
+                    this._previewWarned = true;
+                    let msg = 'Você atingiu 30 segundos de reprodução.';
+                    if (IS_AUTHENTICATED) {
+                        msg += ' Assine um plano para continuar ouvindo';
+                    } else {
+                        msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 3 dias grátis de teste`;
+                    }
+                    this.showNotification(msg, 'error');
+                }
             }
         },
 
