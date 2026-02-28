@@ -9,6 +9,8 @@ urlpatterns = [
     # ============================================================================
     path('', views.buscar_musicas_html, name='home'),
     path('buscar/', views.buscar_musicas_html, name='buscar_musicas'),
+    # accept '/registro' without trailing slash as well
+    path('register', views.register),
     path('register/', views.register, name='register'),
     path('logout/', views.logout_view, name='logout'),
     path('profile/edit/', views.profile_edit, name='profile_edit'),
