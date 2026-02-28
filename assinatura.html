@@ -3,7 +3,8 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="theme-color" content="#0a000f">
     <title>Assinatura Premium · Beatflow</title>
     <meta name="csrf-token" content="{{ csrf_token }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,55 +32,25 @@
         --warning: #d946ef;
         --danger: #f43f5e;
         --glow: rgba(168,85,247,0.5);
+        /* safe area for notch/home indicator */
+        --sat: env(safe-area-inset-top, 0px);
+        --sab: env(safe-area-inset-bottom, 0px);
+        --sal: env(safe-area-inset-left, 0px);
+        --sar: env(safe-area-inset-right, 0px);
     }
 
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
     body {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         background: #000000;
         color: var(--text-primary);
         min-height: 100vh;
+        min-height: 100dvh; /* dynamic viewport height */
         overflow-x: hidden;
         position: relative;
-    }
-
-    body::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background:
-            radial-gradient(circle at 20% 30%, rgba(139,44,246,0.1) 0%, transparent 60%),
-            radial-gradient(circle at 80% 70%, rgba(192,38,211,0.08) 0%, transparent 60%),
-            radial-gradient(circle at 40% 80%, rgba(225,29,155,0.06) 0%, transparent 60%),
-            radial-gradient(circle at 90% 20%, rgba(244,114,182,0.04) 0%, transparent 60%);
-        pointer-events: none;
-        z-index: 0;
-        animation: bgPulse 20s ease-in-out infinite;
-    }
-
-    @keyframes bgPulse {
-        0%,100% { opacity:.8; transform:scale(1); }
-        50% { opacity:1; transform:scale(1.05); }
-    }
-
-    body::after {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background-image:
-            linear-gradient(0deg, transparent 24%, rgba(168,85,247,0.08) 25%, rgba(168,85,247,0.08) 26%, transparent 27%, transparent 74%, rgba(168,85,247,0.08) 75%, rgba(168,85,247,0.08) 76%, transparent 77%, transparent),
-            linear-gradient(90deg, transparent 24%, rgba(192,38,211,0.08) 25%, rgba(192,38,211,0.08) 26%, transparent 27%, transparent 74%, rgba(192,38,211,0.08) 75%, rgba(192,38,211,0.08) 76%, transparent 77%, transparent);
-        background-size: 60px 60px;
-        pointer-events: none;
-        z-index: 0;
-        opacity: .4;
-        animation: gridMove 30s linear infinite;
-    }
-
-    @keyframes gridMove {
-        0% { background-position: 0 0; }
-        100% { background-position: 60px 60px; }
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     /* ===================== WRAPPER ===================== */
@@ -88,20 +59,23 @@
         z-index: 2;
         max-width: 960px;
         margin: 0 auto;
-        padding: 56px 20px 100px;
+        /* mobile-first: smaller padding, safe area aware */
+        padding: calc(64px + var(--sat)) 14px calc(80px + var(--sab));
+        padding-left: max(14px, var(--sal));
+        padding-right: max(14px, var(--sar));
     }
 
     /* ===================== BACK BUTTON ===================== */
     .btn-back {
         position: fixed;
-        top: 16px;
-        right: 16px;
+        top: max(12px, var(--sat));
+        right: max(12px, var(--sar));
         left: auto;
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        padding: 10px 18px;
-        background: rgba(20,0,26,0.85);
+        gap: 7px;
+        padding: 10px 16px;
+        background: rgba(20,0,26,0.92);
         border: 1px solid rgba(168,85,247,0.4);
         border-radius: 50px;
         color: #fff;
@@ -110,13 +84,16 @@
         font-family: 'Clash Display', sans-serif;
         font-size: 13px;
         font-weight: 700;
-        backdrop-filter: blur(12px);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         box-shadow: 0 0 20px rgba(168,85,247,0.2);
         z-index: 999;
         transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        /* minimum touch target */
+        min-height: 44px;
     }
 
-    .btn-back:hover {
+    .btn-back:hover, .btn-back:active {
         background: linear-gradient(135deg, rgba(139,44,246,0.4), rgba(225,29,155,0.4));
         border-color: var(--accent-2);
         transform: translateY(-2px);
@@ -125,13 +102,10 @@
 
     /* ===================== PAGE HEADER ===================== */
     .page-header {
-        margin-bottom: 40px;
-        padding-top: 8px;
+        margin-bottom: 28px;
+        padding-top: 4px;
         animation: slideDown 0.8s cubic-bezier(0.34,1.56,0.64,1) both;
-        position: relative;
     }
-
-
 
     @keyframes slideDown {
         from { opacity:0; transform:translateY(-24px); }
@@ -145,20 +119,20 @@
         background: linear-gradient(135deg, rgba(139,44,246,0.25), rgba(225,29,155,0.15));
         border: 1px solid rgba(168,85,247,0.35);
         border-radius: 50px;
-        padding: 7px 18px;
+        padding: 6px 16px;
         font-family: 'Clash Display', sans-serif;
         font-size: 11px;
         font-weight: 700;
         color: var(--accent-2);
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
         backdrop-filter: blur(10px);
     }
 
     .page-header h1 {
         font-family: 'Clash Display', sans-serif;
-        font-size: clamp(32px, 7vw, 56px);
+        font-size: clamp(28px, 8vw, 56px);
         font-weight: 800;
         line-height: 1.1;
         letter-spacing: -0.02em;
@@ -166,14 +140,14 @@
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
 
     .page-header p {
-        font-size: 15px;
+        font-size: 14px;
         color: var(--text-secondary);
         max-width: 520px;
-        line-height: 1.7;
+        line-height: 1.65;
     }
 
     /* ===================== ACTIVE BANNER ===================== */
@@ -181,13 +155,13 @@
         background: linear-gradient(135deg, #14532d, #166534, #15803d);
         background-size: 300% 300%;
         color: #bbf7d0;
-        padding: 16px 24px;
-        border-radius: 18px;
+        padding: 15px 20px;
+        border-radius: 16px;
         text-align: center;
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 600;
-        margin-bottom: 28px;
-        box-shadow: 0 16px 40px rgba(34,197,94,0.2);
+        margin-bottom: 20px;
+        box-shadow: 0 12px 32px rgba(34,197,94,0.2);
         animation: gradientMove 5s ease infinite, floatUp 3s ease-in-out infinite;
         border: 1px solid rgba(34,197,94,0.4);
         backdrop-filter: blur(10px);
@@ -225,13 +199,14 @@
     .no-plan-banner {
         background: linear-gradient(135deg, rgba(139,44,246,0.15), rgba(225,29,155,0.08));
         border: 1px solid rgba(168,85,247,0.25);
-        border-radius: 20px;
-        padding: 20px;
+        border-radius: 18px;
+        padding: 16px;
         display: flex;
         align-items: center;
-        gap: 16px;
-        margin-bottom: 28px;
+        gap: 14px;
+        margin-bottom: 22px;
         backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         animation: slideUp 0.7s ease both;
         overflow: hidden;
         position: relative;
@@ -256,22 +231,22 @@
     }
 
     .no-plan-icon {
-        width: 52px;
-        height: 52px;
-        min-width: 52px;
-        border-radius: 16px;
+        width: 46px;
+        height: 46px;
+        min-width: 46px;
+        border-radius: 14px;
         background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 22px;
+        font-size: 20px;
         color: #fff;
-        box-shadow: 0 8px 24px rgba(168,85,247,0.35);
+        box-shadow: 0 6px 20px rgba(168,85,247,0.35);
     }
 
     .no-plan-text h3 {
         font-family: 'Clash Display', sans-serif;
-        font-size: 17px;
+        font-size: 15px;
         font-weight: 700;
         margin-bottom: 4px;
         background: linear-gradient(135deg, #fff, var(--accent-2));
@@ -280,14 +255,14 @@
     }
 
     .no-plan-text p {
-        font-size: 13px;
+        font-size: 12px;
         color: var(--text-secondary);
         line-height: 1.5;
     }
 
     .no-plan-arrow {
         margin-left: auto;
-        font-size: 20px;
+        font-size: 18px;
         color: var(--accent-2);
         flex-shrink: 0;
         animation: bounce 2s infinite;
@@ -300,14 +275,15 @@
 
     /* ===================== PENDING BANNER ===================== */
     .pending-subscription-banner {
-        border-radius: 24px;
+        border-radius: 20px;
         overflow: hidden;
-        margin-bottom: 28px;
+        margin-bottom: 22px;
         border: 1px solid rgba(192,38,211,0.35);
         background: linear-gradient(135deg, rgba(139,44,246,0.12), rgba(225,29,155,0.08));
         box-shadow: 0 16px 48px rgba(168,85,247,0.18);
         animation: glowPulse 3s infinite;
         backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         position: relative;
     }
 
@@ -330,27 +306,26 @@
         100% { left:100%; }
     }
 
-    .psb-inner { padding: 24px; position: relative; z-index: 1; }
+    .psb-inner { padding: 18px; position: relative; z-index: 1; }
 
     .psb-header {
         display: flex;
-        gap: 16px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 18px;
         align-items: flex-start;
     }
 
     .psb-icon-wrap {
-        width: 52px;
-        height: 52px;
-        min-width: 52px;
-        border-radius: 16px;
+        width: 46px;
+        height: 46px;
+        min-width: 46px;
+        border-radius: 14px;
         background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 26px;
-        box-shadow: 0 8px 24px rgba(168,85,247,0.35);
+        font-size: 22px;
+        box-shadow: 0 6px 20px rgba(168,85,247,0.35);
     }
 
     .psb-titles { flex: 1; min-width: 0; }
@@ -358,10 +333,10 @@
     .psb-eyebrow {
         font-size: 11px;
         font-weight: 700;
-        letter-spacing: 0.12em;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
         color: var(--accent-2);
-        margin-bottom: 6px;
+        margin-bottom: 5px;
         display: flex;
         align-items: center;
         gap: 6px;
@@ -382,45 +357,46 @@
 
     .psb-headline {
         font-family: 'Clash Display', sans-serif;
-        font-size: clamp(17px, 4vw, 22px);
+        font-size: clamp(16px, 4.5vw, 22px);
         font-weight: 700;
         background: linear-gradient(135deg, #fff, var(--accent-2));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 6px;
+        margin-bottom: 5px;
     }
 
     .psb-sub {
-        font-size: 13px;
+        font-size: 12px;
         color: var(--text-secondary);
-        line-height: 1.55;
+        line-height: 1.5;
     }
 
     .psb-badge {
         background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
         border-radius: 100px;
-        padding: 6px 14px;
-        font-size: 12px;
+        padding: 5px 12px;
+        font-size: 11px;
         font-weight: 700;
         color: #fff;
         white-space: nowrap;
         box-shadow: 0 4px 12px rgba(168,85,247,0.3);
         align-self: flex-start;
+        flex-shrink: 0;
     }
 
     .psb-divider {
         height: 1px;
         background: linear-gradient(90deg, transparent, var(--accent-1), var(--accent-2), var(--accent-3), transparent);
-        margin: 20px 0;
+        margin: 16px 0;
     }
 
     .psb-pix-label {
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.1em;
         text-transform: uppercase;
         color: var(--text-secondary);
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -428,11 +404,11 @@
 
     .psb-pix-label i { color: var(--accent-2); }
 
+    /* Mobile-first: stack QR below textarea */
     .psb-pix-row {
-        display: grid;
-        grid-template-columns: 1fr 110px;
-        gap: 14px;
-        align-items: start;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
 
     .psb-pix-code {
@@ -441,13 +417,15 @@
         border-radius: 14px;
         color: #fff;
         font-family: 'Courier New', monospace;
-        font-size: 12px;
+        font-size: 11px;
         padding: 14px;
         resize: none;
-        min-height: 90px;
+        height: 80px;
         width: 100%;
         transition: all .3s ease;
         backdrop-filter: blur(5px);
+        /* prevent zoom on focus iOS */
+        font-size: max(16px, 11px);
     }
 
     .psb-pix-code:focus {
@@ -457,8 +435,8 @@
     }
 
     .psb-qr-box {
-        width: 110px;
-        height: 110px;
+        width: 100%;
+        height: 140px;
         background: linear-gradient(135deg, rgba(139,44,246,0.2), rgba(225,29,155,0.1));
         border: 1px solid rgba(168,85,247,0.25);
         border-radius: 14px;
@@ -468,30 +446,34 @@
         overflow: hidden;
     }
 
-    .psb-qr-box img { width:100%; height:100%; object-fit:contain; }
+    .psb-qr-box img { max-height:100%; max-width:100%; object-fit:contain; }
 
+    /* Actions: stack on mobile, row on larger screens */
     .psb-actions {
         display: flex;
+        flex-direction: column;
         gap: 10px;
-        flex-wrap: wrap;
-        margin-top: 16px;
+        margin-top: 14px;
     }
 
-    .psb-copy-btn, .psb-confirm-btn {
-        padding: 13px 20px;
-        border-radius: 12px;
+    .psb-copy-btn, .psb-confirm-btn, .psb-cancel-btn {
+        padding: 15px 18px;
+        border-radius: 14px;
         font-family: 'Clash Display', sans-serif;
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 700;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
         transition: all .3s cubic-bezier(0.34,1.56,0.64,1);
         border: none;
-        flex: 1;
-        justify-content: center;
-        min-width: 130px;
+        width: 100%;
+        /* touch-friendly minimum */
+        min-height: 50px;
+        -webkit-tap-highlight-color: transparent;
+        letter-spacing: 0.01em;
     }
 
     .psb-copy-btn {
@@ -506,78 +488,89 @@
         box-shadow: 0 8px 18px rgba(225,29,155,0.25);
     }
 
-    .psb-copy-btn:hover, .psb-confirm-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 14px 28px rgba(168,85,247,0.4);
+    .psb-cancel-btn {
+        background: rgba(244,63,94,0.15);
+        color: #f87171;
+        box-shadow: none;
+        border: 1px solid rgba(244,63,94,0.3);
+    }
+
+    .psb-copy-btn:active, .psb-confirm-btn:active, .psb-cancel-btn:active {
+        transform: scale(0.97);
     }
 
     .psb-help {
-        margin-top: 16px;
-        font-size: 13px;
+        margin-top: 14px;
+        font-size: 12px;
         color: var(--text-secondary);
         display: flex;
         gap: 8px;
         padding: 12px;
         background: rgba(0,0,0,0.2);
         border-radius: 10px;
-        line-height: 1.5;
+        line-height: 1.55;
+        align-items: flex-start;
     }
 
     .psb-help i { flex-shrink:0; margin-top:2px; color:var(--accent-2); }
 
     /* ===================== PLANS GRID ===================== */
+    /* Mobile-first: 2 columns on small, auto-fit on large */
     .plans-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 14px;
-        margin-bottom: 28px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 22px;
     }
 
     .plan-option {
         background: linear-gradient(135deg, rgba(20,0,26,0.7), rgba(31,0,40,0.7));
         border: 1px solid rgba(168,85,247,0.2);
-        border-radius: 20px;
-        padding: 20px 14px;
+        border-radius: 18px;
+        padding: 18px 12px;
         text-align: center;
         cursor: pointer;
         transition: all .3s ease;
         backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         position: relative;
         overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
     }
 
-    .plan-option:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 14px 36px rgba(168,85,247,0.3);
-        border-color: rgba(168,85,247,0.5);
+    .plan-option:active {
+        transform: scale(0.97);
+        background: linear-gradient(135deg, rgba(31,0,40,0.9), rgba(45,0,60,0.9));
     }
 
     .po-name {
         font-family: 'Clash Display', sans-serif;
         font-weight: 700;
-        font-size: 15px;
-        margin-bottom: 8px;
+        font-size: 14px;
+        margin-bottom: 6px;
         color: #fff;
     }
 
     .po-price {
-        font-size: 26px;
+        font-size: 24px;
         font-weight: 800;
         background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
     }
 
     .po-duration {
-        font-size: 12px;
+        font-size: 11px;
         color: var(--text-secondary);
-        margin-bottom: 14px;
+        margin-bottom: 12px;
     }
 
     .btn-select {
-        display: inline-block;
-        padding: 9px 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 9px 16px;
         border-radius: 10px;
         background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
         color: #fff;
@@ -586,21 +579,21 @@
         font-weight: 700;
         transition: all .3s ease;
         border: none;
+        min-height: 36px;
+        width: 100%;
     }
 
-    .btn-select:hover {
-        transform: scale(1.05);
-        box-shadow: 0 8px 20px rgba(168,85,247,0.4);
-    }
+    .btn-select:active { transform: scale(0.96); }
 
     /* ===================== PLAN CARD ===================== */
     .plan-card {
         background: linear-gradient(135deg, rgba(20,0,26,0.9), rgba(31,0,40,0.9));
         border: 1px solid rgba(168,85,247,0.2);
-        border-radius: 28px;
+        border-radius: 24px;
         overflow: hidden;
         backdrop-filter: blur(10px);
-        box-shadow: 0 24px 56px rgba(0,0,0,0.5);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         animation: cardAppear 0.8s ease both;
         position: relative;
     }
@@ -618,26 +611,20 @@
         background: linear-gradient(90deg, var(--accent-1), var(--accent-2), var(--accent-3), var(--accent-4));
     }
 
+    /* Mobile-first: single column, desktop: two columns */
     .plan-body {
-        display: grid;
-        grid-template-columns: 1.2fr 1fr;
+        display: flex;
+        flex-direction: column;
     }
 
     .plan-info {
-        padding: 36px 32px;
-        border-right: 1px solid rgba(168,85,247,0.15);
+        padding: 24px 20px 20px;
+        border-bottom: 1px solid rgba(168,85,247,0.15);
         background: linear-gradient(135deg, rgba(139,44,246,0.04), rgba(225,29,155,0.02));
     }
 
     .plan-action {
-        padding: 36px 32px;
-    }
-
-    /* Stack vertically on small screens */
-    @media (max-width: 620px) {
-        .plan-body { grid-template-columns: 1fr; }
-        .plan-info { border-right: none; border-bottom: 1px solid rgba(168,85,247,0.15); padding: 28px 20px; }
-        .plan-action { padding: 28px 20px; }
+        padding: 20px 20px 24px;
     }
 
     .plan-tag {
@@ -649,12 +636,12 @@
         background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
 
     .plan-name {
         font-family: 'Clash Display', sans-serif;
-        font-size: 28px;
+        font-size: clamp(22px, 6vw, 28px);
         font-weight: 700;
         margin-bottom: 6px;
         background: linear-gradient(135deg, #fff, var(--accent-2));
@@ -666,18 +653,18 @@
         display: flex;
         align-items: baseline;
         gap: 5px;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
         flex-wrap: wrap;
     }
 
     .plan-price .currency {
-        font-size: 18px;
+        font-size: 16px;
         color: var(--text-secondary);
     }
 
     .plan-price .amount {
         font-family: 'Clash Display', sans-serif;
-        font-size: clamp(36px, 8vw, 52px);
+        font-size: clamp(34px, 10vw, 52px);
         font-weight: 800;
         line-height: 1;
         background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
@@ -686,37 +673,38 @@
     }
 
     .plan-price .period {
-        font-size: 15px;
+        font-size: 14px;
         color: var(--text-secondary);
     }
 
+    /* 2-column features on mobile too */
     .feature-list {
         list-style: none;
-        display: flex;
-        flex-direction: column;
-        gap: 13px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
     }
 
     .feature-list li {
         display: flex;
         align-items: center;
-        gap: 12px;
-        font-size: 14px;
+        gap: 8px;
+        font-size: 13px;
         color: var(--text-secondary);
     }
 
     .feature-list li .icon {
-        width: 22px;
-        height: 22px;
-        min-width: 22px;
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
         background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
-        border-radius: 7px;
+        border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 11px;
+        font-size: 10px;
         color: #fff;
-        box-shadow: 0 4px 12px rgba(168,85,247,0.25);
+        box-shadow: 0 3px 10px rgba(168,85,247,0.25);
     }
 
     /* ===================== STATUS PILL ===================== */
@@ -724,14 +712,14 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 9px 18px;
+        padding: 8px 16px;
         border-radius: 100px;
         font-size: 13px;
         font-weight: 600;
         background: rgba(0,0,0,0.3);
         border: 1px solid rgba(168,85,247,0.25);
         color: var(--text-secondary);
-        margin-bottom: 18px;
+        margin-bottom: 16px;
     }
 
     .status-pill .dot {
@@ -770,11 +758,11 @@
     /* ===================== SUBSCRIBE BUTTON ===================== */
     .btn-subscribe {
         width: 100%;
-        padding: 16px 24px;
+        padding: 17px 24px;
         background: linear-gradient(135deg, var(--accent-1), var(--accent-2), var(--accent-3));
         background-size: 200% 200%;
         border: none;
-        border-radius: 18px;
+        border-radius: 16px;
         color: #fff;
         font-family: 'Clash Display', sans-serif;
         font-size: 15px;
@@ -788,6 +776,9 @@
         box-shadow: 0 12px 36px rgba(139,44,246,0.4);
         position: relative;
         overflow: hidden;
+        min-height: 52px;
+        -webkit-tap-highlight-color: transparent;
+        letter-spacing: 0.01em;
     }
 
     .btn-subscribe::before {
@@ -800,15 +791,39 @@
         animation: shimmer 3s infinite;
     }
 
-    .btn-subscribe:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 18px 48px rgba(168,85,247,0.5);
-    }
+    .btn-subscribe:active { transform: scale(0.98); }
 
     .btn-subscribe:disabled {
         opacity: .7;
         cursor: not-allowed;
         transform: none;
+    }
+
+    .btn-cancel-sub {
+        width: 100%;
+        padding: 17px 24px;
+        background: rgba(244,63,94,0.12);
+        border: 1px solid rgba(244,63,94,0.35);
+        border-radius: 16px;
+        color: #f87171;
+        font-family: 'Clash Display', sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all .3s cubic-bezier(0.34,1.56,0.64,1);
+        min-height: 52px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-cancel-sub:active { transform: scale(0.98); background: rgba(244,63,94,0.2); }
+
+    .btn-cancel-sub:disabled {
+        opacity: .7;
+        cursor: not-allowed;
     }
 
     .subscribe-footnote {
@@ -823,16 +838,16 @@
     .data-card {
         background: linear-gradient(135deg, rgba(20,0,26,0.5), rgba(31,0,40,0.5));
         border: 1px solid rgba(168,85,247,0.15);
-        border-radius: 20px;
+        border-radius: 18px;
         overflow: hidden;
-        margin-top: 20px;
+        margin-top: 16px;
         backdrop-filter: blur(5px);
     }
 
     .data-card-header {
-        padding: 16px 20px;
+        padding: 14px 18px;
         border-bottom: 1px solid rgba(168,85,247,0.12);
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 700;
         color: var(--accent-2);
         text-transform: uppercase;
@@ -840,23 +855,22 @@
     }
 
     .sub-item {
-        padding: 16px 20px;
+        padding: 14px 18px;
         border-top: 1px solid rgba(168,85,247,0.1);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
         transition: all .3s ease;
     }
 
-    .sub-item:hover { background: rgba(168,85,247,0.07); }
     .sub-item:first-child { border-top: none; }
 
     .sub-item-name {
         font-family: 'Clash Display', sans-serif;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 700;
-        margin-bottom: 3px;
+        margin-bottom: 2px;
         color: #fff;
     }
 
@@ -866,7 +880,7 @@
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        padding: 5px 12px;
+        padding: 4px 10px;
         border-radius: 100px;
         font-size: 11px;
         font-weight: 700;
@@ -889,9 +903,9 @@
     .active-info-box {
         background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(16,185,129,0.07));
         border: 1px solid rgba(34,197,94,0.3);
-        border-radius: 14px;
-        padding: 14px 18px;
-        margin-bottom: 18px;
+        border-radius: 12px;
+        padding: 13px 16px;
+        margin-bottom: 16px;
         font-size: 13px;
         color: #86efac;
         line-height: 1.6;
@@ -905,46 +919,96 @@
     /* ===================== BOTTOM CTA ===================== */
     .bottom-cta {
         text-align: center;
-        padding: 28px 20px;
+        padding: 24px 20px;
+        padding-bottom: max(24px, calc(20px + var(--sab)));
         background: linear-gradient(135deg, rgba(139,44,246,0.1), rgba(225,29,155,0.07));
         color: var(--text-secondary);
-        font-size: 14px;
+        font-size: 13px;
         line-height: 1.6;
         border-top: 1px solid rgba(168,85,247,0.15);
-        margin-top: 40px;
+        margin-top: 32px;
         backdrop-filter: blur(10px);
     }
 
-    /* ===================== MOBILE GLOBAL ===================== */
-    @media (max-width: 480px) {
-        .wrapper { padding: 56px 14px 80px; }
-        .page-header { margin-bottom: 32px; }
-        .page-header h1 { font-size: 30px; }
-        .page-header p { font-size: 14px; }
-        .no-plan-banner { padding: 16px; gap: 12px; }
-        .no-plan-arrow { display: none; }
-        .psb-inner { padding: 18px; }
-        .psb-pix-row { grid-template-columns: 1fr; }
-        .psb-qr-box { width: 100%; height: 160px; }
-        .plans-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
-        .plan-option { padding: 16px 10px; }
-        .po-price { font-size: 22px; }
-        .btn-subscribe { font-size: 14px; padding: 15px 20px; }
-        .plan-name { font-size: 22px; }
-        .plan-price .amount { font-size: 32px; }
-        .sub-item { flex-wrap: wrap; gap: 8px; }
+    /* ===================== DESKTOP ENHANCEMENTS ===================== */
+    @media (min-width: 540px) {
+        .wrapper {
+            padding: calc(72px + var(--sat)) 24px calc(80px + var(--sab));
+        }
+
+        .psb-inner { padding: 24px; }
+
+        /* Side-by-side QR and textarea on tablet+ */
+        .psb-pix-row {
+            display: grid;
+            grid-template-columns: 1fr 110px;
+            gap: 14px;
+            align-items: start;
+        }
+
+        .psb-qr-box {
+            width: 110px;
+            height: 110px;
+        }
+
+        .psb-pix-code { height: 90px; font-size: 12px; }
+
+        /* Row actions on tablet */
+        .psb-actions {
+            flex-direction: row;
+        }
+
+        .psb-copy-btn, .psb-confirm-btn, .psb-cancel-btn {
+            flex: 1;
+        }
+
+        .plan-option { padding: 20px 14px; }
+        .plans-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
     }
 
-    @media (max-width: 360px) {
-        .page-header h1 { font-size: 26px; }
-        .psb-actions { flex-direction: column; }
-        .psb-copy-btn, .psb-confirm-btn { width: 100%; }
+    @media (min-width: 680px) {
+        .plan-body {
+            flex-direction: row;
+        }
+
+        .plan-info {
+            flex: 1.2;
+            padding: 32px;
+            border-bottom: none;
+            border-right: 1px solid rgba(168,85,247,0.15);
+        }
+
+        .plan-action {
+            flex: 1;
+            padding: 32px;
+        }
+
+        .feature-list {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .feature-list li { font-size: 14px; }
+    }
+
+    @media (min-width: 960px) {
+        .wrapper {
+            padding: 80px 32px 100px;
+        }
+    }
+
+    /* ===================== ACCESSIBILITY ===================== */
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+        }
     }
     </style>
 </head>
 <body>
 
-<!-- Back button (fixed) -->
+<!-- Back button (fixed, safe-area aware) -->
 <a href="{% url 'home' %}" class="btn-back" aria-label="Voltar">
     <i class="fa fa-arrow-left" aria-hidden="true"></i>
     Voltar
@@ -953,6 +1017,7 @@
 <div class="wrapper">
 
     <!-- Page Header -->
+    {% if not has_pending_payment %}
     <div class="page-header">
         <div class="logo-badge">
             <i class="fa fa-music"></i>
@@ -966,9 +1031,10 @@
                 <p>Você já possui o <strong>{{ assinatura_ativa.plano_id|default:'Plano Mensal Premium' }}</strong> ativo até <strong>{{ assinatura_ativa.periodo_termina_em|date:'d/m/Y' }}</strong>.</p>
             {% endif %}
         {% else %}
-        <p>Acesso ilimitado a músicas, downloads e recursos exclusivos. Escolha o plano perfeito para você.</p>
+            <p>Acesso ilimitado a músicas e recursos exclusivos. Escolha o plano perfeito para você.</p>
         {% endif %}
     </div>
+    {% endif %}
 
     <!-- Active subscription banner -->
     {% if assinatura_ativa %}
@@ -978,7 +1044,7 @@
     </div>
     {% endif %}
 
-    <!-- No plan banner (only if no plan AND no pending payment) -->
+    <!-- No plan banner -->
     {% if not assinatura_ativa and not has_pending_payment %}
     <div class="no-plan-banner">
         <div class="no-plan-icon">
@@ -986,7 +1052,7 @@
         </div>
         <div class="no-plan-text">
             <h3>Você ainda não tem um plano ativo</h3>
-            <p>Escolha abaixo o plano que mais combina com você e ative agora mesmo!</p>
+            <p>Escolha abaixo o plano que mais combina com você e ative agora!</p>
         </div>
         <div class="no-plan-arrow">
             <i class="fa fa-arrow-right"></i>
@@ -996,14 +1062,14 @@
 
     <!-- Pending payment banner -->
     {% if has_pending_payment and pagamento_pendente %}
-    <div class="pending-subscription-banner" id="pending-banner">
+    <div class="pending-subscription-banner" id="pending-banner" data-payment-id="{{ pagamento_pendente.id }}">
         <div class="psb-inner">
             <div class="psb-header">
                 <div class="psb-icon-wrap">✨</div>
                 <div class="psb-titles">
                     <div class="psb-eyebrow"><span class="live-dot"></span> Aguardando pagamento</div>
-                    <div class="psb-headline">Sua assinatura está quase lá!</div>
-                    <div class="psb-sub">O PIX foi gerado mas ainda não foi confirmado. Pague agora e o acesso Premium é liberado na hora.</div>
+                    <div class="psb-headline">Assinatura quase lá!</div>
+                    <div class="psb-sub">PIX gerado mas não confirmado. Pague agora e acesso Premium é liberado na hora.</div>
                 </div>
                 <div class="psb-badge">{{ SELECTED_PLAN_LABEL|default:PLAN_LABEL }}</div>
             </div>
@@ -1012,7 +1078,7 @@
 
             <div class="psb-pix-label">
                 <i class="fa fa-qrcode"></i>
-                Seu código PIX
+                Código PIX
             </div>
 
             <div class="psb-pix-row">
@@ -1031,37 +1097,42 @@
 
             <div class="psb-actions">
                 <button class="psb-copy-btn" id="psb-copy-btn" onclick="copyPsbPix()">
-                    <i class="fa fa-copy"></i>Copiar código PIX
+                    <i class="fa fa-copy"></i>Copiar PIX
                 </button>
                 <button class="psb-confirm-btn" id="psb-confirm-btn" onclick="confirmPayment()">
                     <i class="fa fa-circle-check"></i>Já paguei
+                </button>
+                <button class="psb-cancel-btn" id="psb-cancel-btn" onclick="cancelPayment()">
+                    <i class="fa fa-trash"></i>Cancelar
                 </button>
             </div>
 
             <div class="psb-help">
                 <i class="fa fa-circle-info"></i>
-                <span>Abra seu app do banco → <strong>Pix</strong> → <strong>Pagar</strong> → cole o código ou escaneie o QR. Acesso liberado automaticamente.</span>
+                <span>Abra seu banco → <strong>Pix</strong> → <strong>Pagar</strong> → cole o código ou escaneie o QR. Acesso liberado automaticamente.</span>
             </div>
         </div>
     </div>
     {% endif %}
 
-    <!-- Plans Grid: ONLY shown if user has NO active subscription -->
-    {% if plans and not assinatura_ativa %}
+    <!-- Plans Grid: hidden when there's a pending PIX -->
+    {% if plans and not assinatura_ativa and not has_pending_payment %}
     <div id="plans" class="plans-grid">
         {% for p in plans %}
+            {% if p.price > 0 %}
         <div class="plan-option">
             <div class="po-name">{{ p.name }}</div>
             <div class="po-price">R$ {{ p.price }}</div>
             <div class="po-duration">{{ p.duration_days }} dias</div>
             <a href="?plan={{ p.slug }}" class="btn-select">Selecionar</a>
         </div>
+            {% endif %}
         {% endfor %}
     </div>
     {% endif %}
 
-    <!-- Plan Card -->
-    {% if selected_plan or assinatura_ativa or has_pending_payment %}
+    <!-- Plan Card: hidden when there's a pending PIX -->
+    {% if selected_plan or assinatura_ativa and not has_pending_payment %}
     <div class="plan-card">
         <div class="plan-body">
             <div class="plan-info">
@@ -1091,7 +1162,7 @@
                     <li><span class="icon"><i class="fa fa-check"></i></span>Músicas ilimitadas</li>
                     <li><span class="icon"><i class="fa fa-check"></i></span>Sem anúncios</li>
                     <li><span class="icon"><i class="fa fa-check"></i></span>Suporte prioritário</li>
-                    <li><span class="icon"><i class="fa fa-check"></i></span>Novidades em primeira mão</li>
+                    <li><span class="icon"><i class="fa fa-check"></i></span>Novidades first</li>
                 </ul>
             </div>
 
@@ -1104,8 +1175,12 @@
 
                     <div class="active-info-box">
                         <i class="fa fa-shield-halved"></i>
-                        <span>Seu acesso é válido até <strong>{{ assinatura_ativa.periodo_termina_em|date:'d/m/Y' }}</strong>. Aproveite todos os benefícios Premium!</span>
+                        <span>Acesso válido até <strong>{{ assinatura_ativa.periodo_termina_em|date:'d/m/Y' }}</strong>. Aproveite!</span>
                     </div>
+
+                    <button id="cancel-sub-btn" class="btn-cancel-sub" onclick="cancelSubscription()">
+                        <i class="fa fa-trash"></i>Cancelar assinatura
+                    </button>
 
                     {% if pagamentos %}
                     <div class="data-card">
@@ -1156,7 +1231,7 @@
 </div><!-- /wrapper -->
 
 <div class="bottom-cta">
-    <p>Escolha seu plano para ficar por dentro de tudo na Beatflow — mais músicas, menos limites e acesso premium instantâneo.</p>
+    <p>Mais músicas, menos limites — acesso Premium instantâneo na Beatflow.</p>
 </div>
 
 <script>
@@ -1171,6 +1246,11 @@ function copyPsbPix() {
     });
 }
 
+function getCookie(name) {
+    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? v.pop() : '';
+}
+
 function confirmPayment() {
     document.querySelectorAll('.psb-confirm-btn, .btn-subscribe').forEach(function(b) {
         b.disabled = true;
@@ -1179,12 +1259,137 @@ function confirmPayment() {
     setTimeout(function() { window.location.reload(); }, 1800);
 }
 
-(function() {
-    function getCookie(name) {
-        const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-        return v ? v.pop() : '';
-    }
+function cancelPayment() {
+    let pid = window.currentPendingPaymentId ||
+              document.getElementById('pending-banner')?.dataset.paymentId;
+    if (!pid) return;
 
+    document.querySelectorAll('.psb-cancel-btn, .psb-confirm-btn, .btn-subscribe').forEach(function(b) {
+        b.disabled = true;
+        b.style.opacity = '.7';
+    });
+
+    fetch('/api/payments/asaas/cancel-pix/', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({payment_id: pid})
+    }).then(async resp => {
+        if (resp.ok) {
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            const data = await resp.json().catch(() => ({}));
+            alert(data.error || 'Não foi possível cancelar o pagamento');
+            document.querySelectorAll('.psb-cancel-btn, .psb-confirm-btn, .btn-subscribe').forEach(function(b) {
+                b.disabled = false;
+                b.style.opacity = '1';
+            });
+        }
+    }).catch(err => {
+        console.error(err);
+        alert('Erro ao comunicar com o servidor.');
+    });
+}
+
+function cancelSubscription() {
+    const btn = document.getElementById('cancel-sub-btn');
+    if (!btn) return;
+    if (!confirm('Deseja realmente cancelar sua assinatura?')) return;
+    btn.disabled = true;
+    btn.style.opacity = '.7';
+
+    fetch('/api/subscriptions/cancel/', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: '{}'
+    }).then(async resp => {
+        if (resp.ok) {
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            const data = await resp.json().catch(() => ({}));
+            alert(data.error || 'Erro ao cancelar assinatura');
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    }).catch(err => {
+        console.error(err);
+        alert('Erro ao comunicar com o servidor.');
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    });
+}
+
+function showPending(data) {
+    if (!data) return;
+    window.currentPendingPaymentId = data.payment_id;
+    const container = document.querySelector('.wrapper');
+    if (!container) return;
+
+    ['#plans', '.no-plan-banner', '.plan-card'].forEach(sel => {
+        const el = document.querySelector(sel);
+        if (el) el.style.display = 'none';
+    });
+
+    const existing = document.getElementById('pending-banner');
+    if (existing) existing.remove();
+
+    // hide the header too
+    const hdr = document.querySelector('.page-header');
+    if (hdr) hdr.style.display = 'none';
+
+    let qrImg = data.pix_qr
+        ? `<img src="${data.pix_qr}" alt="QR Code PIX"/>`
+        : `<div style="text-align:center;color:var(--text-muted);">
+               <i class="fa fa-qrcode" style="font-size:28px;display:block;margin-bottom:6px;"></i>
+               <small>QR Code</small>
+           </div>`;
+
+    const html = `
+    <div class="pending-subscription-banner" id="pending-banner" data-payment-id="${data.payment_id}">
+        <div class="psb-inner">
+            <div class="psb-header">
+                <div class="psb-icon-wrap">✨</div>
+                <div class="psb-titles">
+                    <div class="psb-eyebrow"><span class="live-dot"></span> Aguardando pagamento</div>
+                    <div class="psb-headline">Assinatura quase lá!</div>
+                    <div class="psb-sub">PIX gerado mas não confirmado. Pague agora e acesso Premium é liberado na hora.</div>
+                </div>
+                <div class="psb-badge">${data.description || ''}</div>
+            </div>
+            <div class="psb-divider"></div>
+            <div class="psb-pix-label"><i class="fa fa-qrcode"></i> Código PIX</div>
+            <div class="psb-pix-row">
+                <textarea id="psb-pix-code" class="psb-pix-code" readonly placeholder="Código PIX copia e cola…">${data.pix_payload||''}</textarea>
+                <div class="psb-qr-box">${qrImg}</div>
+            </div>
+            <div class="psb-actions">
+                <button class="psb-copy-btn" id="psb-copy-btn" onclick="copyPsbPix()">
+                    <i class="fa fa-copy"></i>Copiar PIX
+                </button>
+                <button class="psb-confirm-btn" id="psb-confirm-btn" onclick="confirmPayment()">
+                    <i class="fa fa-circle-check"></i>Já paguei
+                </button>
+                <button class="psb-cancel-btn" id="psb-cancel-btn" onclick="cancelPayment()">
+                    <i class="fa fa-trash"></i>Cancelar
+                </button>
+            </div>
+            <div class="psb-help">
+                <i class="fa fa-circle-info"></i>
+                <span>Abra seu banco → <strong>Pix</strong> → <strong>Pagar</strong> → cole o código ou escaneie o QR.</span>
+            </div>
+        </div>
+    </div>`;
+    container.insertAdjacentHTML('afterbegin', html);
+}
+
+(function() {
     const btn = document.getElementById('assinatura-btn');
     if (btn) {
         btn.addEventListener('click', async function() {
@@ -1210,7 +1415,8 @@ function confirmPayment() {
                 });
 
                 if (resp.ok) {
-                    window.location.reload();
+                    const data = await resp.json();
+                    showPending(data);
                 } else {
                     const data = await resp.json();
                     alert(data.error || 'Erro ao criar cobrança');
