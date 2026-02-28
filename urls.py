@@ -104,6 +104,8 @@ urlpatterns = [
     path('api/playlists/<int:playlist_id>/share/regenerate/', views.playlist_share_regenerate_api, name='api_playlist_share_regenerate'),
     # ASAAS: cobrança PIX e webhook
     path('api/payments/asaas/create-pix/', views.asaas_create_pix, name='api_asaas_create_pix'),
+    path('api/payments/asaas/cancel-pix/', views.asaas_cancel_pix, name='api_asaas_cancel_pix'),
+    path('api/subscriptions/cancel/', views.cancel_subscription, name='api_cancel_subscription'),
     path('api/payments/asaas/status/', views.asaas_payment_status, name='api_asaas_payment_status'),
     # accepts both with and without trailing slash since webhook providers sometimes omit it
     path('webhook/asaas/', views.asaas_webhook, name='asaas_webhook'),
