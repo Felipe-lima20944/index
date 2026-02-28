@@ -781,6 +781,12 @@ def asaas_create_pix(request):
             'pix_qr': payment.pix_qr_image,
             'copy_paste': copy_paste,
             'status': payment.status,
+            # If the frontend wants to display a label for the plan it
+            # requested we can echo the description we received.  The
+            # JS already knows what plan the user picked, but sending it
+            # back makes the response self‑contained and simplifies some
+            # tests.
+            'description': description,
         })
 
     except requests.exceptions.ReadTimeout as te:
@@ -791,6 +797,81 @@ def asaas_create_pix(request):
         return Response({'error': 'asaas_request_failed', 'detail': str(re)}, status=502)
     except Exception as e:
         logger.exception('Erro criando pagamento Asaas: %s', e)
+        return Response({'error': 'internal_error'}, status=500)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def cancel_subscription(request):
+    """Marca a assinatura ativa do usuário como cancelada.
+
+    Esta API é chamada pela página de assinatura quando o usuário pressiona o
+    botão de cancelar.  Retorna status 404 se não houver assinatura ativa.
+    Se a assinatura tiver um ``asaas_subscription_id`` tentamos também avisar
+    o Asaas (não crítico, é um *best effort*).
+    """
+    user = request.user
+    sub = Subscription.objects.filter(usuario=user, status='active').order_by('-periodo_termina_em').first()
+    if not sub:
+        return Response({'error': 'no_active_subscription'}, status=404)
+
+    # inform Asaas se necessário
+    if sub.asaas_subscription_id:
+        try:
+            resp = requests.post(
+                f"{settings.ASAAS_BASE_URL.rstrip('/')}/api/v3/subscriptions/{sub.asaas_subscription_id}/cancel",
+                headers=_asaas_headers(),
+                timeout=settings.ASAAS_TIMEOUT,
+            )
+            if resp.status_code not in (200, 204):
+                logger.warning('Asaas cancel subscription failed %s %s', resp.status_code, resp.text)
+        except Exception as e:
+            logger.warning('Asaas cancel subscription exception %s', e)
+
+    sub.status = 'cancelled'
+    sub.save(update_fields=['status'])
+    return Response({'status': 'cancelled'})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def asaas_cancel_pix(request):
+    """Cancela um pagamento PIX pendente no Asaas.
+
+    O cliente envia `payment_id` (o id local) e nós marcamos o registro
+    correspondente como cancelado.  Tentamos também notificar o Asaas, mas
+    a falha nessa segunda etapa não impede que o pagamento seja cancelado
+    localmente.
+    """
+    user = request.user
+    pid = request.data.get('payment_id') or request.data.get('id')
+    if not pid:
+        return Response({'error': 'payment_id is required'}, status=400)
+
+    try:
+        payment = Payment.objects.filter(usuario=user, id=pid, method='PIX')
+        payment = payment.exclude(status__in=['paid', 'cancelled', 'failed']).first()
+        if not payment:
+            return Response({'error': 'payment_not_found_or_not_pending'}, status=404)
+
+        # notify Asaas (best effort)
+        if payment.asaas_payment_id:
+            try:
+                resp = requests.post(
+                    f"{settings.ASAAS_BASE_URL.rstrip('/')}/api/v3/payments/{payment.asaas_payment_id}/cancel",
+                    headers=_asaas_headers(),
+                    timeout=settings.ASAAS_TIMEOUT,
+                )
+                if resp.status_code not in (200, 204):
+                    logger.warning('Asaas cancel request failed %s %s', resp.status_code, resp.text)
+            except Exception as e:
+                logger.warning('Asaas cancel request exception %s', e)
+
+        payment.status = 'cancelled'
+        payment.save(update_fields=['status'])
+        return Response({'status': 'cancelled'})
+    except Exception as e:
+        logger.exception('Error cancelling pix payment: %s', e)
         return Response({'error': 'internal_error'}, status=500)
 
 
@@ -1523,6 +1604,7 @@ def assinatura(request):
         'SELECTED_PLAN_NAME': selected_plan_name,
         'has_pending_payment': has_pending,
         'pending_payment': pending_payment,
+        'pagamento_pendente': pending_payment,
     })
 
 
