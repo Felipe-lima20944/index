@@ -878,54 +878,63 @@
 <body x-data="app()" x-init="init()" @keydown.escape="closeModal()">
 
     {% if show_welcome %}
-<div id="welcome-overlay" class="welcome-overlay">
-    <div class="welcome-content">
-        <h1>Parabéns!</h1>
-        <p>Você está usando <strong>1 dia de teste grátis</strong>.<br> Aproveite e curta suas músicas!</p>
-        <button id="welcome-close" class="welcome-button">Começar</button>
-    </div>
+<div id="welcome-overlay" class="welcome-overlay" style="background:
+              /* top & bottom purple/black fades */
+              linear-gradient(to bottom,#1a002e 0%,#000 10%,transparent 25%,transparent 75%,#000 90%,#1a002e 100%),
+              /* actual image centered */
+              url('{% static "fundoiniciodotestegratis.jpeg" %}') center/contain no-repeat,
+              /* fallback solid black */
+              #000;
+            background-repeat: no-repeat;
+            background-size: auto, contain !important, auto;
+            background-position: top center, center center, bottom center;
+            cursor:pointer;">
+    <!-- image-only welcome, click anywhere to dismiss -->
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const overlay = document.getElementById('welcome-overlay');
-        const btn = document.getElementById('welcome-close');
-        if (btn && overlay) {
-            btn.addEventListener('click', () => { overlay.style.display='none'; });
+        if (overlay) {
+            overlay.addEventListener('click', () => { overlay.style.display='none'; });
         }
     });
 </script>
 {% endif %}
 
-<!-- preview limit full-screen overlay (hidden by default) -->
-<div id="preview-overlay" class="welcome-overlay" style="display:none;">
-    <div class="welcome-content">
-        <h1>Atenção</h1>
-        <p class="overlay-text"></p>
-        <a href="{% url 'register' %}" 
-   id="preview-close" 
-   class="welcome-button" 
-   style="background-color: #6a1b9a; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
-   Obter plano grátis
-</a>
-    </div>
+<!-- preview limit full-screen overlay (hidden by default). only the image is shown;
+     clicking anywhere takes the user to registration -->
+<div id="preview-overlay" style="display:none; position:fixed; inset:0; z-index:10000; overflow:hidden;">
+    <a href="{% if user.is_authenticated %}{% url 'assinatura' %}{% else %}/register/{% endif %}"
+       style="display:block;width:100%;height:100%;
+              /* choose image depending on auth status */
+              background: url('{% static user.is_authenticated|yesno:"fundomensagemdeplano.jpeg,fundomensagem30seg.jpeg" %}') center/contain no-repeat,
+                          linear-gradient(to bottom,
+                                          #1a002e 0%,
+                                          #000 10%,
+                                          transparent 25%,
+                                          transparent 75%,
+                                          #000 90%,
+                                          #1a002e 100%);
+              background-repeat: no-repeat;
+              background-size: contain, auto;">
+        <!-- gradient provides dark purple/black bars top & bottom -->
+    </a>
 </div>
+
+<!-- hidden audio for premium notification -->
+<audio id="preview-audio" src="{% static 'Premium_Na_Batida.mp3' %}" preload="auto"></audio>
+
 <script>
 function showPreviewOverlay(msg) {
     const ov = document.getElementById('preview-overlay');
-    if (ov) {
-        ov.querySelector('.overlay-text').innerHTML = msg;
-        ov.style.display = 'flex';
+    if (ov) ov.style.display = 'flex';
+    // attempt to play notification sound; ignore errors if autoplay blocked
+    const pa = document.getElementById('preview-audio');
+    if (pa) {
+        pa.currentTime = 0;
+        pa.play().catch(() => {});
     }
 }
-// preview overlay close link navigates to register; optional close
-// behavior if JavaScript needed
-/*document.addEventListener('DOMContentLoaded', () => {
-    const btn2 = document.getElementById('preview-close');
-    const ov2 = document.getElementById('preview-overlay');
-    if (btn2 && ov2) {
-        btn2.addEventListener('click', () => { ov2.style.display = 'none'; });
-    }
-});*/
 </script>
     <form style="display:none">{% csrf_token %}</form>
 
