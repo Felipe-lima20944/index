@@ -55,6 +55,7 @@ from .models import (
     PlaybackState, Avaliacao, Genero, SharedTrack
 )
 from .models import AsaasCustomer, Payment, Subscription, Plan
+from django.utils import timezone
 from .serializers import (
     ArtistaSerializer, AlbumSerializer, MusicaSerializer, MusicaListSerializer,
     PlaylistSerializer, PlaylistDetailSerializer, PlaylistItemSerializer, HistoricoSerializer,
@@ -986,7 +987,7 @@ def asaas_webhook(request):
                         # só criar se usuário não tiver assinatura ativa
                         user = p.usuario
                         if user:
-                            has_active = Subscription.objects.filter(usuario=user, status='active').exists()
+                            has_active = Subscription.objects.filter(usuario=user, status='active', periodo_termina_em__gte=timezone.now()).exists()
                             if not has_active:
                                 # criar assinatura válida de acordo com configuração
                                 sub = Subscription.objects.create(
@@ -1206,6 +1207,11 @@ def profile_edit(request):
         return redirect('home')
 
     # include subscription info for profile page
+    # expire server-side old subscriptions whenever this endpoint runs
+    try:
+        Subscription.objects.filter(status='active', periodo_termina_em__lt=timezone.now()).update(status='cancelled')
+    except Exception:
+        pass
     try:
         assinaturas = Subscription.objects.filter(usuario=user, status='active').order_by('-criado_em')[:20]
     except Exception:
@@ -1472,6 +1478,11 @@ def assinatura(request):
         pending_payment = None
         has_pending = False
 
+    # expire any active subscriptions whose end date has passed
+    try:
+        Subscription.objects.filter(status='active', periodo_termina_em__lt=timezone.now()).update(status='cancelled')
+    except Exception:
+        pass
     try:
         assinaturas = Subscription.objects.filter(usuario=request.user, status='active').order_by('-criado_em')[:20]
     except Exception:
@@ -1481,8 +1492,9 @@ def assinatura(request):
     assinatura_ativa = assinaturas[0] if assinaturas else None
 
     # fetch available plans from DB to display on the assinaturas page
+    # do not include any free (price == 0) plans
     try:
-        plans = list(Plan.objects.all().order_by('-is_active', 'price'))
+        plans = list(Plan.objects.filter(price__gt=0).order_by('-is_active', 'price'))
     except Exception:
         plans = []
 
@@ -2989,9 +3001,8 @@ def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[st
         'socket_timeout': REQUEST_TIMEOUT,
     }
     
-    # ===== AJUSTE DO PROXY =====
-    # Só usar proxy para YouTube, não para conexões locais
-    # Verificar se o video_id NÃO é localhost/127.0.0.1
+    
+
     if not video_id.startswith('127.0.0.1') and not video_id.startswith('localhost'):
         proxy_setting = 'http://127.0.0.1:8888'  # Proxy do seu celular
         if proxy_setting:
@@ -2999,7 +3010,7 @@ def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[st
             logger.debug('aplicando proxy para yt-dlp', extra={'proxy': proxy_setting})
     else:
         logger.debug('ignorando proxy para conexão local')
-
+        
     if is_prefetch:
         ydl_opts['extract_flat'] = True
         ydl_opts['format'] = 'bestaudio[abr<=128]/bestaudio'
