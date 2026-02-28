@@ -878,17 +878,7 @@
 <body x-data="app()" x-init="init()" @keydown.escape="closeModal()">
 
     {% if show_welcome %}
-<div id="welcome-overlay" class="welcome-overlay" style="background:
-              /* top & bottom purple/black fades */
-              linear-gradient(to bottom,#1a002e 0%,#000 10%,transparent 25%,transparent 75%,#000 90%,#1a002e 100%),
-              /* actual image centered */
-              url('{% static "fundoiniciodotestegratis.jpeg" %}') center/contain no-repeat,
-              /* fallback solid black */
-              #000;
-            background-repeat: no-repeat;
-            background-size: auto, contain !important, auto;
-            background-position: top center, center center, bottom center;
-            cursor:pointer;">
+<div id="welcome-overlay" class="welcome-overlay" style="background: url('{% static "fundoiniciodotestegratis.jpeg" %}') center/contain no-repeat #000; background-size: contain !important; background-position: center center !important; cursor:pointer;">
     <!-- image-only welcome, click anywhere to dismiss -->
 </div>
 <script>
