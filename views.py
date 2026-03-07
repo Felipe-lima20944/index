@@ -1041,6 +1041,8 @@ def asaas_create_pix(request):
         # o Asaas pode retornar outros estados (por exemplo "AUTHORIZED"),
         # mas a transição para paid/cancelled/etc. será feita pelo webhook
         # que processa as notificações posteriores.
+        # record plan slug if provided by frontend or query param
+        plan_slug_val = request.data.get('plan_slug') or request.GET.get('plan') or ''
         payment = Payment.objects.create(
             usuario=user,
             asaas_payment_id=asaas_payment_id,
@@ -1048,6 +1050,7 @@ def asaas_create_pix(request):
             currency='BRL',
             method='PIX',
             status='pending',
+            plan_slug=plan_slug_val,
             pix_qr_payload=pix_payload or '',
             pix_qr_image=pix_qr or '',
             raw=data
@@ -1822,6 +1825,7 @@ def assinatura(request):
     selected_plan_price = str(selected_plan.price) if selected_plan else None
     selected_plan_label = f"R$ {selected_plan.price}/mês" if selected_plan else None
     selected_plan_name = selected_plan.name if selected_plan else None
+    selected_plan_slug = selected_plan.slug if selected_plan else ''
 
     return render(request, 'core/assinatura.html', {
         'profile': profile,
@@ -1833,6 +1837,7 @@ def assinatura(request):
         'SELECTED_PLAN_PRICE': selected_plan_price,
         'SELECTED_PLAN_LABEL': selected_plan_label,
         'SELECTED_PLAN_NAME': selected_plan_name,
+        'SELECTED_PLAN_SLUG': selected_plan_slug,
         'has_pending_payment': has_pending,
         'pending_payment': pending_payment,
     })
