@@ -572,6 +572,9 @@ def _build_ydl_opts_js_runtime(opts: dict) -> dict:
     # yt-dlp expects a string like 'http://host:port' or 'socks5://...'
     opts['proxy'] = proxy
 
+    # always return opts so callers can chain safely
+    return opts
+
 def _ensure_asaas_customer(user, document=None):
     """Garantir que exista um AsaasCustomer local; cria no Asaas se necessário."""
     def only_digits(v):
@@ -1324,7 +1327,7 @@ def _get_or_create_musica_by_youtube_id(video_id: str) -> 'Musica | None':
                     'cookiefile': _get_cookiefile_path(), # Usa o cookies.txt automaticamente
                 }
                 
-                opts = _build_ydl_opts_js_runtime(opts)
+                opts = _build_ydl_opts_js_runtime(opts) or opts
                 # guarantee proxy is applied (see above default port 8888 behaviour)
                 opts.setdefault('proxy', 'http://127.0.0.1:8888')
                 
@@ -3342,8 +3345,13 @@ def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[st
     if cookiefile_path and os.path.exists(cookiefile_path):
         ydl_opts['cookiefile'] = cookiefile_path
 
-    ydl_opts = _build_ydl_opts_js_runtime(ydl_opts)
+    # Apply JS runtime tweaks; guard against an unexpected None return value
+    result = _build_ydl_opts_js_runtime(ydl_opts)
+    if result:
+        ydl_opts = result
     # guarantee proxy setting (default port 8888) is still present
+    if ydl_opts is None:
+        ydl_opts = {}
     ydl_opts.setdefault('proxy', 'http://127.0.0.1:8888')
 
     ydl_opts['headers'] = {
@@ -3440,9 +3448,23 @@ def download_track_api(request):
             }],
             'quiet': True,
         }
+        # apply proxy conditional on video_id (ignore for localhost/127.0.0.1)
+        if not video_id.startswith('127.0.0.1') and not video_id.startswith('localhost'):
+            proxy_setting = 'http://127.0.0.1:8888'
+            if proxy_setting:
+                ydl_opts['proxy'] = proxy_setting
+                logger.debug('aplicando proxy para yt-dlp', extra={'proxy': proxy_setting})
+        else:
+            logger.debug('ignorando proxy para conexão local')
+
         # re‑use any existing cookie file or headers from _extract_stream_url
-        ydl_opts = _build_ydl_opts_js_runtime(ydl_opts)
+        # apply any JS runtime and proxy configuration, protecting against None
+        result = _build_ydl_opts_js_runtime(ydl_opts)
+        if result:
+            ydl_opts = result
         # ensure proxy still set for download endpoint
+        if ydl_opts is None:
+            ydl_opts = {}
         ydl_opts.setdefault('proxy', 'http://127.0.0.1:8888')
 
         url = f'https://www.youtube.com/watch?v={video_id}'
