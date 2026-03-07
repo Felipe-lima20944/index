@@ -180,11 +180,15 @@
             border-radius: 14px;
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.25rem;
-            color: #fff;
-            box-shadow: 0 8px 28px var(--accent-glow);
+            /* icon removed; now holds logo image */
             flex-shrink: 0;
             animation: iconPulse 4s ease-in-out infinite;
+        }
+        .brand-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: inherit;
         }
 
         @keyframes iconPulse {
@@ -894,10 +898,17 @@
         .success-icon-box {
             width:80px;height:80px;border-radius:24px;
             background:linear-gradient(135deg,var(--accent),var(--accent-2));
-            display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;
+            display:flex;align-items:center;justify-content:center;
+            /* icon replaced by image */
             box-shadow:0 16px 48px var(--accent-glow);
             animation:iconPopIn 0.6s var(--ease-bounce) 0.2s both;
             position:relative;z-index:1;
+        }
+        .success-icon-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: inherit;
         }
 
         @keyframes iconPopIn { from{transform:scale(0.4) rotate(-12deg);opacity:0;}to{transform:scale(1) rotate(0);opacity:1;} }
@@ -921,6 +932,21 @@
         .progress-label { margin-top:10px;font-size:0.74rem;color:var(--txt-3);text-align:center;letter-spacing:0.04em;animation:fadeUp 0.4s var(--ease-out) 0.7s both; }
 
         .music-particles { position:absolute;inset:0;pointer-events:none;overflow:hidden; }
+
+        /* initial full-screen loader */
+        #initial-loader {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 11000;
+            transition: opacity 0.3s;
+        }
+        #initial-loader.hide { opacity:0; pointer-events:none; }
+        /* smaller logo */
+        .initial-logo { max-width: 40%; max-height: 40%; }
 
         .particle {
             position:absolute;font-size:1.1rem;opacity:0;
@@ -993,6 +1019,11 @@
 </head>
 <body>
 
+<!-- initial loader with logo -->
+<div id="initial-loader">
+    <img src="{% static 'logo.jpeg' %}" alt="Beatflow logo" class="initial-logo">
+</div>
+
 <div class="bg-orbs" aria-hidden="true">
     <div class="orb orb-a"></div>
     <div class="orb orb-b"></div>
@@ -1011,7 +1042,7 @@
         <div class="page-content">
 
             <div class="brand-header">
-                <div class="brand-icon"><i class="fa-solid fa-music"></i></div>
+                <div class="brand-icon"><img src="{% static 'logo.jpeg' %}" alt="Beatflow logo"></div>
                 <div class="brand-text">
                     <div class="name">Beatflow</div>
                     <div class="sub">Sua música, em todo lugar</div>
@@ -1094,6 +1125,8 @@
                 </div>
 
                 <div class="form-footer">
+                    <a href="/accounts/password_reset/">Esqueceu a senha?</a>
+                    <br>
                     Não tem conta? <a href="/register">Criar conta</a>
                 </div>
 
@@ -1120,7 +1153,7 @@
     <div class="success-icon-wrap">
         <div class="success-icon-ring-2"></div>
         <div class="success-icon-ring"></div>
-        <div class="success-icon-box"><i class="fa-solid fa-music"></i></div>
+        <div class="success-icon-box"><img src="{% static 'logo.jpeg' %}" alt="Beatflow logo"></div>
     </div>
     <div class="success-text">
         <h2>Tudo certo<span style="color:var(--accent)">!</span></h2>
@@ -1382,6 +1415,14 @@ function confirmPayment() {
         });
     }
 })();
+</script>
+
+<!-- hide initial loader once page loads -->
+<script>
+    window.addEventListener('load', function(){
+        const initOv = document.getElementById('initial-loader');
+        if(initOv) initOv.classList.add('hide');
+    });
 </script>
 
 </body>
