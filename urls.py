@@ -9,11 +9,10 @@ urlpatterns = [
     # ============================================================================
     path('', views.buscar_musicas_html, name='home'),
     path('buscar/', views.buscar_musicas_html, name='buscar_musicas'),
-    # accept '/registro' without trailing slash as well
-    path('register', views.register),
     path('register/', views.register, name='register'),
     path('logout/', views.logout_view, name='logout'),
     path('profile/edit/', views.profile_edit, name='profile_edit'),
+    path('profile/apps/', views.profile_apps, name='profile_apps'),
     path('assinatura/', views.assinatura, name='assinatura'),
     
     # ============================================================================
@@ -24,7 +23,8 @@ urlpatterns = [
     path('api/album/tracks/', views.album_tracks_api, name='api_album_tracks'),
     path('api/track/info/', views.track_info_api, name='api_track_info'),
     path('api/stream/url/', views.streaming_url_api, name='api_stream_url'),
-    path('api/featured/', views.featured_albums_api, name='api_featured'),
+    path('api/stream/download/', views.download_track_api, name='api_stream_download'),
+    # Removed `/api/featured/` as it's no longer used
     
     # ============================================================================
     # API DE DADOS LOCAIS (BANCO DE DADOS)
@@ -38,6 +38,13 @@ urlpatterns = [
     path('api/songs/by-ids/', views.musicas_by_ids_api, name='api_songs_by_ids'),
     path('api/genres/', views.generos_list_api, name='api_genres_list'),
     path('api/genres/<slug:genero_slug>/', views.genero_detail_api, name='api_genre_detail'),
+    path('api/banners/', views.banners_list_api, name='api_banners'),
+    path('api/search-backgrounds/', views.search_backgrounds_list_api, name='api_search_backgrounds'),
+    path('api/app-downloads/', views.app_downloads_api, name='api_app_downloads'),
+    path('api/anonymous-promos/', views.anonymous_promos_list_api, name='api_anonymous_promos'),
+    path('api/promos/', views.promos_list_api, name='api_promos'),
+    path('api/plans/', views.plans_list_api, name='api_plans'),
+    path('api/trending/', views.trending_list_api, name='api_trending'),
     
     # ============================================================================
     # API DE PLAYLISTS
@@ -45,14 +52,17 @@ urlpatterns = [
     path('api/playlists/', views.playlists_api, name='api_playlists'),
     path('api/playlists/<int:playlist_id>/', views.playlist_detail_api, name='api_playlist_detail'),
     path('api/playlists/<int:playlist_id>/add/', views.playlist_add_musica_api, name='api_playlist_add'),
-    path('api/playlists/<int:playlist_id>/remove/<int:item_id>/', views.playlist_remove_musica_api, name='api_playlist_remove'),
+    # novo endpoint para remoção por musica_id via corpo/param (recomendado para React)
+    path('api/playlists/<int:playlist_id>/remove/', views.playlist_remove_musica_api, name='api_playlist_remove'),
+    # alias de compatibilidade que também aceita `item_id` na URL
+    path('api/playlists/<int:playlist_id>/remove/<int:item_id>/', views.playlist_remove_musica_api, name='api_playlist_remove_by_item'),
     path('api/playlists/<int:playlist_id>/reorder/', views.playlist_reorder_api, name='api_playlist_reorder'),
+    # alias para excluir playlist usando rota legada com `/delete/` suffix
+    path('api/playlists/<int:playlist_id>/delete/', views.playlist_detail_api, name='api_playlist_delete'),
     
     # ============================================================================
-    # API DE HISTÓRICO E FAVORITOS (APIs canônicas + PT-BR alias)
+    # API DE FAVORITOS (caminho canônico, PT-BR alias abaixo)
     # ============================================================================
-    path('api/history/', views.historico_api, name='api_history'),
-    # Canonical favorites endpoint (supports GET/POST/DELETE and {id,like} schema)
     path('api/favorites/', views.favoritos_api, name='api_favorites'),
     path('api/favorites/test/', views.favoritos_test, name='api_favorites_test'),
     # PT-BR alias (trailing slash only)
@@ -97,16 +107,32 @@ urlpatterns = [
     # ============================================================================
     # Observação: templates e testes foram atualizados para usar `/api/playlists/`.
     # Remover rotas singulares legadas para reduzir superfície de rota.
-    # Manter rota para remoção por musica_id no formato plural.
-    path('api/playlists/<int:playlist_id>/remove/', views.remove_track_from_playlist, name='api_playlist_remove_track'),
+    # A view `remove_track_from_playlist` está deprecada; o novo endpoint
+    # `/api/playlists/<id>/remove/` deve ser usado por clientes modernos.
+    # Mantemos a rota apenas temporariamente para compatibilidade.
+    # path('api/playlists/<int:playlist_id>/remove/', views.remove_track_from_playlist, name='api_playlist_remove_track'),
     # Compartilhamento por link (APIs)
     path('api/playlists/<int:playlist_id>/share/toggle/', views.playlist_share_toggle_api, name='api_playlist_share_toggle'),
     path('api/playlists/<int:playlist_id>/share/regenerate/', views.playlist_share_regenerate_api, name='api_playlist_share_regenerate'),
+    # ============================================================================
+    # API DE AUTENTICAÇÃO (MOBILE / TOKEN)
+    # ============================================================================
+    path('api/auth/login/', views.api_auth_login, name='api_auth_login'),
+    path('api/auth/register/', views.api_auth_register, name='api_auth_register'),
+    path('api/auth/logout/', views.api_auth_logout, name='api_auth_logout'),
+    path('api/auth/profile/', views.api_auth_profile, name='api_auth_profile'),
+    # password reset via API (React/mobile clients)
+    path('api/auth/password-reset/', views.api_auth_password_reset, name='api_auth_password_reset'),
+    path('api/auth/password-reset-confirm/', views.api_auth_password_reset_confirm, name='api_auth_password_reset_confirm'),
+
     # ASAAS: cobrança PIX e webhook
     path('api/payments/asaas/create-pix/', views.asaas_create_pix, name='api_asaas_create_pix'),
-    path('api/payments/asaas/cancel-pix/', views.asaas_cancel_pix, name='api_asaas_cancel_pix'),
-    path('api/subscriptions/cancel/', views.cancel_subscription, name='api_cancel_subscription'),
     path('api/payments/asaas/status/', views.asaas_payment_status, name='api_asaas_payment_status'),
+    # endpoint to retrieve a user's latest payment; include both slash/no-slash
+    path('api/payments/asaas/my/', views.asaas_my_payment, name='api_asaas_my_payment'),
+    path('api/payments/asaas/my', views.asaas_my_payment),
+    path('api/payments/asaas/cancel/', views.asaas_cancel_payment, name='api_asaas_cancel_payment'),
+    path('api/subscription/cancel/', views.asaas_cancel_subscription, name='api_subscription_cancel'),
     # accepts both with and without trailing slash since webhook providers sometimes omit it
     path('webhook/asaas/', views.asaas_webhook, name='asaas_webhook'),
     path('webhook/asaas', views.asaas_webhook),
