@@ -1311,7 +1311,8 @@ function confirmPayment() {
             try {
                 const payload = {
                     amount: '{{ SELECTED_PLAN_PRICE|default:PLAN_PRICE }}',
-                    description: 'Assinatura {{ SELECTED_PLAN_LABEL|default:PLAN_LABEL }}'
+                    description: 'Assinatura {{ SELECTED_PLAN_LABEL|default:PLAN_LABEL }}',
+                    plan_slug: '{{ SELECTED_PLAN_SLUG|default:"" }}'
                 };
                 {% if profile and profile.cpf_cnpj %}
                 payload.document = '{{ profile.cpf_cnpj }}';
