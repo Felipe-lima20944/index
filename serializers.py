@@ -4,8 +4,17 @@ from django.contrib.auth.models import User
 from .models import (
     Artista, Album, Musica, Playlist, PlaylistItem,
     HistoricoReproducao, Favorito, Avaliacao, Genero,
-    PlaybackState, PlaybackQueue
+    PlaybackState, PlaybackQueue, TrendingMusic, SearchBackground, AnonymousPromo, AppDownload
 )
+from .models import Plan
+
+
+class PlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = ['id', 'slug', 'name', 'price', 'duration_days', 'trial_days', 'is_active']
+from .models import Banner
+from .models import UnsubscribedPromo
 
 
 # ============================================================================
@@ -15,7 +24,57 @@ from .models import (
 class GeneroSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genero
-        fields = ['id', 'nome', 'slug', 'descricao', 'icone', 'cor']
+        fields = ['id', 'nome', 'slug', 'descricao', 'icone', 'cor', 'capa_url', 'json_data']
+
+
+# ============================================================================
+# SERIALIZER: BANNER
+# ============================================================================
+
+class BannerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Banner
+        fields = ['id', 'titulo', 'subtitulo', 'imagem_url', 'link', 'ordem', 'is_active']
+
+
+# ============================================================================
+# SERIALIZER: BACKGROUND DE BUSCA
+# ============================================================================
+
+class SearchBackgroundSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SearchBackground
+        fields = ['id', 'titulo', 'subtitulo', 'imagem_url', 'ordem', 'is_active']
+
+
+class AnonymousPromoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnonymousPromo
+        fields = ['id', 'imagem_url', 'link_url', 'threshold_seconds', 'is_active']
+
+
+class UnsubscribedPromoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnsubscribedPromo
+        fields = ['id', 'imagem_url', 'link_url', 'threshold_seconds', 'is_active']
+
+
+# ============================================================================
+# SERIALIZER: ARQUIVO DE APLICATIVO PARA DOWNLOAD
+# ============================================================================
+
+class AppDownloadSerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AppDownload
+        fields = ['id', 'titulo', 'file_url', 'is_active', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
+
+    def get_file_url(self, obj):
+        if obj.arquivo and hasattr(obj.arquivo, 'url'):
+            return obj.arquivo.url
+        return ''
 
 
 # ============================================================================
@@ -77,12 +136,15 @@ class AlbumSerializer(serializers.ModelSerializer):
             'id', 'titulo', 'artista', 'artista_nome', 'tipo', 'tipo_display',
             'generos', 'generos_ids', 'ano', 'data_lancamento', 'capa', 'capa_url',
             'descricao', 'gravadora', 'total_faixas', 'duracao_total',
-            'avaliacao_media', 'created_at', 'updated_at'
+            'avaliacao_media',
+            'created_at', 'updated_at'
         ]
         read_only_fields = ['total_faixas', 'duracao_total', 'avaliacao_media']
 
     def get_capa_url(self, obj):
         return obj.capa_url
+
+    # sharing is no longer supported; legacy method removed
 
 
 class AlbumDetailSerializer(AlbumSerializer):
@@ -122,7 +184,6 @@ class MusicaSerializer(serializers.ModelSerializer):
         required=False,
         source='feat_artists'
     )
-    
     generos = GeneroSerializer(many=True, read_only=True)
     generos_ids = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -131,7 +192,6 @@ class MusicaSerializer(serializers.ModelSerializer):
         required=False,
         source='generos'
     )
-    
     duracao_formatada = serializers.SerializerMethodField()
     capa = serializers.SerializerMethodField()
     audio_url = serializers.SerializerMethodField()
@@ -140,8 +200,9 @@ class MusicaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Musica
         fields = [
-            'id', 'titulo', 'artista', 'artista_nome', 'album', 'album_titulo',
-            'feat_artists', 'feat_artists_ids', 'generos', 'generos_ids',
+            'id', 'titulo', 'artista', 'artist', 'artista_nome',
+            'album', 'album_titulo', 'feat_artists', 'feat_artists_ids',
+            'generos', 'generos_ids',
             'duracao', 'duracao_formatada', 'track_number', 'disc_number',
             'arquivo', 'arquivo_mp3', 'arquivo_flac', 'youtube_id',
             'letra', 'compositor', 'qualidade', 'qualidade_display',
@@ -149,6 +210,11 @@ class MusicaSerializer(serializers.ModelSerializer):
             'is_instrumental', 'capa', 'audio_url', 'created_at', 'updated_at'
         ]
         read_only_fields = ['visualizacoes', 'likes', 'created_at', 'updated_at']
+
+
+# ============================================================================
+# SERIALIZER: MUSICA
+# ============================================================================
 
     def get_duracao_formatada(self, obj):
         return obj.duracao_formatada
@@ -183,6 +249,25 @@ class MusicaListSerializer(MusicaSerializer):
             'duracao_formatada', 'capa', 'youtube_id', 'audio_url', 'visualizacoes',
             'likes', 'is_explicit'
         ]
+
+
+# ============================================================================
+# SERIALIZER: MUSICAS EM ALTA
+# ============================================================================
+
+class TrendingMusicSerializer(serializers.ModelSerializer):
+    # Expose the stored JSON payload as `data` for frontend consumption.
+    data = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TrendingMusic
+        fields = ['id', 'data', 'added_at']
+
+    def get_data(self, obj):
+        try:
+            return obj.get_json()
+        except Exception:
+            return {}
 
 
 # ============================================================================
@@ -282,24 +367,9 @@ class PlaylistDetailSerializer(PlaylistSerializer):
 
 
 # ============================================================================
-# SERIALIZER: HISTORICO
-# ============================================================================
-
-class HistoricoSerializer(serializers.ModelSerializer):
-    musica_titulo = serializers.CharField(source='musica.titulo', read_only=True)
-    musica_artista = serializers.CharField(source='musica.artista.nome', read_only=True)
-    musica_capa = serializers.SerializerMethodField()
-
-    class Meta:
-        model = HistoricoReproducao
-        fields = [
-            'id', 'usuario', 'musica', 'musica_titulo', 'musica_artista',
-            'musica_capa', 'tocada_em', 'duracao_reproduzida', 'completou'
-        ]
-        read_only_fields = ['usuario', 'tocada_em']
-
-    def get_musica_capa(self, obj):
-        return obj.musica.capa
+# NOTE: historico serializer removed since the API was disabled.  The
+# ``HistoricoReproducao`` model still exists for data retention, but there is
+# no longer any serializer or view exposing it.
 
 
 # ============================================================================
@@ -392,13 +462,13 @@ class UserSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     playlists_count = serializers.IntegerField(source='playlists.count', read_only=True)
     favoritos_count = serializers.IntegerField(source='favoritos.count', read_only=True)
-    historico_count = serializers.IntegerField(source='historico.count', read_only=True)
+    # historico_count removed because playback history endpoint is disabled
 
     class Meta:
         model = User
         fields = [
             'id', 'username', 'email', 'first_name', 'last_name',
-            'playlists_count', 'favoritos_count', 'historico_count',
+            'playlists_count', 'favoritos_count',
             'date_joined', 'last_login'
         ]
         read_only_fields = ['date_joined', 'last_login']
