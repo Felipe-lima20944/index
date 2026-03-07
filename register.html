@@ -78,6 +78,22 @@
             pointer-events: none; z-index: 2; overflow: hidden;
         }
 
+        /* initial full-screen loader */
+        #initial-loader {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 11000;
+            transition: opacity 0.3s;
+        }
+        #initial-loader.hide { opacity:0; pointer-events:none; }
+        /* smaller logo */
+        .initial-logo { max-width: 40%; max-height: 40%; }
+
+
         .mnote {
             position: absolute; bottom: -60px;
             opacity: 0;
@@ -113,9 +129,15 @@
             border-radius: 14px;
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
             display: flex; align-items: center; justify-content: center;
-            font-size: clamp(1rem,2vw,1.25rem); color: #fff;
+            /* image replaces icon */
             box-shadow: 0 8px 28px var(--accent-glow); flex-shrink: 0;
             animation: iconPulse 4s ease-in-out infinite;
+        }
+        .brand-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: inherit;
         }
 
         @keyframes iconPulse {
@@ -386,8 +408,15 @@
             width: 80px; height: 80px; border-radius: 24px;
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
             display: flex; align-items: center; justify-content: center;
-            font-size: 2rem; color: #fff; box-shadow: 0 16px 48px var(--accent-glow);
+            /* logo replaces icon */
+            box-shadow: 0 16px 48px var(--accent-glow);
             animation: iconPopIn 0.6s var(--ease-bounce) 0.2s both; position: relative; z-index: 1;
+        }
+        .success-icon-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: inherit;
         }
 
         @keyframes iconPopIn { from { transform: scale(0.4) rotate(-12deg); opacity: 0; } to { transform: scale(1) rotate(0deg); opacity: 1; } }
@@ -440,12 +469,17 @@
     <div class="orb orb-c"></div>
 </div>
 
+<!-- initial loader with logo -->
+<div id="initial-loader">
+    <img src="{% static 'logo.jpeg' %}" alt="Beatflow logo" class="initial-logo">
+</div>
+
 <div class="music-notes-stage" id="musicNotesStage" aria-hidden="true"></div>
 
 <div class="page-content">
 
     <div class="brand-header">
-        <div class="brand-icon"><i class="fa-solid fa-music"></i></div>
+        <div class="brand-icon"><img src="{% static 'logo.jpeg' %}" alt="Beatflow logo"></div>
         <div class="brand-text">
             <div class="name">Beatflow</div>
             <div class="sub">Sua música, em todo lugar</div>
@@ -686,7 +720,7 @@
     <div class="success-icon-wrap">
         <div class="success-icon-ring-2"></div>
         <div class="success-icon-ring"></div>
-        <div class="success-icon-box"><i class="fa-solid fa-music"></i></div>
+        <div class="success-icon-box"><img src="{% static 'logo.jpeg' %}" alt="Beatflow logo"></div>
     </div>
     <div class="success-text">
         <h2>Conta criada<span style="color:var(--accent)">!</span></h2>
@@ -988,6 +1022,14 @@
     `;
     document.head.appendChild(s);
 })();
+</script>
+
+<!-- hide loader on full page load -->
+<script>
+    window.addEventListener('load', function(){
+        const initOv = document.getElementById('initial-loader');
+        if(initOv) initOv.classList.add('hide');
+    });
 </script>
 
 </body>
