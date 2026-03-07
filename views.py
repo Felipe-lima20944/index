@@ -230,6 +230,24 @@ def _parse_duration(duration_str: str) -> int:
     return 0
 
 
+def _asaas_headers() -> Dict[str, str]:
+    """Cabeçalhos padrão para chamadas à API do Asaas.
+
+    Retorna um dicionário contendo `Content-Type` e o token de
+    autenticação extraído de ``settings.ASAAS_API_KEY``.  Se a chave não
+    estiver definida (string vazia ou None) um aviso é registrado; as
+    chamadas subsequentes provavelmente irão falhar com 401/403 do
+    Asaas.
+    """
+    token = getattr(settings, 'ASAAS_API_KEY', '') or ''
+    if not token:
+        logger.warning('ASAAS_API_KEY não configurada; requisições Asaas podem falhar')
+    return {
+        'Content-Type': 'application/json',
+        'access_token': token,
+    }
+
+
 def _normalize_track(item: Dict, include_album_info: bool = True) -> Optional[Dict]:
     """Normaliza dados de uma faixa para formato consistente."""
     if not item:
@@ -3365,23 +3383,37 @@ def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[st
         for attempt_url in urls_to_try:
             for attempt in range(MAX_RETRIES):
                 try:
-                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                        info = ydl.extract_info(attempt_url, download=False)
-                        if isinstance(info, dict):
-                            stream_url = info.get('url')
-                            if not stream_url and info.get('formats'):
-                                formats = info.get('formats', [])
-                                if formats:
-                                    audio_formats = [f for f in formats if f.get('acodec') != 'none' and f.get('vcodec') == 'none']
-                                    if audio_formats:
-                                        stream_url = audio_formats[-1].get('url')
-                                    else:
-                                        stream_url = formats[-1].get('url')
+                    # run extraction in a separate thread to enforce a hard timeout
+                    def do_extract():
+                        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                            return ydl.extract_info(attempt_url, download=False)
 
-                            if stream_url:
-                                cache.set(cache_key, stream_url, STREAM_CACHE_TIMEOUT)
-                                return stream_url
-                        break
+                    from concurrent.futures import ThreadPoolExecutor, TimeoutError
+                    with ThreadPoolExecutor(max_workers=1) as executor:
+                        future = executor.submit(do_extract)
+                        try:
+                            info = future.result(timeout=20)  # abort after 20 seconds
+                        except TimeoutError:
+                            last_error = 'extract timeout'
+                            logger.warning(f"_extract_stream_url timeout for {attempt_url}")
+                            future.cancel()
+                            raise Exception(last_error)
+
+                    if isinstance(info, dict):
+                        stream_url = info.get('url')
+                        if not stream_url and info.get('formats'):
+                            formats = info.get('formats', [])
+                            if formats:
+                                audio_formats = [f for f in formats if f.get('acodec') != 'none' and f.get('vcodec') == 'none']
+                                if audio_formats:
+                                    stream_url = audio_formats[-1].get('url')
+                                else:
+                                    stream_url = formats[-1].get('url')
+
+                        if stream_url:
+                            cache.set(cache_key, stream_url, STREAM_CACHE_TIMEOUT)
+                            return stream_url
+                    break
                 except Exception as e:
                     last_error = str(e)
                     logger.debug(f"_extract_stream_url tentativa {attempt + 1} para {attempt_url} falhou: {e}")
@@ -3730,11 +3762,42 @@ def api_auth_password_reset_confirm(request):
     return Response({'success': True})
 
 
-@api_view(['GET'])
+@api_view(['GET','PATCH'])
 @permission_classes([IsAuthenticated])
 def api_auth_profile(request):
-    """Retorna dados do perfil do usuário autenticado."""
+    """Retorna ou atualiza dados do perfil do usuário autenticado.
+
+    - **GET**: devolve informação básica de User + campos do UserProfile.
+    - **PATCH**: aceita alterações parciais em `email`, `first_name`,
+      `last_name` e nos campos do perfil estendido (cpf_cnpj, phone,
+      mobile_phone, address, address_number, complement, city, state,
+      postal_code).
+    """
     user = request.user
+
+    if request.method == 'PATCH':
+        data = request.data
+        changed = False
+        # campos do User
+        for fld in ('email', 'first_name', 'last_name'):
+            if fld in data:
+                setattr(user, fld, data.get(fld) or '')
+                changed = True
+        if changed:
+            user.save()
+        # perfil estendido
+        profile = getattr(user, 'profile', None)
+        if profile:
+            prof_changed = False
+            for fld in ('cpf_cnpj','phone','mobile_phone','address',
+                        'address_number','complement','city','state','postal_code'):
+                if fld in data:
+                    setattr(profile, fld, data.get(fld) or '')
+                    prof_changed = True
+            if prof_changed:
+                profile.save()
+        # depois de salvar, vamos retornar o novo objeto abaixo
+
     # incluir informações de assinatura ativa (se houver) para exibir no app móvel
     try:
         assinatura = Subscription.objects.filter(usuario=user, status='active').order_by('-criado_em').first()
@@ -3772,6 +3835,21 @@ def api_auth_profile(request):
         'date_joined': user.date_joined,
         'assinatura_ativa': assinatura_data,
     }
+    # include extended profile fields if available
+    profile = getattr(user, 'profile', None)
+    if profile:
+        resp.update({
+            'cpf_cnpj': profile.cpf_cnpj,
+            'phone': profile.phone,
+            'mobile_phone': profile.mobile_phone,
+            'address': profile.address,
+            'address_number': profile.address_number,
+            'complement': profile.complement,
+            'city': profile.city,
+            'state': profile.state,
+            'postal_code': profile.postal_code,
+        })
+
     if app_info:
         resp['app_file'] = app_info
     return Response(resp)
