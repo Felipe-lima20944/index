@@ -561,11 +561,16 @@ def _build_ydl_opts_js_runtime(opts: dict) -> dict:
         except Exception:
             pass
 
-    # apply proxy from settings if provided (YT_DLP_PROXY)
+    # apply proxy from settings if provided (YT_DLP_PROXY); default to localhost:8888
+    # if the setting is not defined or falsy we still want to route through the
+    # local residential proxy that listens on port 8888.  callers that need to
+    # disable proxy can explicitly set YT_DLP_PROXY to an empty string.
     proxy = getattr(settings, 'YT_DLP_PROXY', None)
-    if proxy:
-        # yt-dlp expects e.g. 'http://127.0.0.1:8888' or 'socks5://...'
-        opts['proxy'] = proxy
+    if not proxy:
+        # default proxy used by the deployment
+        proxy = 'http://127.0.0.1:8888'
+    # yt-dlp expects a string like 'http://host:port' or 'socks5://...'
+    opts['proxy'] = proxy
 
 def _ensure_asaas_customer(user, document=None):
     """Garantir que exista um AsaasCustomer local; cria no Asaas se necessário."""
@@ -1320,6 +1325,8 @@ def _get_or_create_musica_by_youtube_id(video_id: str) -> 'Musica | None':
                 }
                 
                 opts = _build_ydl_opts_js_runtime(opts)
+                # guarantee proxy is applied (see above default port 8888 behaviour)
+                opts.setdefault('proxy', 'http://127.0.0.1:8888')
                 
                 with yt_dlp.YoutubeDL(opts) as ydl:
                     info = ydl.extract_info(url, download=False)
@@ -3313,7 +3320,7 @@ def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[st
         f'https://youtu.be/{video_id}'
     ]
 
-    # opções padrão para yt-dlp
+    # opções padrão para yt-dlp (incluir proxy local por padrão)
     ydl_opts = {
         'cookiefile': _get_cookiefile_path(),
         'format': 'bestaudio/best',
@@ -3321,6 +3328,8 @@ def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[st
         'no_warnings': True,
         'extract_flat': False,
         'socket_timeout': REQUEST_TIMEOUT,
+        # proxy padrao utilizado pelo servidor desenvolvimento/produção local
+        'proxy': 'http://127.0.0.1:8888',
     }
     
     
@@ -3334,6 +3343,8 @@ def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[st
         ydl_opts['cookiefile'] = cookiefile_path
 
     ydl_opts = _build_ydl_opts_js_runtime(ydl_opts)
+    # guarantee proxy setting (default port 8888) is still present
+    ydl_opts.setdefault('proxy', 'http://127.0.0.1:8888')
 
     ydl_opts['headers'] = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -3431,6 +3442,8 @@ def download_track_api(request):
         }
         # re‑use any existing cookie file or headers from _extract_stream_url
         ydl_opts = _build_ydl_opts_js_runtime(ydl_opts)
+        # ensure proxy still set for download endpoint
+        ydl_opts.setdefault('proxy', 'http://127.0.0.1:8888')
 
         url = f'https://www.youtube.com/watch?v={video_id}'
         try:
