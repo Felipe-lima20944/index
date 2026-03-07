@@ -4,7 +4,8 @@ from django.contrib.auth import get_user_model
 
 
 class CustomUserCreationForm(UserCreationForm):
-    """Extends default form to require unique email (case-insensitive)."""
+    """Extends default form to require unique email (case-insensitive) and
+    allow the registrant to pick a trial length."""
 
     email = forms.EmailField(required=True, help_text="Obrigatório. Use um endereço de e-mail válido.")
 
