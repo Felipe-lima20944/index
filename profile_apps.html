@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Aplicativos · Beatflow</title>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="/static/icones.ico" type="image/x-icon">
+
+    <style>
+        /* ═════════════════════════════════════════════════════════════
+           DESIGN TOKENS - BEATFLOW PURPLE/MAGENTA THEME
+        ═════════════════════════════════════════════════════════════ */
+        :root {
+            /* Accents */
+            --accent: #a855f7;
+            --accent-2: #ec4899;
+            --accent-3: #d946ef;
+            --accent-glow: rgba(232, 72, 153, 0.45);
+            --accent-dim: rgba(168, 85, 247, 0.18);
+
+            /* Base backgrounds */
+            --bg: #000000;
+            --surface-1: #080008;
+            --surface-2: #100010;
+            --surface-3: #180018;
+            --surface-glass: rgba(255,255,255,0.04);
+            --border: rgba(255,255,255,0.07);
+            --border-accent: rgba(232, 72, 153, 0.4);
+
+            /* Text */
+            --txt-1: #ececec;
+            --txt-2: #a2a2b0;
+            --txt-3: #77778b;
+
+            /* Radius */
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+
+            /* Fonts */
+            --font-display: 'Syne', sans-serif;
+            --font-body: 'DM Sans', sans-serif;
+
+            /* Easing */
+            --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+            --ease-in: cubic-bezier(0.76, 0, 0.24, 1);
+            --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            height: -webkit-fill-available;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--txt-1);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Subtle background gradient overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            opacity: 0.12;
+            background: linear-gradient(135deg, rgba(232,72,153,0.06), rgba(232,72,153,0) 60%);
+            pointer-events: none;
+        }
+
+        /* ═════════════════════════════════════════════════════════════
+           LAYOUT & STRUCTURE
+        ═════════════════════════════════════════════════════════════ */
+        .page-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Back button */
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            color: var(--txt-2);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 28px;
+            transition: all 0.2s var(--ease-soft);
+            cursor: pointer;
+        }
+
+        .btn-back:hover {
+            background: var(--surface-3);
+            color: var(--txt-1);
+            border-color: var(--border-accent);
+            transform: translateX(-3px);
+        }
+
+        .btn-back:active {
+            transform: scale(0.97);
+        }
+
+        .btn-back i {
+            font-size: 0.95rem;
+        }
+
+        /* ═════════════════════════════════════════════════════════════
+           HEADER SECTION
+        ═════════════════════════════════════════════════════════════ */
+        .page-header {
+            margin-bottom: 48px;
+            animation: fadeInDown 0.5s var(--ease-out);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            font-size: 1.05rem;
+            color: var(--txt-2);
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        /* ═════════════════════════════════════════════════════════════
+           APPS GRID
+        ═════════════════════════════════════════════════════════════ */
+        .apps-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        @media (min-width: 640px) {
+            .apps-grid {
+                grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                gap: 18px;
+            }
+        }
+
+        /* ═════════════════════════════════════════════════════════════
+           APP CARD
+        ═════════════════════════════════════════════════════════════ */
+        .app-card {
+            position: relative;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            overflow: hidden;
+            transition: all 0.3s var(--ease-soft);
+            cursor: pointer;
+            animation: fadeInUp 0.5s var(--ease-out);
+            animation-fill-mode: both;
+        }
+
+        .app-card:nth-child(1) { animation-delay: 0.05s; }
+        .app-card:nth-child(2) { animation-delay: 0.1s; }
+        .app-card:nth-child(3) { animation-delay: 0.15s; }
+        .app-card:nth-child(4) { animation-delay: 0.2s; }
+        .app-card:nth-child(5) { animation-delay: 0.25s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Subtle gradient background */
+        .app-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(232, 72, 153, 0.05), transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s var(--ease-soft);
+            pointer-events: none;
+        }
+
+        .app-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Hover effects */
+        .app-card:hover {
+            background: var(--surface-3);
+            border-color: var(--border-accent);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px var(--accent-glow);
+        }
+
+        .app-card:active {
+            transform: translateY(-3px);
+        }
+
+        /* Icon container */
+        .app-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 24px var(--accent-glow);
+            transition: all 0.3s var(--ease-bounce);
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-card:hover .app-icon {
+            transform: scale(1.1) rotate(-5deg);
+            box-shadow: 0 12px 32px var(--accent-glow);
+        }
+
+        /* Content */
+        .app-content {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 16px;
+        }
+
+        .app-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+            color: var(--txt-1);
+            transition: color 0.2s var(--ease-soft);
+        }
+
+        .app-card:hover .app-title {
+            color: var(--accent);
+        }
+
+        .app-description {
+            font-size: 0.9rem;
+            color: var(--txt-2);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .app-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: var(--txt-3);
+            flex-wrap: wrap;
+        }
+
+        .app-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .app-meta-item i {
+            color: var(--accent);
+        }
+
+        /* ═════════════════════════════════════════════════════════════
+           DOWNLOAD BUTTON
+        ═════════════════════════════════════════════════════════════ */
+        .app-download-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s var(--ease-soft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 8px 20px var(--accent-glow);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: -0.01em;
+        }
+
+        .app-download-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+
+        .app-download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px var(--accent-glow);
+        }
+
+        .app-download-btn:hover::before {
+            transform: translateX(100%);
+        }
+
+        .app-download-btn:active {
+            transform: translateY(0);
+        }
+
+        .app-download-btn i {
+            transition: transform 0.2s var(--ease-bounce);
+        }
+
+        .app-download-btn:hover i {
+            transform: translateY(-2px);
+        }
+
+        /* ═════════════════════════════════════════════════════════════
+           EMPTY STATE
+        ═════════════════════════════════════════════════════════════ */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            animation: fadeIn 0.5s var(--ease-out);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .empty-state-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--accent-dim), rgba(168, 85, 247, 0.1));
+            border: 2px solid var(--border-accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin: 0 auto 24px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .empty-state h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+            color: var(--txt-1);
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            color: var(--txt-2);
+            margin-bottom: 24px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .empty-state-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border: none;
+            border-radius: var(--radius-xl);
+            color: white;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s var(--ease-soft);
+            box-shadow: 0 8px 20px var(--accent-glow);
+            letter-spacing: -0.01em;
+        }
+
+        .empty-state-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px var(--accent-glow);
+        }
+
+        .empty-state-action:active {
+            transform: translateY(0);
+        }
+
+        /* ═════════════════════════════════════════════════════════════
+           LOADING STATE
+        ═════════════════════════════════════════════════════════════ */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading {
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* ═════════════════════════════════════════════════════════════
+           RESPONSIVE
+        ═════════════════════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .page-wrapper {
+                padding: 16px;
+            }
+
+            .page-header {
+                margin-bottom: 32px;
+            }
+
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .app-card {
+                padding: 16px;
+            }
+
+            .apps-grid {
+                gap: 12px;
+            }
+        }
+
+        /* ═════════════════════════════════════════════════════════════
+           UTILITY CLASSES
+        ═════════════════════════════════════════════════════════════ */
+        .fade-in {
+            animation: fadeIn 0.4s var(--ease-out);
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <!-- Back Button -->
+        <a href="/" class="btn-back">
+            <i class="fa-solid fa-arrow-left"></i> Voltar
+        </a>
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1>Aplicativos Beatflow</h1>
+            <p>Baixe os aplicativos oficiais para aproveitar ao máximo sua experiência de streaming de música. Disponível para múltiplas plataformas.</p>
+        </div>
+
+        <!-- Apps Grid -->
+        {% if apps and apps|length > 0 %}
+            <div class="apps-grid">
+            {% for app in apps %}
+                <div class="app-card">
+                    <div class="app-icon">
+                        {% if 'ios' in app.titulo|lower or 'iphone' in app.titulo|lower %}
+                            <i class="fa-brands fa-apple"></i>
+                        {% elif 'android' in app.titulo|lower %}
+                            <i class="fa-brands fa-android"></i>
+                        {% elif 'windows' in app.titulo|lower or 'pc' in app.titulo|lower %}
+                            <i class="fa-brands fa-windows"></i>
+                        {% elif 'mac' in app.titulo|lower %}
+                            <i class="fa-brands fa-apple"></i>
+                        {% else %}
+                            <i class="fa-solid fa-download"></i>
+                        {% endif %}
+                    </div>
+
+                    <div class="app-content">
+                        <h2 class="app-title">{{ app.titulo|default:'Aplicativo' }}</h2>
+                        {% if app.descricao %}
+                            <p class="app-description">{{ app.descricao }}</p>
+                        {% endif %}
+                        <div class="app-meta">
+                            <div class="app-meta-item">
+                                <i class="fa-solid fa-calendar-days"></i>
+                                <span>{{ app.created_at|date:'d \d\e M \d\e Y' }}</span>
+                            </div>
+                            {% if app.versao %}
+                                <div class="app-meta-item">
+                                    <i class="fa-solid fa-code"></i>
+                                    <span>v{{ app.versao }}</span>
+                                </div>
+                            {% endif %}
+                            {% if app.tamanho %}
+                                <div class="app-meta-item">
+                                    <i class="fa-solid fa-database"></i>
+                                    <span>{{ app.tamanho }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <a href="{{ app.arquivo.url }}" class="app-download-btn" download>
+                        <i class="fa-solid fa-download"></i>
+                        Baixar agora
+                    </a>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fa-solid fa-inbox"></i>
+                </div>
+                <h3>Nenhum aplicativo disponível</h3>
+                <p>No momento não há aplicativos para download. Volte mais tarde ou entre em contato com o administrador para mais informações.</p>
+                <a href="/" class="empty-state-action">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar ao início
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
