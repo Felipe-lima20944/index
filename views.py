@@ -4,6 +4,7 @@ try:
 except Exception:
     yt_dlp = None  # optional dependency; some features may be disabled without it
 import os
+import tempfile, shutil
 import requests
 import json
 import concurrent.futures
@@ -21,7 +22,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.html import escape
 from django.core.cache import cache
 import secrets
-from django.http import JsonResponse, HttpResponse, Http404
+from django.http import JsonResponse, HttpResponse, Http404, FileResponse
 from django.urls import reverse
 from django.core.cache import cache
 from django.core.paginator import Paginator
@@ -32,6 +33,9 @@ from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from .forms import CustomUserCreationForm
 from django.contrib.auth import login as auth_login, logout as auth_logout
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.auth.tokens import default_token_generator
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
@@ -43,24 +47,36 @@ from rest_framework import status
 
 # YTMusic is an optional dependency used for some features (e.g. fetch from
 # YouTube Music).  To keep migrations and simple deployments working even when
-# it's absent we import it inside a try/except and fall back to None.
+# it's absent we import it inside a try/except and fall back to None.  We also
+# log a warning so it's easier to diagnose why calls to the API fail later.
 try:
     from ytmusicapi import YTMusic
-except ImportError:
+except ImportError as imp_err:
     YTMusic = None
+    logger = logging.getLogger(__name__)
+    logger.warning(
+        "ytmusicapi não pôde ser importado: %s; funcionalidades do YouTube Music "
+        "ficarão indisponíveis.",
+        imp_err,
+    )
 
 from .models import (
     Artista, Album, Musica, Playlist, PlaylistItem,
-    HistoricoReproducao, Favorito, PlaybackQueue,
-    PlaybackState, Avaliacao, Genero, SharedTrack
+    Favorito, PlaybackQueue,
+    PlaybackState, Avaliacao, Genero, SharedTrack,
+    TrendingMusic, SearchBackground, AnonymousPromo, UnsubscribedPromo,
+    AppDownload,
 )
+from .models import Banner
 from .models import AsaasCustomer, Payment, Subscription, Plan
-from django.utils import timezone
 from .serializers import (
     ArtistaSerializer, AlbumSerializer, MusicaSerializer, MusicaListSerializer,
-    PlaylistSerializer, PlaylistDetailSerializer, PlaylistItemSerializer, HistoricoSerializer,
-    FavoritoSerializer, AvaliacaoSerializer, GeneroSerializer
+    PlaylistSerializer, PlaylistDetailSerializer, PlaylistItemSerializer,
+    FavoritoSerializer, AvaliacaoSerializer, GeneroSerializer,
+    TrendingMusicSerializer, AppDownloadSerializer,
 )
+from .serializers import AnonymousPromoSerializer, UnsubscribedPromoSerializer
+from .serializers import BannerSerializer
 from django.views.decorators.http import require_POST
 import uuid
 
@@ -68,10 +84,16 @@ import uuid
 logger = logging.getLogger(__name__)
 
 # Constantes
+from django.conf import settings
+
 CACHE_TIMEOUT = 3600  # 1 hora
 SEARCH_CACHE_TIMEOUT = 300  # 5 minutos
 ALBUM_CACHE_TIMEOUT = 3600 * 24  # 24 horas
-STREAM_CACHE_TIMEOUT = 1800  # 30 minutos
+
+# Duração do cache para URLs de streaming; agora configurable via settings.
+#   em settings.py defina STREAM_CACHE_TIMEOUT = 18000  # 5 horas
+#   ou None para cache indefinido (cuidado com espaço de memória).
+STREAM_CACHE_TIMEOUT = getattr(settings, 'STREAM_CACHE_TIMEOUT', 1800)  # default 30 minutos
 MAX_RETRIES = 3
 REQUEST_TIMEOUT = 10
 CONCURRENT_WORKERS = 4
@@ -127,20 +149,33 @@ def _get_headers_auth_path() -> Optional[str]:
 
 @lru_cache(maxsize=1)
 def _init_ytmusic() -> YTMusic:
-    """Inicializa cliente YTMusic."""
+    """Inicializa cliente YTMusic.
+
+    A biblioteca `ytmusicapi` é opcional. Se não estiver instalada, esta
+    função levanta `ImportError` para que as rotas que dependem dela possam
+    tratar o caso e devolver um erro amigável em vez de falhar com um
+    ``NoneType``.
+    """
+
+    if YTMusic is None:
+        # Não instalou a dependência; avisar de forma clara.
+        raise ImportError(
+            "biblioteca ytmusicapi não disponível; instale-a para usar recursos "
+            "do YouTube Music ou ajuste as configurações para não chamar essas "
+            "funções."
+        )
+
     headers_path = _get_headers_auth_path()
     try:
         if headers_path:
-            client = YTMusic(str(headers_path))
+            return YTMusic(str(headers_path))
         else:
-            client = YTMusic()
-        return client
-    except Exception as e:
-        logger.error(f"Erro ao inicializar YTMusic: {e}")
-        try:
             return YTMusic()
-        except Exception:
-            raise
+    except Exception as e:
+        # registra qualquer problema durante a inicialização real do cliente
+        logger.error(f"Erro ao inicializar YTMusic: {e}")
+        # repassamos a exceção para que a camada de chamada lide com ela
+        raise
 
 
 def _get_cookiefile_path() -> Optional[str]:
@@ -366,13 +401,107 @@ def _resolve_musica_identifier(identifier) -> 'Musica':
     if identifier is None:
         raise Musica.DoesNotExist()
 
-    try:
-        if isinstance(identifier, int) or (isinstance(identifier, str) and identifier.isdigit()):
+    # numeric primary key?
+    if isinstance(identifier, int) or (isinstance(identifier, str) and identifier.isdigit()):
+        try:
             return Musica.objects.get(pk=int(identifier))
-    except Musica.DoesNotExist:
-        pass
+        except Musica.DoesNotExist:
+            pass
 
+    # try lookup by YouTube id
     yid = str(identifier)
+    try:
+        return Musica.objects.get(youtube_id=yid)
+    except Musica.MultipleObjectsReturned:
+        qs = Musica.objects.filter(youtube_id=yid).order_by('id')
+        first = qs.first()
+        logger.warning(f"_resolve_musica_identifier: múltiplos registros Musica com youtube_id={yid}; retornando id={getattr(first, 'id', None)}")
+        if first is not None:
+            return first
+        raise Musica.DoesNotExist()
+    except Musica.DoesNotExist:
+        raise
+
+
+# ============================================================================
+# API: BANNERS
+# ============================================================================
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def banners_list_api(request):
+    """Retorna banners ativos ordenados para exibição no app."""
+    banners = Banner.objects.filter(is_active=True).order_by('ordem')
+    serializer = BannerSerializer(banners, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def search_backgrounds_list_api(request):
+    """Retorna backgrounds de busca ativos ordenados por ordem."""
+    bgs = SearchBackground.objects.filter(is_active=True).order_by('ordem')
+    from .serializers import SearchBackgroundSerializer
+    serializer = SearchBackgroundSerializer(bgs, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def anonymous_promos_list_api(request):
+    """Retorna promoções anônimas ativas ordenadas por threshold_seconds."""
+    promos = AnonymousPromo.objects.filter(is_active=True).order_by('threshold_seconds')
+    from .serializers import AnonymousPromoSerializer
+    serializer = AnonymousPromoSerializer(promos, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def promos_list_api(request):
+    """Retorna promoções apropriadas ao estado do usuário.
+
+    - Usuários não autenticados: retornam `AnonymousPromo`.
+    - Usuários autenticados sem assinatura ativa: retornam `UnsubscribedPromo`.
+    - Usuários autenticados com assinatura ativa: retornam lista vazia.
+    """
+    user = request.user if hasattr(request, 'user') else None
+    try:
+        if not user or not user.is_authenticated:
+            qs = AnonymousPromo.objects.filter(is_active=True).order_by('threshold_seconds')
+            serializer = AnonymousPromoSerializer(qs, many=True, context={'request': request})
+            return Response(serializer.data)
+
+        # usuário autenticado — checar assinatura ativa
+        from .models import Subscription
+        has_active = Subscription.objects.filter(usuario=user, status='active').exists()
+        if has_active:
+            return Response([])
+
+        # usuário sem assinatura ativa → retornar promos para não-assinantes
+        qs = UnsubscribedPromo.objects.filter(is_active=True).order_by('threshold_seconds')
+        serializer = UnsubscribedPromoSerializer(qs, many=True, context={'request': request})
+        return Response(serializer.data)
+    except Exception as e:
+        logger.exception('Erro em promos_list_api: %s', e)
+        return Response([], status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def plans_list_api(request):
+    """Retorna os planos disponíveis (público)."""
+    try:
+        from .models import Plan
+        from .serializers import PlanSerializer
+        qs = Plan.objects.all().order_by('-is_active', 'price')
+        serializer = PlanSerializer(qs, many=True, context={'request': request})
+        return Response(serializer.data)
+    except Exception as e:
+        logger.exception('Erro em plans_list_api: %s', e)
+        return Response([], status=status.HTTP_200_OK)
+
     try:
         return Musica.objects.get(youtube_id=yid)
     except Musica.MultipleObjectsReturned:
@@ -416,19 +545,27 @@ def _build_ydl_opts_js_runtime(opts: dict) -> dict:
 
     logger.debug(f"_build_ydl_opts_js_runtime: aplicando runtime={runtime_str}")
     opts['extractor_args'] = {'youtube': {'js_runtimes': [runtime_str]}}
-    return opts
 
+    # configure ffmpeg location automatically if we have one of the helper
+    # packages installed; this prevents yt-dlp from complaining about missing
+    # ffmpeg/ffprobe when the binary is bundled via pip (imageio-ffmpeg,
+    # ffmpeg-static, etc.). if the user has installed a system ffmpeg the
+    # default behaviour (no setting) is fine.
+    try:
+        import imageio_ffmpeg
+        opts['ffmpeg_location'] = imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        try:
+            import ffmpeg_static
+            opts['ffmpeg_location'] = ffmpeg_static.path
+        except Exception:
+            pass
 
-# ============================================================================
-# ASAAS: helpers + endpoints
-# ============================================================================
-
-def _asaas_headers():
-    return {
-        'access_token': settings.ASAAS_API_KEY,
-        'Content-Type': 'application/json'
-    }
-
+    # apply proxy from settings if provided (YT_DLP_PROXY)
+    proxy = getattr(settings, 'YT_DLP_PROXY', None)
+    if proxy:
+        # yt-dlp expects e.g. 'http://127.0.0.1:8888' or 'socks5://...'
+        opts['proxy'] = proxy
 
 def _ensure_asaas_customer(user, document=None):
     """Garantir que exista um AsaasCustomer local; cria no Asaas se necessário."""
@@ -582,7 +719,11 @@ def asaas_payment_status(request):
     if not pid:
         return Response({'error': 'id parameter required'}, status=400)
 
+    # first try looking for a record with the external asaas_payment_id
     payment = Payment.objects.filter(asaas_payment_id=pid).first()
+    # if that fails, fall back to treating `pid` as our local Payment.pk
+    if not payment and pid.isdigit():
+        payment = Payment.objects.filter(id=int(pid)).first()
     if not payment:
         return Response({'error': 'payment_not_found'}, status=404)
 
@@ -590,6 +731,119 @@ def asaas_payment_status(request):
     if payment.raw:
         resp['raw'] = payment.raw
     return Response(resp)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def asaas_my_payment(request):
+    """Return the current user's most recent/pending Asaas payment (if any)."""
+    user = request.user
+    try:
+        # prefer pending PIX payments
+        pending = Payment.objects.filter(usuario=user, method='PIX').exclude(status__in=['paid', 'cancelled', 'failed']).order_by('-criado_em').first()
+        if pending:
+            p = pending
+        else:
+            # fallback to most recent payment of any method
+            p = Payment.objects.filter(usuario=user).order_by('-criado_em').first()
+
+        if not p:
+            return Response({'detail': 'not_found'}, status=404)
+
+        return Response({
+            'payment_id': p.id,
+            'asaas_payment_id': p.asaas_payment_id,
+            'pix_payload': getattr(p, 'pix_qr_payload', '') or '',
+            'pix_qr': getattr(p, 'pix_qr_image', '') or '',
+            'copy_paste': getattr(p, 'pix_qr_payload', '') or '',
+            'status': p.status,
+            'raw': p.raw or {},
+        })
+    except Exception as e:
+        logger.exception('Error in asaas_my_payment: %s', e)
+        return Response({'error': 'internal_error'}, status=500)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def asaas_cancel_payment(request):
+    """Cancel a payment locally and attempt to cancel it on Asaas if possible.
+
+    Accepts JSON body with either `payment_id` (local DB id) or `asaas_id` (provider id).
+    """
+    user = request.user
+    pid = request.data.get('payment_id') or request.data.get('id')
+    asaas_id = request.data.get('asaas_id') or request.data.get('asaas_payment_id')
+    try:
+        payment = None
+        if pid:
+            payment = Payment.objects.filter(id=pid, usuario=user).first()
+        if not payment and asaas_id:
+            payment = Payment.objects.filter(asaas_payment_id=asaas_id, usuario=user).first()
+        if not payment:
+            return Response({'error': 'payment_not_found'}, status=404)
+
+        # Do not cancel already paid payments
+        if str(payment.status).lower() == 'paid':
+            return Response({'error': 'already_paid'}, status=400)
+
+        # attempt to cancel on Asaas if we have an id
+        if payment.asaas_payment_id:
+            try:
+                cancel_url = f"{settings.ASAAS_BASE_URL.rstrip('/')}/api/v3/payments/{payment.asaas_payment_id}/cancel"
+                resp = requests.post(cancel_url, headers=_asaas_headers(), timeout=settings.ASAAS_TIMEOUT)
+                logger.info('Asaas cancel response %s: %s', resp.status_code, resp.text[:200])
+            except Exception as e:
+                logger.warning('Failed to call Asaas cancel: %s', e)
+
+        payment.status = 'cancelled'
+        payment.save(update_fields=['status', 'atualizado_em'])
+
+        return Response({'status': 'cancelled'})
+    except Exception as e:
+        logger.exception('Error cancelling payment: %s', e)
+        return Response({'error': 'internal_error'}, status=500)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def asaas_cancel_subscription(request):
+    """Cancel a user's active subscription (local record) and attempt to cancel on Asaas.
+
+    Accepts optional JSON body with `subscription_id` or `asaas_subscription_id`.
+    If none provided, cancels the user's most recent active subscription.
+    """
+    user = request.user
+    sub_id = request.data.get('subscription_id') or request.data.get('id')
+    asaas_id = request.data.get('asaas_subscription_id') or request.data.get('asaas_id')
+    try:
+        subscription = None
+        if sub_id:
+            subscription = Subscription.objects.filter(id=sub_id, usuario=user).first()
+        if not subscription and asaas_id:
+            subscription = Subscription.objects.filter(asaas_subscription_id=asaas_id, usuario=user).first()
+        if not subscription:
+            # fallback: most recent active subscription
+            subscription = Subscription.objects.filter(usuario=user, status='active').order_by('-criado_em').first()
+        if not subscription:
+            return Response({'error': 'subscription_not_found'}, status=404)
+
+        # If there's an asaas_subscription_id attempt to cancel with Asaas
+        if subscription.asaas_subscription_id:
+            try:
+                cancel_url = f"{settings.ASAAS_BASE_URL.rstrip('/')}/api/v3/subscriptions/{subscription.asaas_subscription_id}/cancel"
+                resp = requests.post(cancel_url, headers=_asaas_headers(), timeout=settings.ASAAS_TIMEOUT)
+                logger.info('Asaas subscription cancel response %s: %s', resp.status_code, resp.text[:200])
+            except Exception as e:
+                logger.warning('Failed to call Asaas subscription cancel: %s', e)
+
+        subscription.status = 'cancelled'
+        subscription.save(update_fields=['status', 'atualizado_em'])
+
+        return Response({'status': 'cancelled'})
+    except Exception as e:
+        logger.exception('Error cancelling subscription: %s', e)
+        return Response({'error': 'internal_error'}, status=500)
 
 
 @api_view(['POST'])
@@ -781,12 +1035,6 @@ def asaas_create_pix(request):
             'pix_qr': payment.pix_qr_image,
             'copy_paste': copy_paste,
             'status': payment.status,
-            # If the frontend wants to display a label for the plan it
-            # requested we can echo the description we received.  The
-            # JS already knows what plan the user picked, but sending it
-            # back makes the response self‑contained and simplifies some
-            # tests.
-            'description': description,
         })
 
     except requests.exceptions.ReadTimeout as te:
@@ -797,81 +1045,6 @@ def asaas_create_pix(request):
         return Response({'error': 'asaas_request_failed', 'detail': str(re)}, status=502)
     except Exception as e:
         logger.exception('Erro criando pagamento Asaas: %s', e)
-        return Response({'error': 'internal_error'}, status=500)
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def cancel_subscription(request):
-    """Marca a assinatura ativa do usuário como cancelada.
-
-    Esta API é chamada pela página de assinatura quando o usuário pressiona o
-    botão de cancelar.  Retorna status 404 se não houver assinatura ativa.
-    Se a assinatura tiver um ``asaas_subscription_id`` tentamos também avisar
-    o Asaas (não crítico, é um *best effort*).
-    """
-    user = request.user
-    sub = Subscription.objects.filter(usuario=user, status='active').order_by('-periodo_termina_em').first()
-    if not sub:
-        return Response({'error': 'no_active_subscription'}, status=404)
-
-    # inform Asaas se necessário
-    if sub.asaas_subscription_id:
-        try:
-            resp = requests.post(
-                f"{settings.ASAAS_BASE_URL.rstrip('/')}/api/v3/subscriptions/{sub.asaas_subscription_id}/cancel",
-                headers=_asaas_headers(),
-                timeout=settings.ASAAS_TIMEOUT,
-            )
-            if resp.status_code not in (200, 204):
-                logger.warning('Asaas cancel subscription failed %s %s', resp.status_code, resp.text)
-        except Exception as e:
-            logger.warning('Asaas cancel subscription exception %s', e)
-
-    sub.status = 'cancelled'
-    sub.save(update_fields=['status'])
-    return Response({'status': 'cancelled'})
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def asaas_cancel_pix(request):
-    """Cancela um pagamento PIX pendente no Asaas.
-
-    O cliente envia `payment_id` (o id local) e nós marcamos o registro
-    correspondente como cancelado.  Tentamos também notificar o Asaas, mas
-    a falha nessa segunda etapa não impede que o pagamento seja cancelado
-    localmente.
-    """
-    user = request.user
-    pid = request.data.get('payment_id') or request.data.get('id')
-    if not pid:
-        return Response({'error': 'payment_id is required'}, status=400)
-
-    try:
-        payment = Payment.objects.filter(usuario=user, id=pid, method='PIX')
-        payment = payment.exclude(status__in=['paid', 'cancelled', 'failed']).first()
-        if not payment:
-            return Response({'error': 'payment_not_found_or_not_pending'}, status=404)
-
-        # notify Asaas (best effort)
-        if payment.asaas_payment_id:
-            try:
-                resp = requests.post(
-                    f"{settings.ASAAS_BASE_URL.rstrip('/')}/api/v3/payments/{payment.asaas_payment_id}/cancel",
-                    headers=_asaas_headers(),
-                    timeout=settings.ASAAS_TIMEOUT,
-                )
-                if resp.status_code not in (200, 204):
-                    logger.warning('Asaas cancel request failed %s %s', resp.status_code, resp.text)
-            except Exception as e:
-                logger.warning('Asaas cancel request exception %s', e)
-
-        payment.status = 'cancelled'
-        payment.save(update_fields=['status'])
-        return Response({'status': 'cancelled'})
-    except Exception as e:
-        logger.exception('Error cancelling pix payment: %s', e)
         return Response({'error': 'internal_error'}, status=500)
 
 
@@ -1068,7 +1241,7 @@ def asaas_webhook(request):
                         # só criar se usuário não tiver assinatura ativa
                         user = p.usuario
                         if user:
-                            has_active = Subscription.objects.filter(usuario=user, status='active', periodo_termina_em__gte=timezone.now()).exists()
+                            has_active = Subscription.objects.filter(usuario=user, status='active').exists()
                             if not has_active:
                                 # criar assinatura válida de acordo com configuração
                                 sub = Subscription.objects.create(
@@ -1143,7 +1316,6 @@ def _get_or_create_musica_by_youtube_id(video_id: str) -> 'Musica | None':
                 opts = {
                     'quiet': True, 
                     'skip_download': True,
-                    'proxy': 'http://127.0.0.1:8888',  # Seu túnel via Windows
                     'cookiefile': _get_cookiefile_path(), # Usa o cookies.txt automaticamente
                 }
                 
@@ -1238,10 +1410,16 @@ def register(request):
                 backend = 'django.contrib.auth.backends.ModelBackend'
             user.backend = backend
             auth_login(request, user, backend=backend)
-            # mensagem de toast normal
-            messages.success(request, 'Parabéns! Você está usando 1 dia de teste grátis. Aproveite e curta suas músicas!')
-            # flag para overlay grande que aparecerá na próxima página de busca
-            request.session['welcome_overlay'] = True
+            # message shown on next page load; using large congratulatory text per request
+            # Determine how many trial days were granted (lookup plan)
+            trial_len = 1
+            try:
+                trial_plan = Plan.objects.filter(slug__startswith='trial').first()
+                if trial_plan and hasattr(trial_plan, 'trial_days'):
+                    trial_len = trial_plan.trial_days or trial_len
+            except Exception:
+                pass
+            messages.success(request, f"Parabéns! Você está usando {trial_len} dia{'s' if trial_len!=1 else ''} de teste grátis. Aproveite e curta suas músicas!")
             next_url = request.POST.get('next') or request.GET.get('next') or settings.LOGIN_REDIRECT_URL or '/'
             return redirect(next_url)
 
@@ -1288,11 +1466,6 @@ def profile_edit(request):
         return redirect('home')
 
     # include subscription info for profile page
-    # expire server-side old subscriptions whenever this endpoint runs
-    try:
-        Subscription.objects.filter(status='active', periodo_termina_em__lt=timezone.now()).update(status='cancelled')
-    except Exception:
-        pass
     try:
         assinaturas = Subscription.objects.filter(usuario=user, status='active').order_by('-criado_em')[:20]
     except Exception:
@@ -1408,9 +1581,6 @@ def buscar_musicas_html(request):
     musicas_list = []
     explorar_default = {}
 
-    # check if we should show the big welcome overlay (set after registro)
-    show_welcome = request.session.pop('welcome_overlay', False)
-
     if not query:
         featured = _get_featured_albums()
         musicas_list = _get_local_musicas()
@@ -1521,6 +1691,41 @@ def buscar_musicas_html(request):
     except Exception:
         generos_json = '[]'
 
+    # determine a footer link (e.g. banner or registration URL)
+    from .models import Banner
+    footer_link = None
+    try:
+        b = Banner.objects.filter(is_active=True).exclude(link__isnull=True).order_by('ordem').first()
+        if b and b.link:
+            footer_link = b.link
+    except Exception:
+        footer_link = None
+
+    if not footer_link:
+        from django.urls import reverse
+        footer_link = reverse('register')
+
+    # banner used in the "explorar" hero section; can be None
+    try:
+        explore_banner = Banner.objects.filter(is_active=True).order_by('ordem').first()
+    except Exception:
+        explore_banner = None
+
+    # optional file that users can download via profile
+    try:
+        af = AppDownload.objects.filter(is_active=True).order_by('-created_at').first()
+        if af:
+            app_file = {
+                'id': af.id,
+                'titulo': af.titulo,
+                'arquivo_url': af.arquivo.url if af.arquivo and hasattr(af.arquivo, 'url') else '',
+                'created_at': af.created_at.isoformat(),
+            }
+        else:
+            app_file = None
+    except Exception:
+        app_file = None
+
     return render(request, 'core/buscar_musicas.html', {
         'results': results,
         'albums': albums,
@@ -1535,7 +1740,10 @@ def buscar_musicas_html(request):
         'favoritos_usuario': favoritos_usuario,
         'assinatura_ativa': assinatura_ativa,
         'generos_json': generos_json,
-        'show_welcome': show_welcome,
+        'promo_timeout': getattr(settings, 'PROMO_TIMEOUT', 30),
+        'footer_link': footer_link,
+        'explore_banner': explore_banner,
+        'app_file': app_file,
     })
 
 
@@ -1559,11 +1767,6 @@ def assinatura(request):
         pending_payment = None
         has_pending = False
 
-    # expire any active subscriptions whose end date has passed
-    try:
-        Subscription.objects.filter(status='active', periodo_termina_em__lt=timezone.now()).update(status='cancelled')
-    except Exception:
-        pass
     try:
         assinaturas = Subscription.objects.filter(usuario=request.user, status='active').order_by('-criado_em')[:20]
     except Exception:
@@ -1573,8 +1776,8 @@ def assinatura(request):
     assinatura_ativa = assinaturas[0] if assinaturas else None
 
     # fetch available plans from DB to display on the assinaturas page
-    # do not include any free (price == 0) plans
     try:
+        # exclude free plans (price 0) from the list shown to users
         plans = list(Plan.objects.filter(price__gt=0).order_by('-is_active', 'price'))
     except Exception:
         plans = []
@@ -1604,8 +1807,34 @@ def assinatura(request):
         'SELECTED_PLAN_NAME': selected_plan_name,
         'has_pending_payment': has_pending,
         'pending_payment': pending_payment,
-        'pagamento_pendente': pending_payment,
     })
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+@login_required
+def profile_apps(request):
+    """Lista de arquivos de aplicativo disponíveis (HTML)."""
+    apps = AppDownload.objects.filter(is_active=True).order_by('-created_at')
+    return render(request, 'core/profile_apps.html', {'apps': apps})
+
+# ---------------------------------------------------------------------------
+# API endpoints
+# ---------------------------------------------------------------------------
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def app_downloads_api(request):
+    """Retorna a lista de `AppDownload` ativos em formato JSON.
+
+    Esse endpoint é usado pelo aplicativo móvel para exibir todas as
+    versões/disponibilidades e permitir o download.
+    """
+    apps = AppDownload.objects.filter(is_active=True).order_by('-created_at')
+    serializer = AppDownloadSerializer(apps, many=True, context={'request': request})
+    return Response(serializer.data)
 
 
 def _get_featured_albums() -> Dict:
@@ -1721,7 +1950,13 @@ def _get_local_musicas() -> List[Dict]:
 
 @api_view(['GET'])
 def artistas_list_api(request):
-    """Lista todos os artistas."""
+    """Lista todos os artistas.
+
+    Parâmetros de query string opcionais:
+    - genero: slug de gênero para filtrar por gênero
+    - pais: substring de país
+    - nome ou q: busca por nome
+    """
     artistas = Artista.objects.all().order_by('nome')
 
     genero = request.GET.get('genero')
@@ -1732,10 +1967,20 @@ def artistas_list_api(request):
     if pais:
         artistas = artistas.filter(pais__icontains=pais)
 
-    # allow filtering by name (used by frontend when loading artist details)
     nome = request.GET.get('nome') or request.GET.get('q')
     if nome:
         artistas = artistas.filter(nome__icontains=nome)
+
+    serializer = ArtistaSerializer(artistas, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+def trending_list_api(request):
+    """Retorna JSON de músicas em alta ordenadas pela tabela TrendingMusic."""
+    entries = TrendingMusic.objects.all().order_by('-added_at')
+    serializer = TrendingMusicSerializer(entries, many=True, context={'request': request})
+    return Response(serializer.data)
 
     page = int(request.GET.get('page', 1))
     page_size = int(request.GET.get('page_size', 20))
@@ -1871,6 +2116,8 @@ def album_detail_api(request, album_id):
                             logger.debug(f"Prefetch stream falhou para {vid}: {e}")
 
         resp = {
+            # default to the incoming identifier but we will overwrite if we
+            # manage to persist the album in the database.
             'id': album_id,
             'title': details.get('title') or details.get('name') or '',
             'artist': '',
@@ -1917,6 +2164,10 @@ def album_detail_api(request, album_id):
                     'ano': year_int if year_int else timezone.now().year,
                 }
                 album_db = Album.objects.create(**album_kwargs)
+            # ensure the response id points to the real database object
+            if album_db:
+                resp['id'] = album_db.id
+                # sharing disabled – we no longer expose share metadata
 
             for idx, t in enumerate(normalized_tracks):
                 try:
@@ -2215,6 +2466,9 @@ def shared_playlist_view(request, share_uuid):
     return render(request, 'core/shared_playlist.html', context)
 
 
+# shared_album_view is no longer needed; album sharing removed from the app
+
+
 def shared_track_view(request):
     # simple page that stores track info to localStorage and redirects to main app
     tid = request.GET.get('id', '')
@@ -2328,6 +2582,11 @@ def playlist_share_regenerate_api(request, playlist_id):
     return Response({'share_uuid': str(playlist.share_uuid), 'share_url': share_url})
 
 
+# --- album sharing endpoints removed ----------------------------
+# album sharing has been deprecated/disabled; endpoints were deleted
+# (old logic can be restored from version control if needed)
+
+
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -2381,27 +2640,60 @@ def playlist_add_musica_api(request, playlist_id):
 @csrf_exempt
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-def playlist_remove_musica_api(request, playlist_id, item_id):
-    """Remove música da playlist."""
+def playlist_remove_musica_api(request, playlist_id, item_id=None):
+    """Remove uma música da playlist.
+
+    Endpoint flexível usado por clientes REST (mobile/app/react) para excluir
+    uma faixa. Suporta dois modos:
+
+      * URL contém `item_id` (roteamento legado): remove o item da tabela
+        `PlaylistItem` com a chave primária correspondente.
+      * HTTP DELETE com JSON ou query param `musica_id`: localiza o item
+        pela música (id numérico ou YouTube id) e apaga.
+
+    O método também reprojeta as ordens posteriores e chama
+    ``playlist.update_stats()`` antes de retornar.
+    """
     playlist = get_object_or_404(Playlist, id=playlist_id)
 
     if playlist.usuario != request.user and request.user not in playlist.colaboradores.all():
         return Response({'success': False, 'error': 'Sem permissão'}, status=403)
 
-    try:
-        item = PlaylistItem.objects.get(id=item_id, playlist=playlist)
-        item.delete()
+    # caso trabalhemos com item_id diretamente (rotas antigas)
+    if item_id is not None:
+        try:
+            item = PlaylistItem.objects.get(id=item_id, playlist=playlist)
+        except PlaylistItem.DoesNotExist:
+            return Response({'success': False, 'error': 'Item não encontrado'}, status=404)
+    else:
+        # procurar musica_id no corpo ou em query params
+        musica_id = None
+        if isinstance(request.data, dict):
+            musica_id = request.data.get('musica_id') or request.data.get('id')
+        if not musica_id:
+            musica_id = request.GET.get('musica_id') or request.GET.get('id')
 
-        items = PlaylistItem.objects.filter(playlist=playlist).order_by('ordem')
-        for idx, it in enumerate(items):
-            it.ordem = idx + 1
-            it.save()
+        if not musica_id:
+            return Response({'success': False, 'error': 'musica_id é obrigatório'}, status=400)
 
-        playlist.update_stats()
+        # localizar item pela música
+        item = None
+        if str(musica_id).isdigit():
+            item = PlaylistItem.objects.filter(playlist=playlist, musica__id=musica_id).first()
+        if not item:
+            item = PlaylistItem.objects.filter(playlist=playlist, musica__youtube_id=musica_id).first()
+        if not item:
+            return Response({'success': False, 'error': 'Música não encontrada na playlist'}, status=404)
 
-        return Response({'success': True, 'message': 'Música removida'})
-    except PlaylistItem.DoesNotExist:
-        return Response({'success': False, 'error': 'Item não encontrado'}, status=404)
+    # item encontrado; exclui e reajusta ordens
+    item.delete()
+    items = PlaylistItem.objects.filter(playlist=playlist).order_by('ordem')
+    for idx, it in enumerate(items):
+        it.ordem = idx + 1
+        it.save()
+
+    playlist.update_stats()
+    return Response({'success': True, 'message': 'Música removida'})
 
 
 @api_view(['POST'])
@@ -2429,44 +2721,7 @@ def playlist_reorder_api(request, playlist_id):
     return Response({'success': True, 'message': 'Playlist reordenada'})
 
 
-# ============================================================================
-# VIEWS DE HISTÓRICO E FAVORITOS
-# ============================================================================
 
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def historico_api(request):
-    """Histórico de reprodução do usuário."""
-    if request.method == 'GET':
-        historico = HistoricoReproducao.objects.filter(
-            usuario=request.user
-        ).select_related('musica', 'musica__artista', 'musica__album').order_by('-tocada_em')[:50]
-
-        serializer = HistoricoSerializer(historico, many=True)
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
-        musica_id = request.data.get('musica_id')
-        duracao_reproduzida = request.data.get('duracao_reproduzida', 0)
-        completou = request.data.get('completou', False)
-
-        if not musica_id:
-            return Response({'error': 'musica_id é obrigatório'}, status=400)
-
-        try:
-            musica = _resolve_musica_identifier(musica_id)
-        except Musica.DoesNotExist:
-            return Response({'error': 'Música não encontrada'}, status=404)
-
-        historico = HistoricoReproducao.objects.create(
-            usuario=request.user,
-            musica=musica,
-            duracao_reproduzida=timedelta(seconds=float(duracao_reproduzida)),
-            completou=completou
-        )
-
-        serializer = HistoricoSerializer(historico)
-        return Response(serializer.data, status=201)
 
 
 @api_view(['GET', 'POST', 'DELETE'])
@@ -2777,7 +3032,15 @@ def buscar_musicas_api(request):
 
     try:
         ytmusic = _init_ytmusic()
+    except ImportError as ie:
+        # Dependência ausente: informe cliente e evite rastreamento de stack
+        logger.error(f"YTMusic não disponível: {ie}")
+        return Response(
+            {'error': str(ie)},
+            status=503,
+        )
 
+    try:
         raw_songs = ytmusic.search(query, filter="songs", limit=20)
         songs = []
         for item in raw_songs:
@@ -2805,48 +3068,6 @@ def buscar_musicas_api(request):
 
     except Exception as e:
         logger.error(f"Erro na API de busca: {e}", exc_info=True)
-        return Response({'error': str(e)}, status=500)
-
-
-@api_view(['GET'])
-def featured_albums_api(request):
-    """API para carregar mais álbuns de um gênero."""
-    genre = request.GET.get('genre')
-    if not genre:
-        return Response({'error': 'Parâmetro genre é obrigatório.'}, status=400)
-
-    try:
-        limit = min(int(request.GET.get('limit', 4)), 20)
-        offset = int(request.GET.get('offset', 0))
-    except Exception:
-        return Response({'error': 'Parâmetros limit/offset inválidos.'}, status=400)
-
-    cache_key = f'featured_genre_{genre}_{limit}_{offset}'
-    cached = cache.get(cache_key)
-    if cached:
-        return Response({'albums': cached})
-
-    if not _check_connectivity():
-        return Response({'error': 'Sem conectividade com music.youtube.com'}, status=503)
-
-    try:
-        ytmusic = _init_ytmusic()
-        raw = ytmusic.search(genre, filter='albums', limit=offset + limit) or []
-        sliced = raw[offset:offset + limit]
-
-        albums = []
-        for a in sliced:
-            album = _normalize_album(a)
-            if album:
-                albums.append(album)
-
-        albums = _fetch_album_details_parallel(albums)
-
-        cache.set(cache_key, albums, CACHE_TIMEOUT)
-        return Response({'albums': albums})
-
-    except Exception as e:
-        logger.error(f"Erro ao buscar álbuns em destaque: {e}")
         return Response({'error': str(e)}, status=500)
 
 
@@ -3057,6 +3278,14 @@ def track_info_api(request):
         return Response({'error': str(e)}, status=500)
 
 
+# simple in‑memory locks to prevent multiple concurrent yt-dlp runs for
+# the same video_id. keys map to threading.Event that is set when the
+# first extraction completes. this is intentionally very lightweight and
+# will be lost on process restart; it's only to avoid hammering yt-dlp when
+# several HTTP requests arrive at once.
+_stream_locks: dict[str, "threading.Event"] = {}
+
+
 def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[str]:
     """Helper que obtém (e cacheia) a URL de streaming para um vídeo."""
     if not video_id:
@@ -3066,6 +3295,17 @@ def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[st
     cached = cache.get(cache_key)
     if cached:
         return cached
+
+    # if another request is already fetching this video, wait for it
+    if video_id in _stream_locks:
+        ev = _stream_locks[video_id]
+        ev.wait(timeout=10)
+        return cache.get(cache_key)
+
+    # otherwise create a lock/event for ourselves
+    import threading
+    ev = threading.Event()
+    _stream_locks[video_id] = ev
 
     urls_to_try = [
         f'https://music.youtube.com/watch?v={video_id}',
@@ -3085,14 +3325,6 @@ def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[st
     
     
 
-    if not video_id.startswith('127.0.0.1') and not video_id.startswith('localhost'):
-        proxy_setting = 'http://127.0.0.1:8888'  # Proxy do seu celular
-        if proxy_setting:
-            ydl_opts['proxy'] = proxy_setting
-            logger.debug('aplicando proxy para yt-dlp', extra={'proxy': proxy_setting})
-    else:
-        logger.debug('ignorando proxy para conexão local')
-        
     if is_prefetch:
         ydl_opts['extract_flat'] = True
         ydl_opts['format'] = 'bestaudio[abr<=128]/bestaudio'
@@ -3110,33 +3342,41 @@ def _extract_stream_url(video_id: str, is_prefetch: bool = False) -> Optional[st
     }
 
     last_error = None
-    for attempt_url in urls_to_try:
-        for attempt in range(MAX_RETRIES):
-            try:
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    info = ydl.extract_info(attempt_url, download=False)
-                    if isinstance(info, dict):
-                        stream_url = info.get('url')
-                        if not stream_url and info.get('formats'):
-                            formats = info.get('formats', [])
-                            if formats:
-                                audio_formats = [f for f in formats if f.get('acodec') != 'none' and f.get('vcodec') == 'none']
-                                if audio_formats:
-                                    stream_url = audio_formats[-1].get('url')
-                                else:
-                                    stream_url = formats[-1].get('url')
+    try:
+        for attempt_url in urls_to_try:
+            for attempt in range(MAX_RETRIES):
+                try:
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        info = ydl.extract_info(attempt_url, download=False)
+                        if isinstance(info, dict):
+                            stream_url = info.get('url')
+                            if not stream_url and info.get('formats'):
+                                formats = info.get('formats', [])
+                                if formats:
+                                    audio_formats = [f for f in formats if f.get('acodec') != 'none' and f.get('vcodec') == 'none']
+                                    if audio_formats:
+                                        stream_url = audio_formats[-1].get('url')
+                                    else:
+                                        stream_url = formats[-1].get('url')
 
-                        if stream_url:
-                            cache.set(cache_key, stream_url, STREAM_CACHE_TIMEOUT)
-                            return stream_url
-                    break
-            except Exception as e:
-                last_error = str(e)
-                logger.debug(f"_extract_stream_url tentativa {attempt + 1} para {attempt_url} falhou: {e}")
-                time.sleep(1 * (attempt + 1))
+                            if stream_url:
+                                cache.set(cache_key, stream_url, STREAM_CACHE_TIMEOUT)
+                                return stream_url
+                        break
+                except Exception as e:
+                    last_error = str(e)
+                    logger.debug(f"_extract_stream_url tentativa {attempt + 1} para {attempt_url} falhou: {e}")
+                    time.sleep(1 * (attempt + 1))
 
-    logger.debug(f"_extract_stream_url: não encontrou stream para {video_id}: {last_error}")
-    return None
+        logger.debug(f"_extract_stream_url: não encontrou stream para {video_id}: {last_error}")
+        return None
+    finally:
+        # signal any waiters and remove lock entry
+        try:
+            ev.set()
+        except Exception:
+            pass
+        _stream_locks.pop(video_id, None)
 
 
 @api_view(['GET'])
@@ -3162,7 +3402,79 @@ def streaming_url_api(request):
         return Response({'error': str(e)}, status=500)
 
 
-# Download-related view and helpers have been removed per request. See git history if needed.
+@api_view(['GET'])
+def download_track_api(request):
+    """Retorna um arquivo MP3 convertido para um vídeo do YouTube.
+
+    Baixa a melhor faixa de áudio disponível via yt_dlp e utiliza o
+    "FFmpegExtractAudio" para converter para mp3. O arquivo é armazenado em
+    um diretório temporário e enviado como anexo. O diretório é removido após
+    a resposta.
+    """
+    video_id = request.GET.get('video_id')
+    if not video_id:
+        return Response({'error': 'Parâmetro video_id é obrigatório.'}, status=400)
+    if not _is_valid_youtube_id(video_id):
+        return Response({'error': 'video_id inválido'}, status=400)
+
+    tmpdir = tempfile.mkdtemp()
+    try:
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': os.path.join(tmpdir, '%(id)s.%(ext)s'),
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+            'quiet': True,
+        }
+        # re‑use any existing cookie file or headers from _extract_stream_url
+        ydl_opts = _build_ydl_opts_js_runtime(ydl_opts)
+
+        url = f'https://www.youtube.com/watch?v={video_id}'
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+        except (yt_dlp.utils.PostProcessingError, yt_dlp.utils.DownloadError) as pp_err:
+            # DownloadError is raised by yt-dlp when PostProcessingError occurs
+            # inside extract_info; catch both to be safe. If the message
+            # mentions ffmpeg/ffprobe, retry without conversion.
+            const_msg = str(pp_err).lower()
+            if 'ffmpeg' in const_msg or 'ffprobe' in const_msg:
+                logger.warning('ffmpeg missing during download, retrying without postprocessors: %s', pp_err)
+                ydl_opts.pop('postprocessors', None)
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=True)
+            else:
+                # re-raise if it's another kind of download error
+                raise
+        if not isinstance(info, dict):
+            raise ValueError('yt_dlp não retornou dict')
+        filename = ydl.prepare_filename(info)
+        # if we performed conversion above the file will be .mp3; otherwise it
+        # will have the original extension supplied by yt-dlp
+        target_file = filename
+        if 'postprocessors' in ydl_opts:
+            # conversion still present, ensure mp3
+            target_file = os.path.splitext(filename)[0] + '.mp3'
+        if not os.path.exists(target_file):
+            return Response({'error': 'Falha ao baixar/convertar áudio. Verifique se o servidor tem ffmpeg instalado.'}, status=500)
+
+        response = FileResponse(open(target_file, 'rb'), as_attachment=True,
+                                filename=f"{info.get('title','track')}{os.path.splitext(target_file)[1]}")
+        return response
+    except Exception as e:
+        logger.exception(f"Erro no download_track_api para {video_id}")
+        return Response({'error': str(e)}, status=500)
+    finally:
+        # cleanup temporários
+        try:
+            shutil.rmtree(tmpdir)
+        except Exception:
+            pass
+
+
 
 # Download and conversion helpers have been completely removed.
 # No local utilities related to file conversion remain in this file.
@@ -3188,7 +3500,13 @@ def delete_playlist(request, playlist_id):
 
 @login_required
 def remove_track_from_playlist(request, playlist_id):
-    """DELETE /api/playlist/<id>/remove/ — remove uma música da playlist."""
+    """[DEPRECATED]
+    DELETE /api/playlist/<id>/remove/ — remove uma música da playlist.
+    
+    Essa view legacy não é utilizada pela API DRF moderna; o novo endpoint
+    ``playlist_remove_musica_api`` substituiu-a e oferece suporte a remoção
+    por ``musica_id``. A rota associada foi comentada em urls.py.
+    """
     if request.method != 'DELETE':
         return JsonResponse({'error': 'Método não permitido'}, status=405)
 
@@ -3220,6 +3538,210 @@ def remove_track_from_playlist(request, playlist_id):
 
 
 # ============================================================================
+# ============================================================================
+# API DE AUTENTICAÇÃO (MOBILE / TOKEN)
+# ============================================================================
+
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def api_auth_login(request):
+    """Login via API — retorna Token para uso no mobile.
+
+    Além de gerar/retornar o token também chamamos `auth_login` para
+    estabelecer a sessão Django (necessário para disparar os sinais
+    user_logged_in/user_logged_out) e possibilitar alertas de e‑mail.
+    """
+    username = request.data.get('username', '').strip()
+    password = request.data.get('password', '')
+    if not username or not password:
+        return Response({'error': 'Informe usuário e senha'}, status=400)
+
+    user = authenticate(request, username=username, password=password)
+    if user is None:
+        return Response({'error': 'Credenciais inválidas'}, status=401)
+
+    # log the user into the session so signals fire normally
+    try:
+        auth_login(request, user)
+    except Exception:
+        # se algo falhar não é crítico — token ainda será emitido
+        pass
+
+    token, _ = Token.objects.get_or_create(user=user)
+    return Response({
+        'token': token.key,
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+        },
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def api_auth_logout(request):
+    """Logout via API: remove token and call django logout so signals fire."""
+    # delete token if exists
+    try:
+        Token.objects.filter(user=request.user).delete()
+    except Exception:
+        pass
+    try:
+        auth_logout(request)
+    except Exception:
+        pass
+    return Response({'success': True})
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def api_auth_register(request):
+    """Cadastro via API — cria usuário e retorna Token."""
+    username = request.data.get('username', '').strip()
+    email = request.data.get('email', '').strip()
+    # note: we don't call auth_login here because registration route
+    # typically logs the user in separately on the client side; signals
+    # for user creation will fire automatically via post_save.
+    password = request.data.get('password', '')
+    password2 = request.data.get('password2', '')
+
+    errors = {}
+    if not username:
+        errors['username'] = ['Campo obrigatório']
+    if not email:
+        errors['email'] = ['Campo obrigatório']
+    if not password:
+        errors['password'] = ['Campo obrigatório']
+    if password != password2:
+        errors['password2'] = ['As senhas não coincidem']
+    if errors:
+        return Response(errors, status=400)
+
+    UserModel = get_user_model()
+    if UserModel.objects.filter(username__iexact=username).exists():
+        return Response({'username': ['Este nome de usuário já está em uso']}, status=400)
+    if UserModel.objects.filter(email__iexact=email).exists():
+        return Response({'email': ['Este e-mail já está em uso']}, status=400)
+
+    user = UserModel.objects.create_user(username=username, email=email, password=password)
+    token, _ = Token.objects.get_or_create(user=user)
+    return Response({
+        'token': token.key,
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+        },
+    }, status=201)
+
+
+# ---------------------------------------------------------------------
+# password reset helpers for mobile/api clients
+# ---------------------------------------------------------------------
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def api_auth_password_reset(request):
+    """Dispara email contendo link de redefinição.
+    Link será consumido pelo frontend React/Native.
+    """
+    email = request.data.get('email', '').strip()
+    if not email:
+        return Response({'email': ['Campo obrigatório']}, status=400)
+    UserModel = get_user_model()
+    try:
+        user = UserModel.objects.get(email__iexact=email)
+    except UserModel.DoesNotExist:
+        # não revelar existência do e-mail
+        return Response({'success': True})
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    frontend = getattr(settings, 'FRONTEND_URL', '').rstrip('/')
+    reset_link = f"{frontend}/reset-password?uid={uid}&token={token}"
+    # utiliza o sinal já criado para envio
+    from core.signals import trigger_password_reset_email
+    trigger_password_reset_email(user, reset_link)
+    return Response({'success': True})
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def api_auth_password_reset_confirm(request):
+    """Recebe uid/token e nova senha, redefine se válido."""
+    uidb64 = request.data.get('uid')
+    token = request.data.get('token')
+    new_pw = request.data.get('password', '')
+    if not uidb64 or not token:
+        return Response({'error': 'Dados incompletos.'}, status=400)
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        UserModel = get_user_model()
+        user = UserModel.objects.get(pk=uid)
+    except Exception:
+        return Response({'error': 'Link inválido.'}, status=400)
+    if not default_token_generator.check_token(user, token):
+        return Response({'error': 'Token expirado ou inválido.'}, status=400)
+    if not new_pw:
+        return Response({'password': ['Informe a nova senha']}, status=400)
+    user.set_password(new_pw)
+    user.save()
+    return Response({'success': True})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_auth_profile(request):
+    """Retorna dados do perfil do usuário autenticado."""
+    user = request.user
+    # incluir informações de assinatura ativa (se houver) para exibir no app móvel
+    try:
+        assinatura = Subscription.objects.filter(usuario=user, status='active').order_by('-criado_em').first()
+    except Exception:
+        assinatura = None
+
+    assinatura_data = None
+    if assinatura:
+        assinatura_data = {
+            'id': assinatura.id,
+            'plan': assinatura.plano_id,
+            'status': assinatura.status,
+            'periodo_termina_em': assinatura.periodo_termina_em.isoformat() if getattr(assinatura, 'periodo_termina_em', None) else None,
+        }
+
+    # include app download info if available
+    app_info = None
+    try:
+        app_obj = AppDownload.objects.filter(is_active=True).order_by('-created_at').first()
+        if app_obj and app_obj.arquivo and hasattr(app_obj.arquivo, 'url'):
+            app_info = {
+                'id': app_obj.id,
+                'title': app_obj.titulo,
+                'file_url': app_obj.arquivo.url,
+            }
+    except Exception:
+        app_info = None
+
+    resp = {
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'date_joined': user.date_joined,
+        'assinatura_ativa': assinatura_data,
+    }
+    if app_info:
+        resp['app_file'] = app_info
+    return Response(resp)
+
+
 # ALIASES PARA COMPATIBILIDADE COM URLS.PY
 # ============================================================================
 
