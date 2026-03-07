@@ -118,6 +118,12 @@ class Genero(models.Model):
         help_text="Cor em hexadecimal (ex: #ff0000)",
         default="#8b5cf6"
     )
+    # URL opcional para imagem/capa do gênero (útil para thumbnails no frontend)
+    capa_url = models.URLField(blank=True, null=True)
+    # Campo JSON onde o administrador pode colar o arquivo JSON com artistas/faixas
+    # (compatível com Django >=3.1's JSONField). Pode conter a estrutura completa
+    # do arquivo que você colocou em /static/genres/*.json.
+    json_data = JSONField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -137,6 +143,156 @@ class Genero(models.Model):
             from django.utils.text import slugify
             self.slug = slugify(self.nome)[:60]
         super().save(*args, **kwargs)
+
+
+# ============================================================================
+# MODELO: BANNER
+# ============================================================================
+
+class Banner(models.Model):
+    """Banners exibidos no topo do app (carrossel)."""
+    titulo = models.CharField(max_length=200, blank=True)
+    subtitulo = models.CharField(max_length=300, blank=True)
+    imagem_url = models.URLField(blank=True, null=True, help_text='URL pública da imagem do banner')
+    link = models.URLField(blank=True, null=True, help_text='Link opcional ao clicar no banner')
+    ordem = models.IntegerField(default=0, help_text='Ordem de exibição (menor aparece primeiro)')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['ordem', '-created_at']
+        verbose_name = 'Banner'
+        verbose_name_plural = 'Banners'
+
+    def __str__(self):
+        return self.titulo or f"Banner #{self.pk}"
+
+
+# ============================================================================
+# MODELO: ARQUIVO DE APLICATIVO PARA DOWNLOAD
+# ============================================================================
+
+class AppDownload(models.Model):
+    """Representa um arquivo (por exemplo, APK/IPA) que pode ser baixado pelos usuários.
+
+    O administrador poderá criar várias instâncias, mas apenas a mais recente ativa
+    é exibida na área de perfil do site (e retornada pela API).
+    """
+    titulo = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Texto descritivo (ex: 'App Android v1.2')."
+    )
+    arquivo = models.FileField(upload_to='app_files/')
+    is_active = models.BooleanField(default=True,
+        help_text="Somente arquivos ativos são mostrados ao usuário.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Arquivo de Aplicativo'
+        verbose_name_plural = 'Arquivos de Aplicativo'
+
+    def __str__(self):
+        return self.titulo or f"AppDownload #{self.pk}"
+
+
+# ============================================================================
+# MODELO: BACKGROUND DE BUSCA
+# ============================================================================
+
+class SearchBackground(models.Model):
+    """Imagem de fundo, título e subtítulo exibidos na página de busca."""
+    titulo = models.CharField(max_length=200, blank=True)
+    subtitulo = models.CharField(max_length=300, blank=True)
+    imagem_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text='URL pública da imagem que será usada como fundo da página de busca'
+    )
+    ordem = models.IntegerField(
+        default=0,
+        help_text='Ordem de prioridade/alternância na página de busca (menor primeiro)'
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['ordem', '-created_at']
+        verbose_name = 'Background de Busca'
+        verbose_name_plural = 'Backgrounds de Busca'
+
+    def __str__(self):
+        return self.titulo or f"Busca #{self.pk}"
+
+
+# ============================================================================
+# MODELO: PROMOÇÃO PARA NÃO AUTENTICADOS
+# ============================================================================
+
+class AnonymousPromo(models.Model):
+    """Imagem promocional mostrada para usuários anônimos.
+
+    O aplicativo pode buscar esta entrada e exibí-la quando o player atingir
+    ``threshold_seconds`` de reprodução, incentivando cadastro ou login.
+    """
+
+    imagem_url = models.URLField(
+        help_text="URL pública da imagem promocional"
+    )
+    link_url = models.URLField(
+        blank=True, null=True,
+        help_text="Destino do clique quando imagem for pressionada"
+    )
+    threshold_seconds = models.PositiveIntegerField(
+        default=30,
+        help_text="Segundos de reprodução antes de disparar a promoção"
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Promoção anônima'
+        verbose_name_plural = 'Promoções anônimas'
+
+    def __str__(self):
+        return f"Promo anônima ({self.threshold_seconds}s)"
+
+
+# ============================================================================
+# MODELO: PROMOÇÃO PARA USUÁRIOS LOGADOS SEM ASSINATURA
+# ============================================================================
+
+class UnsubscribedPromo(models.Model):
+    """Imagem promocional mostrada para usuários autenticados que não têm assinatura.
+
+    Funcionamento semelhante a `AnonymousPromo` — o frontend pode buscar estas
+    entradas quando o usuário está logado mas sem uma assinatura ativa.
+    """
+
+    imagem_url = models.URLField(help_text="URL pública da imagem promocional")
+    link_url = models.URLField(
+        blank=True, null=True,
+        help_text="Destino do clique quando imagem for pressionada"
+    )
+    threshold_seconds = models.PositiveIntegerField(
+        default=30,
+        help_text="Segundos de reprodução antes de disparar a promoção"
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Promoção para não assinantes'
+        verbose_name_plural = 'Promoções para não assinantes'
+
+    def __str__(self):
+        return f"Promo não-assinante ({self.threshold_seconds}s)"
 
 
 # ============================================================================
@@ -247,6 +403,12 @@ class Album(models.Model):
     total_faixas = models.PositiveIntegerField(default=0, editable=False)
     duracao_total = models.DurationField(null=True, blank=True, editable=False)
     avaliacao_media = models.FloatField(default=0, editable=False)
+
+    # compartilhamento por link (semelhante a Playlist)
+    is_shared = models.BooleanField(default=False)
+    share_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
+    share_expires_at = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -364,6 +526,8 @@ class Musica(models.Model):
     visualizacoes = models.PositiveIntegerField(default=0)
     likes = models.PositiveIntegerField(default=0)
     data_lancamento = models.DateField(default=timezone.now)
+    # marcação manual de música "em alta" – pode ser preenchida por script/admin
+    is_trending = models.BooleanField(default=False, db_index=True)
     is_explicit = models.BooleanField(
         default=False, 
         verbose_name="Conteúdo explícito"
@@ -427,6 +591,50 @@ class Musica(models.Model):
         """Incrementa contador de visualizações"""
         self.visualizacoes += 1
         self.save(update_fields=['visualizacoes'])
+
+
+# ---------------------------------------------------------------------------
+# esquema de músicas em alta
+# ---------------------------------------------------------------------------
+
+class TrendingMusic(models.Model):
+    """Entrada genérica para itens exibidos em "Músicas em alta".
+
+    Este modelo agora armazena apenas um payload JSON livre em `json_data`.
+    Removemos a relação direta com `Musica` e o campo `ordem` — a ordenação
+    (se necessária) pode ser inferida do `added_at` ou do próprio JSON.
+    """
+
+    json_data = JSONField(default=dict, blank=True) if JSONField else models.TextField(default='{}', blank=True)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-added_at']
+        verbose_name = 'Música em alta'
+        verbose_name_plural = 'Músicas em alta'
+
+    def __str__(self):
+        j = self.get_json()
+        title = None
+        if isinstance(j, dict):
+            title = j.get('titulo') or j.get('title') or j.get('name')
+        if title:
+            return f"{title} (em alta)"
+        return f"Trending entry #{self.pk}"
+
+    def get_json(self):
+        """Return the stored JSON as a Python dict regardless of backend field.
+
+        When `JSONField` is available this returns the dict directly; when the
+        fallback `TextField` is used we attempt to parse the JSON string.
+        """
+        if JSONField:
+            return self.json_data or {}
+        try:
+            import json
+            return json.loads(self.json_data or '{}')
+        except Exception:
+            return {}
 
 
 # ============================================================================
@@ -783,13 +991,24 @@ class AsaasCustomer(models.Model):
 class Plan(models.Model):
     """Representa um plano de assinatura disponível na aplicação.
 
-    Os administradores podem criar/editar planos via admin.
-    O código usa o plano marcado como <code>is_active</code> ou, na falta dele, o primeiro plano criado.
+    Os administradores podem criar/editar planos via admin. Cada plano pode
+    especificar também um número de dias grátis (`trial_days`) que serão
+    concedidos automaticamente quando um usuário se cadastra utilizando este
+    plano como "trial"; isso permite ao administrador alterar a duração do
+    período de teste sem tocar no código.
+
+    O código usa o plano marcado como <code>is_active</code> ou, na falta dele,
+    o primeiro plano criado. Existe também um plano especial de trial gerido
+    pelo hook de pós-migração (slug ``trial``).
     """
     slug = models.SlugField(max_length=50, unique=True, help_text='Identificador curto usado internamente')
     name = models.CharField(max_length=100, help_text='Nome exibido para o usuário')
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text='Preço em reais (ex: 9.90)')
     duration_days = models.PositiveIntegerField(default=30, help_text='Número de dias do período da assinatura')
+    trial_days = models.PositiveIntegerField(
+        default=0,
+        help_text='Dias de teste gratuito concedidos no cadastro (0 = nenhum)'
+    )
     is_active = models.BooleanField(default=False, help_text='Plano atualmente em oferta')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -822,13 +1041,18 @@ def _ensure_trial_plan_exists(app_config, **kwargs):
         defaults={
             'name': 'Teste grátis 1 dia',
             'price': Decimal('0.00'),
-            'duration_days': 1,
+            'duration_days': 0,
+            'trial_days': 1,
             'is_active': True,
         }
     )
     # ensure attributes are correct even if plan already existed
     if not created:
         updated = False
+        # normalize trial_days as well
+        if getattr(plan, 'trial_days', None) != 1:
+            plan.trial_days = 1
+            updated = True
         if plan.name != 'Teste grátis 1 dia':
             plan.name = 'Teste grátis 1 dia'
             updated = True
@@ -999,28 +1223,28 @@ def ensure_user_profile(sender, instance, created, **kwargs):
     será duplicado; se o usuário já tiver sido beneficiado, nada acontece.
     """
     if created:
-        UserProfile.objects.create(usuario=instance)
-        # atribuir trial
+        profile = UserProfile.objects.create(usuario=instance)
+        # atribuir trial usando escolha do usuário (se houver), caso contrário placa padrão
         try:
             from decimal import Decimal
-            # buscar ou criar o plano trial
             trial, _ = Plan.objects.get_or_create(
                 slug='trial_1dia',
                 defaults={
                     'name': 'Teste grátis 1 dia',
                     'price': Decimal('0.00'),
-                    'duration_days': 1,
+                    'duration_days': 0,
+                    'trial_days': 1,
                     'is_active': True,
                 }
             )
-            # só cria assinatura se o usuário ainda não teve uma
-            if not Subscription.objects.filter(usuario=instance, plano_id=trial.slug).exists():
+            days = (trial.trial_days if hasattr(trial, 'trial_days') else 0)
+            if days and not Subscription.objects.filter(usuario=instance, plano_id=trial.slug).exists():
                 Subscription.objects.create(
                     usuario=instance,
                     plano_id=trial.slug,
                     status='active',
                     iniciado_em=timezone.now(),
-                    periodo_termina_em=timezone.now() + timedelta(days=trial.duration_days),
+                    periodo_termina_em=timezone.now() + timedelta(days=days),
                     dados={'note': 'assinatura automática de teste'}
                 )
         except Exception:
