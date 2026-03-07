@@ -537,8 +537,11 @@
         .section-link { font-size: 0.8rem; font-weight: 600; color: var(--txt-2); text-decoration: none; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-glass); transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.15s var(--ease-bounce); cursor: pointer; }
         .section-link:hover { color: var(--accent); border-color: var(--border-accent); background: var(--accent-dim); transform: scale(1.04); }
         .section-link:active { transform: scale(0.97); }
-        .explore-hero { margin: 4px 16px 24px; border-radius: var(--radius-lg); padding: 28px 24px; position: relative; overflow: hidden; min-height: 160px; display: flex; flex-direction: column; justify-content: flex-end; cursor: pointer; }
-        .explore-hero-bg { position: absolute; inset: 0; background-image: linear-gradient(135deg, rgba(255,60,110,0.6) 0%, rgba(255,138,0,0.4) 50%, rgba(20,20,30,0.6) 100%), url('{% static "fundonovidade.jpg" %}'); background-size: cover; background-position: center; transition: transform 0.6s var(--ease-out); }
+        .explore-hero { margin: 4px 16px 24px; border-radius: var(--radius-lg); position: relative; overflow: hidden; display: inline-block; width: auto; height: auto; cursor: pointer; }
+        .explore-hero-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 28px 24px; }
+        .explore-hero-content { position: relative; z-index: 2; padding: 28px 24px; }
+        .explore-hero-bg { position: absolute; inset: 0; transition: transform 0.6s var(--ease-out); overflow: hidden; }
+        .explore-hero-bg img { width:auto; max-width:100%; height:auto; object-fit:contain; object-position:center center; display:block; background-color: var(--surface-3); }
         .explore-hero:hover .explore-hero-bg { transform: scale(1.04); }
         .explore-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(7,7,9,0.85) 0%, rgba(7,7,9,0.1) 60%); }
         .explore-hero-content { position: relative; z-index: 2; }
@@ -800,7 +803,7 @@
         .auth-gate-banner { margin: 12px 16px; padding: 14px 16px; background: var(--accent-dim); border: 1px solid var(--border-accent); border-radius: var(--radius-md); display: flex; align-items: center; gap: 12px; font-size: 0.88rem; }
         .auth-gate-banner i { color: var(--accent); flex-shrink: 0; }
         .auth-gate-banner a { color: var(--accent); font-weight: 700; text-decoration: none; margin-left: auto; flex-shrink: 0; }
-        .notification { position: fixed; bottom: calc(var(--player-h) + var(--nav-h) + 14px + var(--safe-b)); left: 14px; right: 14px; padding: 13px 20px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-xl); color: var(--txt-1); font-weight: 600; font-size: 0.88rem; z-index: 5000; box-shadow: 0 12px 36px rgba(0,0,0,0.6); text-align: center; backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .notification { position: fixed; top: 14px; bottom: auto; left: 14px; right: 14px; padding: 13px 20px; background: var(--accent); border: 1px solid var(--border); border-radius: var(--radius-xl); color: white; font-weight: 600; font-size: 0.88rem; z-index: 5000; box-shadow: 0 12px 36px rgba(0,0,0,0.6); text-align: center; backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; gap: 8px; }
         .inline-loader { display: flex; justify-content: center; align-items: center; padding: 10px 0; color: var(--accent); font-size: 1.2rem; }
         .notification::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
         .notification.error::before { background: #ff5572; }
@@ -873,58 +876,189 @@
             font-weight: 600;
         }
         .overlay-text a:hover { opacity: 0.9; }
+        
+        /* promoção/banner fixo (visible via JS) */
+        .promo-banner {
+            position: fixed;
+            top: var(--nav-h);
+            left: 0;
+            right: 0;
+            background: var(--accent);
+            color: #fff;
+            text-align: center;
+            padding: 0.5rem;
+            font-weight: 600;
+            z-index: 400;
+            cursor: pointer;
+            display: none;
+        }
+
+
+        /* Promo Overlay Full Screen */
+.promo-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.5);
+}
+
+.promo-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+}
+
+.promo-cta-container {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    text-align: center;
+}
+
+.promo-cta-container .welcome-button {
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+    /* initial full-screen loader */
+    #initial-loader {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 11000;
+        transition: opacity 0.3s;
+    }
+    #initial-loader.hide { opacity:0; pointer-events:none; }
+    .initial-logo { max-width: 40%; max-height: 40%; }
     </style>
 </head>
 <body x-data="app()" x-init="init()" @keydown.escape="closeModal()">
 
+    <!-- initial loader showing logo on full black background -->
+    <div id="initial-loader">
+        <img src="{% static 'logo.jpeg' %}" alt="Beatflow logo" class="initial-logo">
+    </div>
+
+
     {% if show_welcome %}
-<div id="welcome-overlay" class="welcome-overlay" style="background: url('{% static "fundoiniciodotestegratis.jpeg" %}') center/contain no-repeat #000; background-size: contain !important; background-position: center center !important; cursor:pointer;">
-    <!-- image-only welcome, click anywhere to dismiss -->
+<div id="welcome-overlay" class="welcome-overlay">
+    <div class="welcome-content">
+        <h1>Parabéns!</h1>
+        <p>Você está usando <strong>1 dia de teste grátis</strong>.<br> Aproveite e curta suas músicas!</p>
+        <button id="welcome-close" class="welcome-button">Começar</button>
+    </div>
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const overlay = document.getElementById('welcome-overlay');
-        if (overlay) {
-            overlay.addEventListener('click', () => { overlay.style.display='none'; });
+        const btn = document.getElementById('welcome-close');
+        if (btn && overlay) {
+            btn.addEventListener('click', () => { overlay.style.display='none'; });
         }
     });
 </script>
+
 {% endif %}
 
-<!-- preview limit full-screen overlay (hidden by default). only the image is shown;
-     clicking anywhere takes the user to registration -->
-<div id="preview-overlay" style="display:none; position:fixed; inset:0; z-index:10000; overflow:hidden;">
-    <a href="{% if user.is_authenticated %}{% url 'assinatura' %}{% else %}/register/{% endif %}"
-       style="display:block;width:100%;height:100%;
-              /* choose image depending on auth status */
-              background: url('{% static user.is_authenticated|yesno:"fundomensagemdeplano.jpeg,fundomensagem30seg.jpeg" %}') center/contain no-repeat,
-                          linear-gradient(to bottom,
-                                          #1a002e 0%,
-                                          #000 10%,
-                                          transparent 25%,
-                                          transparent 75%,
-                                          #000 90%,
-                                          #1a002e 100%);
-              background-repeat: no-repeat;
-              background-size: contain, auto;">
-        <!-- gradient provides dark purple/black bars top & bottom -->
-    </a>
-</div>
-
-<!-- hidden audio for premium notification -->
-<audio id="preview-audio" src="{% static 'Premium_Na_Batida.mp3' %}" preload="auto"></audio>
-
+<!-- hide initial loader once everything has finished loading -->
 <script>
-function showPreviewOverlay(msg) {
+    window.addEventListener('load', function(){
+        const initOv = document.getElementById('initial-loader');
+        if(initOv) initOv.classList.add('hide');
+    });
+</script>
+
+<div id="preview-overlay" class="promo-overlay" style="display:none;">
+    <div id="promo-bg" class="promo-bg"></div>
+    <div id="promo-content" class="promo-cta-container">
+        <a href="{% url 'register' %}" 
+           id="preview-close" 
+           class="welcome-button" 
+           style="background-color: #6a1b9a; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+           Obter plano grátis
+        </a>
+    </div>
+</div>
+<script>
+function showPreviewOverlay(content, link) {
     const ov = document.getElementById('preview-overlay');
-    if (ov) ov.style.display = 'flex';
-    // attempt to play notification sound; ignore errors if autoplay blocked
-    const pa = document.getElementById('preview-audio');
-    if (pa) {
-        pa.currentTime = 0;
-        pa.play().catch(() => {});
+    const bg = document.getElementById('promo-bg');
+    const container = document.getElementById('promo-content');
+
+    if (!(ov && bg)) return;
+
+    console.log('[promo] showPreviewOverlay called with', content);
+
+    // treat as HTML only if it contains a '<' character (simple heuristic).
+    // otherwise assume the string is a URL/path to an image.
+    const isHtml = typeof content === 'string' && content.includes('<');
+    if (!isHtml) {
+        // treat as image URL: place a single <img> inside container (no background)
+        bg.style.backgroundImage = '';
+        if (container) {
+            container.style.display = 'flex';
+            container.style.justifyContent = 'center';
+            container.style.alignItems = 'center';
+            // debug styles removed
+            container.style.background = '';
+            // wrap image in link if provided
+            if (link) {
+                container.innerHTML = `<a href="${link}" target="_blank"><img id="promo-debug-img" src="${content}" style="max-width:90%; max-height:90%; object-fit:contain;" /></a>`;
+            } else {
+                container.innerHTML = `<img id="promo-debug-img" src="${content}" style="max-width:90%; max-height:90%; object-fit:contain;" />`;
+            }
+            const imgEl = document.getElementById('promo-debug-img');
+            if (imgEl) {
+                imgEl.addEventListener('load', () => console.log('[promo] image loaded successfully')); 
+                imgEl.addEventListener('error', (e) => console.error('[promo] image failed to load', e, content));
+            }
+        }
+    } else {
+        // show HTML/text in container
+        bg.style.backgroundImage = '';
+        if (container) {
+            container.style.display = '';
+            container.innerHTML = content;
+        }
     }
+
+    ov.style.display = 'flex';
+    // close by clicking the background itself
+    bg.addEventListener('click', (e) => {
+        if (e.target === bg) {
+            ov.style.display = 'none';
+        }
+    });
 }
+// preview overlay close link navigates to register; optional close
+// behavior if JavaScript needed
+/*document.addEventListener('DOMContentLoaded', () => {
+    const btn2 = document.getElementById('preview-close');
+    const ov2 = document.getElementById('preview-overlay');
+    if (btn2 && ov2) {
+        btn2.addEventListener('click', () => { ov2.style.display = 'none'; });
+    }
+});*/
 </script>
     <form style="display:none">{% csrf_token %}</form>
 
@@ -1018,7 +1152,7 @@ function showPreviewOverlay(msg) {
             </div>
 
             <div class="progress-section" style="margin-bottom:16px;">
-                <div class="progress-bar-wrap" @click="seek($event)">
+                <div class="progress-bar-wrap" @click="if(!isLocked) seek($event)">
                     <div class="progress-bar-fill" :style="{ width: progress + '%' }"></div>
                 </div>
                 <div class="progress-times">
@@ -1034,8 +1168,9 @@ function showPreviewOverlay(msg) {
                 <button class="panel-ctrl-btn" @click="previous(true)">
                     <i class="fa-solid fa-backward-step"></i>
                 </button>
-                <button class="panel-play-btn" :class="isPlaying ? 'is-playing' : ''" @click="togglePlay()">
-                    <i :class="(!hasActivePlan && currentTime >= previewLimit) ? 'fa-solid fa-lock' : (isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play')"></i>
+                <button class="panel-play-btn" :class="isPlaying ? 'is-playing' : ''" 
+                        @click="if(!isLocked){ togglePlay(); }">
+                    <i :class="isLocked ? 'fa-solid fa-lock' : (isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play')"></i>
                 </button>
                 <button class="panel-ctrl-btn" @click="next(true)">
                     <i class="fa-solid fa-forward-step"></i>
@@ -1200,7 +1335,7 @@ function showPreviewOverlay(msg) {
                     </div>
 
                     <div class="progress-section">
-                        <div class="progress-bar-wrap" @click.stop="seek($event)">
+                        <div class="progress-bar-wrap" @click.stop="if(!isLocked) seek($event)">
                             <div class="progress-bar-fill" :style="{ width: progress + '%' }"></div>
                         </div>
                         <div class="progress-times">
@@ -1224,10 +1359,8 @@ function showPreviewOverlay(msg) {
 
                         <button class="panel-play-btn ripple-host"
                                 :class="isPlaying ? 'is-playing' : ''"
-                                @click="togglePlay(); addRipple($event)">
-                            <i :class="(!hasActivePlan && currentTime >= previewLimit)
-                                        ? 'fa-solid fa-lock'
-                                        : (isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play')">
+                                @click.stop="if(!isLocked){ togglePlay(); addRipple($event); }">
+                            <i :class="isLocked ? 'fa-solid fa-lock' : (isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play')">
                             </i>
                         </button>
 
@@ -1264,17 +1397,49 @@ function showPreviewOverlay(msg) {
         <!-- ─── ABA: EXPLORAR ─────────────────────────────────────── -->
         <div x-show="activeNav === 'explorar'" x-cloak>
 
-            <div class="explore-hero fade-up" style="margin-top:8px;" @click="loadExplorarFeatured()">
-                <div class="explore-hero-bg"></div>
-                <div class="explore-hero-content">
-                    <div class="hero-badge"><i class="fa-solid fa-fire"></i> Destaque</div>
-                    <h2 class="hero-title">Descoberta<br>do dia</h2>
-                    <p class="hero-sub">Músicas selecionadas pra você agora</p>
-                    <button class="hero-btn ripple-host" @click.stop="loadExplorarFeatured(); addRipple($event)">
-                        <i class="fa-solid fa-shuffle"></i> Tocar mix
-                    </button>
-                </div>
+            {% if explore_banner %}
+        <div class="explore-hero fade-up"
+             style="margin-top:8px;"
+             {% if explore_banner.link %}
+                 onclick="location.href='{{ explore_banner.link }}'"
+             {% else %}
+                 @click="loadExplorarFeatured()"
+             {% endif %}>
+            <div class="explore-hero-bg">
+                {% if explore_banner.imagem_url %}
+                    <img src="{{ explore_banner.imagem_url }}" alt="">
+                {% endif %}
             </div>
+            <div class="explore-hero-content">
+                <div class="hero-badge">
+                    <i class="fa-solid fa-fire"></i>
+                    {{ explore_banner.titulo|default:"Destaque" }}
+                </div>
+                <h2 class="hero-title">
+                    {{ explore_banner.titulo|default:"Descoberta<br>do dia" }}
+                </h2>
+                <p class="hero-sub">
+                    {{ explore_banner.subtitulo|default:"Músicas selecionadas pra você agora" }}
+                </p>
+                <button class="hero-btn ripple-host"
+                        @click.stop="loadExplorarFeatured(); addRipple($event)">
+                    <i class="fa-solid fa-shuffle"></i> Tocar mix
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <div class="explore-hero fade-up" style="margin-top:8px;" @click="loadExplorarFeatured()">
+            <div class="explore-hero-bg"></div>
+            <div class="explore-hero-content">
+                <div class="hero-badge"><i class="fa-solid fa-fire"></i> Destaque</div>
+                <h2 class="hero-title">Descoberta<br>do dia</h2>
+                <p class="hero-sub">Músicas selecionadas pra você agora</p>
+                <button class="hero-btn ripple-host" @click.stop="loadExplorarFeatured(); addRipple($event)">
+                    <i class="fa-solid fa-shuffle"></i> Tocar mix
+                </button>
+            </div>
+        </div>
+        {% endif %}
 
             <div class="section-header fade-up fade-up-3" id="explore-section">
                 <h2 class="section-title">Em <span>Alta</span></h2>
@@ -1638,6 +1803,14 @@ function showPreviewOverlay(msg) {
                 <a href="{% url 'assinatura' %}" id="profile-sub-link" class="profile-action-btn">
                     <i class="fa-solid fa-ticket"></i> Assinatura
                 </a>
+                <a href="{% url 'profile_apps' %}" class="profile-action-btn">
+                    <i class="fa-solid fa-mobile-screen-button"></i> Aplicativos
+                </a>
+                {% if app_file and app_file.arquivo %}
+                <a href="{{ app_file.arquivo.url }}" class="profile-action-btn" download>
+                    <i class="fa-solid fa-download"></i> {{ app_file.titulo|default:'Baixar aplicativo' }}
+                </a>
+                {% endif %}
                 <div class="profile-action-btn" @click="openLibrary()">
                     <i class="fa-solid fa-list-ul"></i> Minhas playlists
                 </div>
@@ -1710,10 +1883,8 @@ function showPreviewOverlay(msg) {
                 <!-- Play / Pause -->
                 <button class="btn-play-main ripple-host"
                         :class="isPlaying ? 'is-playing' : ''"
-                        @click.stop="if(!( !hasActivePlan && currentTime >= previewLimit )){ togglePlay(); addRipple($event); }">
-                    <i :class="(!hasActivePlan && currentTime >= previewLimit)
-                                ? 'fa-solid fa-lock'
-                                : (isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play')"></i>
+                        @click.stop="if(!isLocked){ togglePlay(); addRipple($event); }">
+                    <i :class="isLocked ? 'fa-solid fa-lock' : (isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play')"></i>
                 </button>
 
                 <!-- Próxima -->
@@ -1998,6 +2169,27 @@ function showPreviewOverlay(msg) {
     </div>
 </div>
 
+<!-- ─── PROMO BANNER (clicável para fechar) ───────────────────────── -->
+<div id="promo-banner" class="promo-banner" x-show="promoBannerVisible"
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0 -translate-y-2"
+     x-transition:enter-end="opacity-100 translate-y-0"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     @click="promoBannerVisible=false; promoBannerImage=''; promoBannerText=''; promoBannerLink='';"
+     x-cloak>
+     <template x-if="promoBannerImage">
+         <template x-if="promoBannerLink">
+             <a :href="promoBannerLink" target="_blank"><img :src="promoBannerImage" style="max-width:100%; max-height:80px; display:block; margin:0 auto;" /></a>
+         </template>
+         <template x-if="!promoBannerLink">
+             <img :src="promoBannerImage" style="max-width:100%; max-height:80px; display:block; margin:0 auto;" />
+         </template>
+     </template>
+     <span x-text="promoBannerText" style="display:block; padding:0.25rem 0;"></span>
+</div>
+
 <!-- ─── TOAST NOTIFICATION ──────────────────────────────────────── -->
 <div class="notification" :class="notification.type"
      x-show="notification.show"
@@ -2026,6 +2218,7 @@ function showPreviewOverlay(msg) {
 {{ explorar_default|default:'{}'|json_script:"ds-explorar-default" }}
 {{ playlists_usuario|default:'[]'|json_script:"ds-playlists" }}
 {{ favoritos_usuario|default:'[]'|json_script:"ds-favoritos" }}
+{{ app_file|default:'{}'|json_script:"ds-app-file" }}
 
 <script>
     // ═══════════════════════════════════════════════════════════════
@@ -2168,6 +2361,8 @@ function showPreviewOverlay(msg) {
 
     const IS_AUTHENTICATED = {{ user.is_authenticated|yesno:"true,false" }};
     const REGISTER_URL = '{% url "register" %}';
+    const PLANS_URL = '{% url "assinatura" %}';
+    const FOOTER_LINK = '{{ footer_link|escapejs }}';
 
     // ═══════════════════════════════════════════════════════════════
     // UTILITIES
@@ -2270,10 +2465,24 @@ function showPreviewOverlay(msg) {
             volume: 100,
             shuffle: false,
             repeatMode: 'off', // 'off', 'once', 'one'
+            promoLocked: false,
+            promoTimeout: {{ promo_timeout }},
+            promoBannerVisible: false,
+            promoBannerImage: '',
+            promoBannerText: '',
+            promoBannerLink: '',
+            previewLink: '',
+            apiBanner: null,
 
             currentQueue: [],
             currentQueueType: 'playlist',
             currentQueueIndex: -1,
+
+            get isLocked() {
+                const thresh = (this.promo && this.promo.threshold_seconds) ? this.promo.threshold_seconds : null;
+                const effective = thresh || this.previewLimit;
+                return (!this.hasActivePlan && effective && this.currentTime >= effective) || this.promoLocked;
+            },
 
             get currentQueueLabel() {
                 if (this.currentQueueType === 'playlist') {
@@ -2386,6 +2595,20 @@ function showPreviewOverlay(msg) {
                     this.openLibrary(true);
                 }
                 this.showNotification('Conteúdo atualizado', 'success');
+            },
+
+            loadPromos() {
+                fetch('/api/promos/')
+                  .then(r => r.json())
+                  .then(data => {
+                      if (Array.isArray(data) && data.length) {
+                          this.promo = data[0];
+                          this.promoShown = false;
+                      } else {
+                          this.promo = null;
+                      }
+                  })
+                  .catch(e => console.warn('promo fetch error', e));
             },
 
             closeAllDrawers() {
@@ -2530,6 +2753,7 @@ function showPreviewOverlay(msg) {
                 }
                 setInterval(() => { this._savePlayerState(); }, 5000);
                 window.appStore = this;
+                this.loadPromos();
 
                 // set up media session action handlers so controls work with screen off
                 if ('mediaSession' in navigator) {
@@ -2552,6 +2776,10 @@ function showPreviewOverlay(msg) {
                 // Update browser title when track changes
                 this.$watch('currentTrack', (val) => {
                     document.title = val ? ( (val.title || '') + (val.artist ? ' - ' + val.artist : '') ) : 'Beatflow';
+                    // reset promo/lock state whenever track changes
+                    this.promoShown = false;
+                    this.promoLocked = false;
+                    this.loadPromos();
                     // update lock‑screen / notification metadata via MediaSession API
                     if ('mediaSession' in navigator) {
                         if (val) {
@@ -3038,17 +3266,41 @@ function showPreviewOverlay(msg) {
             },
 
             async togglePlay() {
-                if (!this.hasActivePlan && this.currentTime >= this.previewLimit) {
+                // calculate effective limit same as updateProgress
+                const promoThreshold = (this.promo && this.promo.threshold_seconds) ? this.promo.threshold_seconds : null;
+                const effectiveLimit = promoThreshold || this.previewLimit;
+                if (!this.hasActivePlan && effectiveLimit && this.currentTime >= effectiveLimit) {
                     if (!this._previewWarned) {
                         this._previewWarned = true;
-                        let msg = 'Você atingiu 30 segundos de reprodução.';
-                        if (IS_AUTHENTICATED) {
-                            msg += ' Assine um plano para continuar ouvindo';
+                        // if a promo has already been shown, keep showing the promo image
+                        if (promoThreshold && this.promo && this.promo.imagem_url && this.promoShown) {
+                            // already shown promo, just repeat image
+                            this.previewLink = this.promo.link_url || '';
+                            let imgHtml = `<img src="${this.promo.imagem_url}" style="max-width:100%;max-height:80px;display:block;margin:0 auto;" />`;
+                            if (this.promo.link_url) {
+                                imgHtml = `<a href="${this.promo.link_url}" target="_blank">${imgHtml}</a>`;
+                            }
+                            this.showNotification(imgHtml, 'info');
+                            if (typeof showPreviewOverlay === 'function') showPreviewOverlay(this.promo.imagem_url, this.promo.link_url);
+                        } else if (promoThreshold && this.promo && this.promo.imagem_url) {
+                            // promo still valid and not yet shown on this toggle
+                            this.previewLink = this.promo.link_url || '';
+                            let imgHtml = `<img src="${this.promo.imagem_url}" style="max-width:100%;max-height:80px;display:block;margin:0 auto;" />`;
+                            if (this.promo.link_url) {
+                                imgHtml = `<a href="${this.promo.link_url}" target="_blank">${imgHtml}</a>`;
+                            }
+                            this.showNotification(imgHtml, 'info');
+                            if (typeof showPreviewOverlay === 'function') showPreviewOverlay(this.promo.imagem_url, this.promo.link_url);
                         } else {
-                            msg += ' Obtenha seu plano grátis usando o botão abaixo.';
+                            let msg = `Você atingiu ${effectiveLimit} segundos de reprodução.`;
+                            if (IS_AUTHENTICATED) {
+                                msg += ' Assine um plano para continuar ouvindo';
+                            } else {
+                                msg += ' Obtenha seu plano grátis usando o botão abaixo.';
+                            }
+                            this.showNotification(msg, 'error');
+                            if (typeof showPreviewOverlay === 'function') showPreviewOverlay(msg);
                         }
-                        this.showNotification(msg, 'error');
-                        if (typeof showPreviewOverlay === 'function') showPreviewOverlay(msg);
                     }
                     return;
                 }
@@ -3081,21 +3333,52 @@ function showPreviewOverlay(msg) {
                     this.duration    = this.audio.duration;
                     this.progress    = (this.currentTime / this.duration) * 100;
                 }
-                if (!this.hasActivePlan && this.currentTime >= this.previewLimit) {
+                // determine limit: prefer promo threshold when available
+                const promoThreshold = (this.promo && this.promo.threshold_seconds) ? this.promo.threshold_seconds : null;
+                const effectiveLimit = promoThreshold || this.previewLimit;
+                if (!this.hasActivePlan && effectiveLimit && this.currentTime >= effectiveLimit) {
+                    if (promoThreshold && this.promo && !this.promoShown && this.currentTime >= promoThreshold) {
+                        // fire promo
+                        this.promoShown = true;
+                        this.promoLocked = true;
+                        this._previewWarned = true; // avoid the follow-up message
+                        // set link for banner/preview
+                        this.promoBannerLink = this.promo.link_url || '';
+                        this.previewLink = this.promo.link_url || '';
+                        if (this.promo.imagem_url) {
+                            // display banner
+                            this.promoBannerImage = this.promo.imagem_url;
+                            this.promoBannerVisible = true;
+                            // prepare HTML for toast and overlay (image only), wrap with link if provided
+                            let imgHtml = `<img src="${this.promo.imagem_url}" style="max-width:100%;max-height:80px;display:block;margin:0 auto;" />`;
+                            if (this.promo.link_url) {
+                                imgHtml = `<a href="${this.promo.link_url}" target="_blank">${imgHtml}</a>`;
+                            }
+                            this.showNotification(imgHtml, 'info');
+                            if (typeof showPreviewOverlay === 'function') showPreviewOverlay(this.promo.imagem_url, this.promo.link_url);
+                        } else {
+                            this.showNotification('Confira nossa promoção!', 'info');
+                        }
+                    } else if (promoThreshold && this.promo && this.promoShown) {
+                        // promo already shown, simply lock audio without sending message again
+                    } else {
+                        // regular preview lock (use FOOTER_LINK for subscription)
+                        if (!this._previewWarned) {
+                            this._previewWarned = true;
+                            let msg = `Você atingiu ${this.previewLimit} segundos de reprodução.`;
+                            if (IS_AUTHENTICATED) {
+                                msg += ` <a href="${PLANS_URL}">Assine um plano para continuar ouvindo</a>`;
+                            } else {
+                                msg += ` <a href="${FOOTER_LINK}">Assine um plano</a> para continuar ouvindo`;
+                            }
+                            this.showNotification(msg, 'error');
+                            if (typeof showPreviewOverlay === 'function') showPreviewOverlay(msg);
+                        }
+                    }
                     this.audio.pause();
                     this.isPlaying = false;
                     this.progress = 0;
-                    if (!this._previewWarned) {
-                        this._previewWarned = true;
-                        let msg = 'Você atingiu 30 segundos de reprodução.';
-                        if (IS_AUTHENTICATED) {
-                            msg += ' Assine um plano para continuar ouvindo';
-                        } else {
-                            msg += ' Obtenha seu plano grátis usando o botão abaixo.';
-                        }
-                        this.showNotification(msg, 'error');
-                        if (typeof showPreviewOverlay === 'function') showPreviewOverlay(msg);
-                    }
+                    return;
                 }
             },
             updateMetadata() { this.duration = this.audio.duration; },
@@ -3116,9 +3399,14 @@ function showPreviewOverlay(msg) {
             },
 
             seek(e) {
+                if (this.isLocked) return;
                 const r = e.currentTarget.getBoundingClientRect();
                 let t = ((e.clientX - r.left) / r.width) * this.audio.duration;
-                if (!this.hasActivePlan && t > 30) t = 30;
+                if (!this.hasActivePlan) {
+                    const promoThreshold = (this.promo && this.promo.threshold_seconds) ? this.promo.threshold_seconds : null;
+                    const effective = promoThreshold || this.previewLimit;
+                    if (effective && t > effective) t = effective;
+                }
                 this.audio.currentTime = t;
             },
 
@@ -3126,7 +3414,11 @@ function showPreviewOverlay(msg) {
                 const r = e.currentTarget.getBoundingClientRect();
                 if (this.audio && this.audio.duration) {
                     let t = ((e.clientX - r.left) / r.width) * this.audio.duration;
-                    if (!this.hasActivePlan && t > 30) t = 30;
+                    if (!this.hasActivePlan) {
+                        const promoThreshold = (this.promo && this.promo.threshold_seconds) ? this.promo.threshold_seconds : null;
+                        const effective = promoThreshold || this.previewLimit;
+                        if (effective && t > effective) t = effective;
+                    }
                     this.audio.currentTime = t;
                 }
             },
