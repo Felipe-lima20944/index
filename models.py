@@ -1107,6 +1107,16 @@ class Subscription(models.Model):
 
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assinaturas')
     plano_id = models.CharField(max_length=128, blank=True, help_text='ID do plano/sku local')
+    # campo legadado que ainda existe no banco de dados; mantemos em modelo
+    # temporariamente para evitar problemas de NOT NULL ao inserir novos
+    # registros.  É preenchido com string vazia e marcado como não editável.
+    plano_slug = models.CharField(
+        max_length=128,
+        blank=True,
+        default='',
+        help_text='(deprecated) antigo slug do plano',
+        editable=False,
+    )
     asaas_subscription_id = models.CharField(max_length=128, blank=True, null=True, db_index=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     iniciado_em = models.DateTimeField(null=True, blank=True)
