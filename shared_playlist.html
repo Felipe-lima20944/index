@@ -464,21 +464,6 @@
         .modal-btn.secondary:hover { background:var(--surface-3); color:var(--txt-1); }
         .modal-buttons { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; justify-content:center; }
 
-        /* preview limit full-screen overlay (image+gradient) will be inserted after body start */
-
-        /* preview limit full-screen overlay */
-        /* image adjusts based on login state and gradient bars top/bottom */
-        #preview-overlay {
-            display:none; position:fixed; inset:0; z-index:10000; overflow:hidden;
-        }
-        #preview-overlay a {
-            display:block; width:100%; height:100%;
-            background: url('{% static user.is_authenticated|yesno:"fundomensagemdeplano.jpeg,fundomensagem30seg.jpeg" %}') center/contain no-repeat,
-                        linear-gradient(to bottom,#1a002e 0%,#000 10%,transparent 25%,transparent 75%,#000 90%,#1a002e 100%);
-            background-repeat: no-repeat;
-            background-size: contain, auto;
-        }
-
         [x-cloak] { display: none !important; }
 
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -503,30 +488,6 @@
     </style>
 </head>
 <body x-data="sharedApp()" x-init="init()">
-
-<!-- preview overlay for 30s / plano messages -->
-<div id="preview-overlay" style="display:none; position:fixed; inset:0; z-index:10000; overflow:hidden;">
-    <a href="{% if user.is_authenticated %}{% url 'assinatura' %}{% else %}/register/{% endif %}"
-       style="display:block;width:100%;height:100%;
-              background: url('{% static user.is_authenticated|yesno:"fundomensagemdeplano.jpeg,fundomensagem30seg.jpeg" %}') center/contain no-repeat,
-                          linear-gradient(to bottom,#1a002e 0%,#000 10%,transparent 25%,transparent 75%,#000 90%,#1a002e 100%);
-              background-repeat: no-repeat;
-              background-size: contain, auto;">
-    </a>
-</div>
-<audio id="preview-audio" src="{% static 'Premium_Na_Batida.mp3' %}" preload="auto"></audio>
-
-<script>
-function showPreviewOverlay(msg) {
-    const ov = document.getElementById('preview-overlay');
-    if (ov) ov.style.display = 'flex';
-    const pa = document.getElementById('preview-audio');
-    if (pa) {
-        pa.currentTime = 0;
-        pa.play().catch(() => {});
-    }
-}
-</script>
 
 <div class="bg-orbs" aria-hidden="true">
     <div class="orb orb-a"></div>
@@ -1078,7 +1039,7 @@ function sharedApp() {
             if (index < 0 || index >= this.queue.length) return;
             if (!HAS_ACTIVE_PLAN) {
                 let msg = 'Reproduzindo versão limitada (30s). Assine um plano para ouvir completo';
-                if (!IS_AUTHENTICATED) msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> para receber 3 dias grátis de teste`;
+                if (!IS_AUTHENTICATED) msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> para receber 1 dia grátis de teste`;
                 this.showNotification(msg, 'info');
             }
             this.currentQueueIndex = index;
@@ -1297,21 +1258,6 @@ function sharedApp() {
 
         togglePlay() {
             if (!this.currentTrack) { if (this.queue.length) this.selectByIndex(0); return; }
-            // block when preview limit reached
-            if (!HAS_ACTIVE_PLAN && this.currentTime >= PREVIEW_LIMIT) {
-                if (!this._previewWarned) {
-                    this._previewWarned = true;
-                    let msg = 'Você atingiu 30 segundos de reprodução.';
-                    if (IS_AUTHENTICATED) {
-                        msg += ' Assine um plano para continuar ouvindo';
-                    } else {
-                        msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 3 dias grátis de teste`;
-                    }
-                    this.showNotification(msg, 'error');
-                    if (typeof showPreviewOverlay === 'function') showPreviewOverlay(msg);
-                }
-                return;
-            }
             if (!this.audio.src || this.audio.src === window.location.href) {
                 this._playSrc(this.currentTrack); return;
             }
@@ -1334,14 +1280,13 @@ function sharedApp() {
                 this.progress = 0;
                 if (!this._previewWarned) {
                     this._previewWarned = true;
-                    let msg = 'Você atingiu 30 segundos de reprodução.';
+                    let msg = `Você atingiu ${PREVIEW_LIMIT} segundos de reprodução.`;
                     if (IS_AUTHENTICATED) {
                         msg += ' Assine um plano para continuar ouvindo';
                     } else {
-                        msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 3 dias grátis de teste`;
+                        msg += ` <a href="${REGISTER_URL}">Cadastre-se</a> e ganhe 1 dia grátis de teste`;
                     }
                     this.showNotification(msg, 'error');
-                    if (typeof showPreviewOverlay === 'function') showPreviewOverlay(msg);
                 }
             }
         },
