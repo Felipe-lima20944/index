@@ -1166,6 +1166,8 @@ class Payment(models.Model):
     currency = models.CharField(max_length=6, default='BRL')
     method = models.CharField(max_length=20, choices=METHOD_CHOICES, default='PIX')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    # store slug of the plan that the user selected when generating this payment
+    plan_slug = models.CharField(max_length=128, blank=True, default='', help_text='slug of the plan associated with this payment')
     pix_qr_payload = models.TextField(blank=True, help_text='Payload do PIX (copia e cola)')
     pix_qr_image = models.TextField(blank=True, help_text='Base64 ou URL do QR (quando disponível)')
     vencimento = models.DateTimeField(null=True, blank=True)
