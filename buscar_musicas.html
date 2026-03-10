@@ -1318,9 +1318,7 @@ function showPreviewOverlay(msg) {
 
 <!-- ─── ALBUM / RECOMENDAÇÕES PANEL ─────────────────────────────────── -->
 <div class="modal-overlay panel-overlay" x-show="panelOpen" x-cloak @click.self="closePanel()">
-    <button class="panel-back-btn btn-icon ripple-host" @click="closePanel(); addRipple($event)">
-        <i class="fa-solid fa-arrow-left"></i>
-    </button>
+    <!-- removed left arrow; closing handled by X in header -->
     <div class="modal panel-modal">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">
             <h3 style="margin:0;font-family:var(--font-display);font-size:1.2rem;font-weight:900;letter-spacing:-0.04em;display:flex;align-items:center;gap:8px;">
@@ -1331,7 +1329,10 @@ function showPreviewOverlay(msg) {
                 <button class="btn-icon ripple-host" @click.stop="confirmClearFavorites(); addRipple($event)" x-show="panelTitle === 'Curtidas' && favoritosList && favoritosList.length">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
-                <button @click="closePanel()" class="btn-icon ripple-host"><i class="fa-solid fa-xmark"></i></button>
+                <!-- always show X close button on the right -->
+                <button @click="closePanel()" class="btn-icon ripple-host">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
         </div>
 
