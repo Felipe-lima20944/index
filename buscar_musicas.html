@@ -126,7 +126,7 @@ body { background: var(--bg); color: var(--txt-1); font-family: var(--font-body)
 .now-playing-mini:hover .now-playing-art img { border-radius: 50%; transform: scale(1.05); }
 @keyframes vinylSpin { to { transform: rotate(360deg); } }
 .now-playing-art img.is-playing { border-radius: 50%; animation: vinylSpin 8s linear infinite; }
-.playing-indicator { position: absolute; inset: -3px; border-radius: 50%; border: 2px solid transparent; background: linear-gradient(var(--bg), var(--bg)) padding-box, linear-gradient(135deg, var(--accent), var(--accent-2)) border-box; opacity: 0; transition: opacity 0.4s; }
+.playing-indicator { position: absolute; inset: -3px; border-radius: 50%; border: 2px solid transparent; /* inner area transparent so thumbnail remains visible */ background: transparent padding-box, linear-gradient(135deg, var(--accent), var(--accent-2)) border-box; opacity: 0; transition: opacity 0.4s; }
 .playing-indicator.active { opacity: 1; animation: ringPulse 2.5s ease-in-out infinite; }
 @keyframes ringPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(168,85,247,0); } 50% { box-shadow: 0 0 12px rgba(168,85,247,0.5); } }
 .track-info { min-width: 0; flex: 1 1 auto; overflow: hidden; }
@@ -481,23 +481,20 @@ button, a { touch-action: manipulation; -webkit-user-select: none; user-select: 
 .pl-main { padding-right: 88px; }
 .pl-actions { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); z-index: 20; display: flex; gap: 8px; align-items: center; }
 .pl-actions .btn-icon { min-width: 44px; height: 40px; padding: 8px; border-radius: 8px; }
-.page-loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10001; gap: 28px; transition: opacity 0.7s var(--ease-out), visibility 0.7s; }
+.page-loader { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10001; transition: opacity 0.7s var(--ease-out), visibility 0.7s; }
+
+/* progress bar styles */
+.loader-bar { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.05); }
+.loader-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.2s linear; animation: barLoad 6s linear forwards; }
+@keyframes barLoad { to { width: 100%; } }
 .page-loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-.loader-glow { position: absolute; width: 400px; height: 400px; background: radial-gradient(circle, rgba(168,85,247,0.12) 0%, transparent 70%); border-radius: 50%; animation: ambientGlow 5s ease-in-out infinite; }
+/* old loader-glow removed to simplify initial screen */
 @keyframes ambientGlow { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
-.loader-logo { display: flex; flex-direction: column; align-items: center; gap: 18px; animation: float 3s ease-in-out infinite; }
-.loader-equalizer { display: flex; align-items: flex-end; gap: 5px; height: 54px; padding: 10px 18px; background: rgba(168,85,247,0.07); border-radius: 18px; border: 1px solid rgba(168,85,247,0.15); }
-.loader-equalizer span { width: 7px; border-radius: 4px; background: linear-gradient(180deg, var(--accent), var(--accent-2)); animation: eqBounce 1.3s ease-in-out infinite; box-shadow: 0 0 16px rgba(168,85,247,0.5); }
-.loader-equalizer span:nth-child(1) { height: 20px; animation-delay: 0s; }
-.loader-equalizer span:nth-child(2) { height: 38px; animation-delay: 0.1s; }
-.loader-equalizer span:nth-child(3) { height: 26px; animation-delay: 0.2s; }
-.loader-equalizer span:nth-child(4) { height: 44px; animation-delay: 0.15s; }
-.loader-equalizer span:nth-child(5) { height: 32px; animation-delay: 0.25s; }
-.loader-equalizer span:nth-child(6) { height: 22px; animation-delay: 0.05s; }
-.loader-equalizer span:nth-child(7) { height: 40px; animation-delay: 0.3s; }
-.loader-brand { font-family: var(--font-display); font-size: 2.6rem; font-weight: 900; letter-spacing: -0.05em; background: linear-gradient(135deg, #a855f7 0%, #c026d3 40%, #ec4899 70%, #d946ef 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: brandGlow 2.5s ease-in-out infinite; }
+/* removed fancy logo during initial load */
+/* loader equalizer removed */
+/* loader-brand hidden for simple bar loader */
 @keyframes brandGlow { 0%, 100% { filter: drop-shadow(0 0 20px rgba(168,85,247,0.5)); } 50% { filter: drop-shadow(0 0 40px rgba(236,72,153,0.8)); } }
-.loader-text { font-size: 0.8rem; color: var(--txt-3); letter-spacing: 0.14em; text-transform: uppercase; display: flex; gap: 3px; }
+/* no loader text needed */
 .loader-text span { animation: textPulse 1.6s ease-in-out infinite; }
 .loader-text span:nth-child(1) { animation-delay: 0s; }
 .loader-text span:nth-child(2) { animation-delay: 0.08s; }
@@ -534,19 +531,19 @@ button, a { touch-action: manipulation; -webkit-user-select: none; user-select: 
 
 <!-- Page Loader -->
 <div id="page-loader" class="page-loader">
-    <div class="loader-glow"></div>
-    <div class="loader-logo">
-        <div class="loader-equalizer">
-            <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-        </div>
-        <div class="loader-brand">BeatFlow</div>
-    </div>
-    <div class="loader-text">
-        <span>C</span><span>a</span><span>r</span><span>r</span><span>e</span><span>g</span><span>a</span><span>n</span><span>d</span><span>o</span>
+    <!-- simple horizontal progress bar -->
+    <div class="loader-bar">
+        <div id="loader-bar-fill" class="loader-bar-fill"></div>
     </div>
 </div>
 <script>
 window.addEventListener('load', () => {
+    // force fill the bar immediately when the page has finished loading
+    const bar = document.getElementById('loader-bar-fill');
+    if (bar) {
+        bar.style.width = '100%';
+    }
+
     const loader = document.getElementById('page-loader');
     if (loader) setTimeout(() => loader.classList.add('hidden'), 350);
 });
@@ -614,7 +611,7 @@ function showPreviewOverlay(msg) {
                  @dragover.prevent="queueDragOver($event, index)"
                  @drop.prevent="queueDrop($event, index)">
                 <span class="queue-index" x-text="index + 1"></span>
-                <img :src="track.thumb || ''" class="queue-thumb" alt="">
+                <img :src="track.thumb || '/static/classicacapa.jpg'" class="queue-thumb" alt="">
                 <div style="min-width:0;" @click="playFromQueue(index)">
                     <div style="font-family:var(--font-display);font-size:0.84rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" x-text="track.title"></div>
                     <div style="font-size:0.68rem;color:var(--txt-2);" x-text="track.artist"></div>
@@ -678,9 +675,9 @@ function showPreviewOverlay(msg) {
         <!-- Album art -->
         <div style="text-align:center;margin-bottom:22px;position:relative;">
             <div style="position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);width:200px;height:50px;border-radius:50%;filter:blur(30px);background:linear-gradient(135deg,var(--accent),var(--accent-2));opacity:0.3;pointer-events:none;"></div>
-            <img :src="currentTrack?.thumb || ''"
-                 :class="isPlaying ? 'spinning' : ''"
-                 style="width:min(78vw,270px);height:min(78vw,270px);border-radius:22px;object-fit:cover;box-shadow:0 24px 60px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.07);transition:border-radius 0.5s;">
+              <img :src="currentTrack?.thumb || '/static/classicacapa.jpg'"
+                  :class="isPlaying ? 'spinning' : ''"
+                  style="width:min(78vw,270px);height:min(78vw,270px);border-radius:22px;object-fit:cover;box-shadow:0 24px 60px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.07);transition:border-radius 0.5s;">
         </div>
         <!-- Track info -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
@@ -720,7 +717,7 @@ function showPreviewOverlay(msg) {
         <!-- Action row -->
         <div class="panel-action-row">
             <button class="panel-act-btn" @click="shareCurrentTrack()"><i class="fa-solid fa-share-alt"></i> Compartilhar</button>
-            <button class="panel-act-btn" :class="{'loading-btn': albumBtnLoading}" :disabled="albumBtnLoading" @click="openAlbumForCurrentTrack()">
+            <button class="panel-act-btn" :class="{'loading-btn': albumBtnLoading}" :disabled="albumBtnLoading || !currentTrack" @click="openAlbumForCurrentTrack()">
                 <span x-show="!albumBtnLoading"><i class="fa-solid fa-compact-disc"></i> Álbum</span>
                 <span x-show="albumBtnLoading"><i class="fa-solid fa-spinner fa-spin"></i></span>
             </button>
@@ -813,7 +810,7 @@ function showPreviewOverlay(msg) {
              @click.self="closeTrackDetail()"
              x-effect="document.body.style.overflow = trackDetailOpen ? 'hidden' : ''">
 
-        <button class="panel-icon-btn close-expanded-btn ripple-host" @click.stop="closeTrackDetail(); addRipple($event)">
+        <button class="panel-icon-btn close-expanded-btn ripple-host" @click.stop="closeTrackDetail(); bottomSheetActive = false; addRipple($event)">
             <i class="fa-solid fa-xmark"></i>
         </button>
 
@@ -883,7 +880,7 @@ function showPreviewOverlay(msg) {
                     <button class="panel-act-btn ripple-host" @click.stop="shareCurrentTrack(); addRipple($event)">
                         <i class="fa-solid fa-share-alt"></i> Compartilhar
                     </button>
-                    <button class="panel-act-btn ripple-host" :class="{'loading-btn': albumBtnLoading}" :disabled="albumBtnLoading" @click.stop="openAlbumForCurrentTrack(); addRipple($event)">
+                    <button class="panel-act-btn ripple-host" :class="{'loading-btn': albumBtnLoading}" :disabled="albumBtnLoading || !(currentTrack && (currentTrack.albumId || currentTrack.album))" @click.stop="openAlbumForCurrentTrack(); addRipple($event)">
                         <span x-show="!albumBtnLoading"><i class="fa-solid fa-compact-disc"></i> Álbum</span>
                         <span x-show="albumBtnLoading"><i class="fa-solid fa-spinner fa-spin"></i> …</span>
                     </button>
@@ -1161,7 +1158,7 @@ function showPreviewOverlay(msg) {
             <template x-for="(track, index) in playlist" :key="'q-' + (track.id ? String(track.id) : 'idx-' + index)">
                 <div class="queue-item" :class="{'now-playing': currentTrack?.id === track.id}">
                     <span class="queue-index" x-text="index + 1"></span>
-                    <img :src="track.thumb || ''" class="queue-thumb" alt="">
+                    <img :src="track.thumb || '/static/classicacapa.jpg'" class="queue-thumb" alt="">
                     <div style="min-width:0;flex:1;">
                         <div style="font-family:var(--font-display);font-size:0.86rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" x-text="track.title || track.titulo || track.nome || ''"></div>
                         <div style="font-size:0.7rem;color:var(--txt-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" x-text="track.artist || track.artista_nome || track.artista || ''"></div>
@@ -1248,8 +1245,10 @@ function showPreviewOverlay(msg) {
 </main>
 
 <!-- ─── MINI PLAYER BAR ─────────────────────────────────────────────── -->
+<!-- lastThumb default prevents blank bar; always true after init -->
 <footer class="player-bar"
-        x-show="currentTrack"
+        x-show="currentTrack || lastThumb"
+        :key="'player-' + (currentTrack?.id || 'none')"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0 transform translate-y-full"
         x-transition:enter-end="opacity-100 transform translate-y-0"
@@ -1266,7 +1265,7 @@ function showPreviewOverlay(msg) {
     <div class="player-main-row">
         <div class="now-playing-mini" @click.stop="bottomSheetActive = true">
             <div class="now-playing-art">
-                <img :src="currentTrack?.thumb || ''" :class="isPlaying ? 'is-playing' : ''" alt="Capa">
+                <img :src="lastThumb || '{% static 'classicacapa.jpg' %}'" :class="isPlaying ? 'is-playing' : ''" alt="Capa" onerror="this.src='{% static 'classicacapa.jpg' %}'">
                 <div class="playing-indicator" :class="isPlaying ? 'active' : ''"></div>
             </div>
             <div class="track-info">
@@ -1294,7 +1293,7 @@ function showPreviewOverlay(msg) {
         </div>
 
         <button class="player-close-btn ripple-host"
-                @click.stop="currentTrack = null; isPlaying = false; audio && audio.pause(); bottomSheetActive = false; trackDetailOpen = false; panelOpen = false; addRipple($event)">
+                @click.stop="/* keep lastThumb so the thumbnail stays visible */ currentTrack = null; isPlaying = false; audio && audio.pause(); bottomSheetActive = false; trackDetailOpen = false; panelOpen = false; addRipple($event)">
             <i class="fa-solid fa-xmark"></i>
         </button>
     </div>
@@ -1635,7 +1634,11 @@ function normalizeTrack(t) {
         audio_url: finalAudio,
         arquivo: t.arquivo || '',
         album: (typeof t.album === 'string' ? t.album : '') || '',
-        albumId: t.album_browseId || t.albumId || t.album_id || t.browseId || ''
+        albumId: (() => {
+            const cand = t.album_browseId || t.albumId || t.album_id || t.browseId || '';
+            // YTMusic expects album browseId starting with MPRE, otherwise ignore
+            return (typeof cand === 'string' && cand.startsWith('MPRE')) ? cand : '';
+        })()
     };
 }
 
@@ -1684,6 +1687,8 @@ function app() {
         audio: null,
         playlist: [],
         currentTrack: null,
+        // start with default cover so mini player never shows blank/black
+        lastThumb: '{% static 'classicacapa.jpg' %}',  // persist last artwork when user closes player
         currentTrackIndex: -1,
         isPlaying: false,
         currentTime: 0,
@@ -1737,9 +1742,14 @@ function app() {
             this.$refs.bottomSheet.style.transform = '';
             if (this.sheetCurrentY > 150) {
                 this.bottomSheetActive = false;
+                // ensure mini player shows
+                if (this.currentTrack) {
+                    this.$nextTick(()=>{});
+                }
             }
             this.sheetCurrentY = 0;
         },
+
 
         handleScroll(e) {
             const scrollTop = this.$refs.mainScroll.scrollTop;
@@ -1798,6 +1808,9 @@ function app() {
             this.queueDrawerActive = false;
             this.panelOpen = false;
             this.bottomSheetActive = false;
+            if (this.currentTrack) {
+                this.$nextTick(() => {});
+            }
         },
 
         playFromQueue(index) {
@@ -1984,7 +1997,34 @@ function app() {
                     navigator.mediaSession.setActionHandler('nexttrack', () => { this.next(); });
                 } catch(e) {}
             }
+            // watch for bottom sheet closing to force mini player refresh
+            this.$watch('bottomSheetActive', (val) => {
+                if (!val && this.currentTrack) {
+                    // when sheet is closed ensure mini player renders
+                    // refresh artwork explicitly
+                    this.lastThumb = this.currentTrack.thumb || this.lastThumb;
+                    console.log('Bottom sheet fechado, mini player deve aparecer');
+                    this.$nextTick(()=>{});
+                }
+            });
+            // propagate thumbnail updates from expanded track detail to the mini player
+            this.$watch('trackDetail.thumb', (val) => {
+                if (val) {
+                    this.lastThumb = val;
+                    if (this.currentTrack) {
+                        this.currentTrack.thumb = val;
+                    }
+                }
+            });
             this.$watch('currentTrack', (val) => {
+                if (val && val.thumb) {
+                    this.lastThumb = val.thumb;
+                } else if (val && !val.thumb) {
+                    // no thumb available; use default
+                    this.lastThumb = '{% static 'classicacapa.jpg' %}';
+                } else if (!val) {
+                    // leave lastThumb unchanged so mini-bar still shows artwork
+                }
                 document.title = val ? ((val.title || '') + (val.artist ? ' - ' + val.artist : '')) : 'Beatflow';
                 if ('mediaSession' in navigator) {
                     if (val) {
@@ -1998,6 +2038,8 @@ function app() {
                         navigator.mediaSession.metadata = null;
                     }
                 }
+                // ensure mini player updates when currentTrack changes
+                this.$nextTick(() => {});
             });
 
             const _handleSharedPlaylist = (payload) => {
@@ -2171,6 +2213,9 @@ function app() {
             }
             const normalized = normalizeTrack(track);
             if (!normalized) return;
+            // update lastThumb every time a track is chosen so thumbnail remains
+            // always set something (default if thumb missing) to avoid empty src
+            this.lastThumb = normalized.thumb || '{% static 'classicacapa.jpg' %}';
             if (sourceList && Array.isArray(sourceList) && sourceList.length > 0) {
                 this.currentQueue = sourceList.map(t => normalizeTrack(t)).filter(Boolean);
                 this.currentQueueType = queueType;
@@ -2204,6 +2249,8 @@ function app() {
             this.currentTrackIndex = index;
             this.currentTrack = this.playlist[index];
             this.trackDetail = this.currentTrack;
+            // always keep a usable image path
+            this.lastThumb = (this.currentTrack && this.currentTrack.thumb) ? this.currentTrack.thumb : '{% static 'classicacapa.jpg' %}';
             const qi = this.currentQueue.findIndex(t => t.id === this.currentTrack.id);
             if (qi !== -1) {
                 this.currentQueueIndex = qi;
@@ -2621,6 +2668,11 @@ function app() {
             }
             cachedFetch('/api/search/?q=' + encodeURIComponent(query), 'search', cacheKey, { noBackground: true })
                 .then(({ data }) => {
+                    // if the backend indicates a connectivity problem we still
+                    // receive a 200 response with an "error" field.
+                    if (data && data.error) {
+                        if (!cached) this.showNotification('Sem conectividade com YouTube Music', 'error');
+                    }
                     this.searchResults = { songs: Array.isArray(data.songs) ? data.songs : [], albums: Array.isArray(data.albums) ? data.albums : [] };
                     this.searchCached = false;
                 })
@@ -2965,7 +3017,8 @@ function app() {
                 return;
             }
 
-            silentFetch('/api/albums/' + albumId + '/', 'album', albumId)
+            // use string-capable endpoint so both numeric and youtube IDs work
+            silentFetch('/api/album/' + encodeURIComponent(albumId) + '/', 'album', albumId)
                 .then(data => {
                     const tracks = (data.tracks || []).map(t => normalizeTrack(t)).filter(Boolean);
                     this.albumData = {
@@ -3009,8 +3062,47 @@ function app() {
 
         openAlbumForCurrentTrack() {
             if (!this.currentTrack) return;
-            this.openAlbum(this.currentTrack.albumId || this.currentTrack.id, this.currentTrack.album || this.currentTrack.title, this.currentTrack.thumb);
+            const track = this.currentTrack;
+
+            // if we already have a valid MPRE albumId just load it directly
+            const albumId = track.albumId || '';
+            if (albumId) {
+                this.albumBtnLoading = true;
+                Promise.resolve(
+                    this.openAlbum(albumId, track.album || track.title, track.thumb)
+                )
+                    .catch(() => {})
+                    .finally(() => { this.albumBtnLoading = false; });
+                return;
+            }
+
+            // no explicit album id; try to find it via search using the album name
+            const query = (track.album || (track.title + ' ' + track.artist)).trim();
+            if (!query) {
+                this.showNotification('Álbum não identificado', 'error');
+                return;
+            }
+
+            this.albumBtnLoading = true;
+            fetch('/api/search/?q=' + encodeURIComponent(query), { credentials: 'same-origin' })
+                .then(res => res.json())
+                .then(data => {
+                    const albums = data.albums || [];
+                    const found = albums.find(a => a.title?.toLowerCase() === (track.album || '').toLowerCase()) || albums[0];
+                    if (found && found.id) {
+                        this.openAlbum(found.id, found.title, found.thumb, found.track_count);
+                    } else {
+                        throw new Error('not found');
+                    }
+                })
+                .catch(() => {
+                    this.showNotification('Álbum não encontrado', 'error');
+                })
+                .finally(() => {
+                    this.albumBtnLoading = false;
+                });
         },
+
 
         showRecommendations(track) {
             if (!track) return;
@@ -3019,7 +3111,22 @@ function app() {
             this.panelOpen = true;
             this.panelContent = '<div class="inline-loader"><i class="fa-solid fa-spinner fa-spin"></i> Carregando...</div>';
 
-            const cacheKey = 'recs_' + track.id;
+            // build cache key based on id or title/artist fallback
+            let cacheKey = 'recs_';
+            // always send title+artists query params for backend fallback
+            const q = new URLSearchParams();
+            if (track.title) q.set('title', track.title);
+            if (track.artist) q.set('artists', track.artist);
+            if (track.id) {
+                cacheKey += track.id;
+                url = '/api/recommendations/' + encodeURIComponent(track.id) + '/';
+                const qs = q.toString();
+                if (qs) url += '?' + qs;
+            } else {
+                cacheKey += encodeURIComponent(track.title || '') + '_' + encodeURIComponent(track.artist || '');
+                url = '/api/recommendations/' + (q.toString() ? '?' + q.toString() : '');
+            }
+
             const cached = AppCache.get('recs', cacheKey);
             if (cached) {
                 this._displayRecommendations(cached);
@@ -3027,9 +3134,11 @@ function app() {
                 return;
             }
 
-            silentFetch('/api/recomendacoes/?musica_id=' + track.id, 'recs', cacheKey)
+            silentFetch(url, 'recs', cacheKey)
                 .then(data => {
-                    const tracks = (data.results || data || []).map(t => normalizeTrack(t)).filter(Boolean);
+                    // backend returns {success: true, recommendations: [...]}
+                    const list = data.recommendations || data.results || data || [];
+                    const tracks = (list).map(t => normalizeTrack(t)).filter(Boolean);
                     AppCache.set('recs', cacheKey, tracks);
                     this._displayRecommendations(tracks);
                 })
@@ -3173,6 +3282,8 @@ function app() {
         closeTrackDetail() {
             this.trackDetailOpen = false;
             document.body.style.overflow = '';
+            // make sure mini player stays visible when expanded panel closed
+            this.bottomSheetActive = false;
         },
 
         closeModal() {
@@ -3187,6 +3298,10 @@ function app() {
             this.panelOpen = false;
             this.albumData = null;
             this.panelContent = '';
+            // make sure buttons don't stay stuck in loading state when panel is dismissed
+            this.recommendationsLoading = false;
+            this.albumBtnLoading = false;
+            this.albumLoadingId = null;
         },
 
         clearSearch() {
