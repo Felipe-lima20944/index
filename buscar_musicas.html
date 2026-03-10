@@ -366,6 +366,18 @@ body { background: var(--bg); color: var(--txt-1); font-family: var(--font-body)
 .playlist-option .pl-icon { width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); display: flex; align-items: center; justify-content: center; font-size: 1rem; color: white; flex-shrink: 0; }
 .playlist-option .pl-name { font-family: var(--font-display); font-weight: 700; font-size: 0.88rem; }
 .playlist-option .pl-count { font-size: 0.72rem; color: var(--txt-2); margin-top: 2px; }
+
+/* action icons (add/delete/share) are tucked away until user actively interacts */
+.playlist-option .pl-actions {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+.playlist-option:hover .pl-actions,
+.playlist-option .pl-main.adding + .pl-actions {
+    opacity: 1;
+    pointer-events: auto;
+}
 .create-pl-inline { display: flex; align-items: center; gap: 14px; padding: 13px; background: rgba(168,85,247,0.06); border: 1px dashed rgba(168,85,247,0.25); border-radius: var(--r-md); margin-bottom: 14px; cursor: pointer; transition: all 0.2s var(--ease-bounce); }
 .create-pl-inline:hover { background: rgba(168,85,247,0.12); transform: scale(1.01); }
 .create-pl-inline .pl-name { font-family: var(--font-display); font-weight: 700; color: var(--accent); }
@@ -2309,12 +2321,21 @@ function app() {
                             if (d2?.stream_url) {
                                 src = d2.stream_url;
                                 AppCache.set('streaming', fetchUrl, src);
+                            } else if (d2 && d2.error) {
+                                // video unavailable or other error
+                                this.showNotification(d2.error || 'Cannot load track', 'error');
                             }
-                        } catch(e) {}
+                        } catch(e) {
+                            console.warn('_playSrc streaming fetch error', e);
+                        }
                     }
                 }
             }
-            if (!src) { return false; }
+            if (!src) {
+                this.showNotification('Faixa indisponível ou não pôde ser carregada.', 'error');
+                console.warn('_playSrc: sem src para', track);
+                return false;
+            }
             try {
                 this.audio.src = src;
                 await this.audio.play();
@@ -3198,12 +3219,63 @@ function app() {
 
         shareCurrentTrack() {
             if (!this.currentTrack) return;
-            const text = `🎵 ${this.currentTrack.title} — ${this.currentTrack.artist}\nOuça no Beatflow!`;
+            const track = this.currentTrack;
+
+            // helper to pull an 11‑char YouTube id out of a string or URL
+            const extractId = s => {
+                if (!s) return null;
+                const m = String(s).match(/[A-Za-z0-9_-]{11}/);
+                return m ? m[0] : null;
+            };
+
+            // prepare permanent share by asking the server to shorten it
+            const params = new URLSearchParams({
+                id: track.id || '',
+                title: track.title || '',
+                artist: track.artist || '',
+                thumb: track.thumb || ''
+            });
+
+            const fetchShort = () => {
+                return fetch(window.location.origin + '/short/track/?' + params.toString(), {
+                    credentials: 'same-origin'
+                })
+                .then(r => r.json())
+                .then(data => data.url)
+                .catch(() => null);
+            };
+
+            const attachShare = (url) => {
+                const title = `🎵 ${track.title} — ${track.artist}`;
+                if (navigator.share) {
+                    navigator.share({ title, text: title, url }).catch(() => { this.openShareModal(url, title); });
+                } else {
+                    this.openShareModal(url, title);
+                }
+            };
+
+            // try to get a shortened (=permanent) link; fallback to YouTube/search
+            fetchShort().then(permanent => {
+                if (permanent) {
+                    attachShare(permanent);
+                } else {
+                    let url = '';
+                    const vid = extractId(track.youtube_id) || extractId(track.id);
+                    if (vid) {
+                        url = 'https://www.youtube.com/watch?v=' + vid;
+                    } else {
+                        const q = encodeURIComponent((track.title || '') + ' ' + (track.artist || ''));
+                        url = window.location.origin + '/?q=' + q;
+                    }
+                    attachShare(url);
+                }
+            });
+
+            const title = `🎵 ${track.title} — ${track.artist}`;
             if (navigator.share) {
-                navigator.share({ title: this.currentTrack.title, text }).catch(() => {});
+                navigator.share({ title, text: title, url }).catch(() => { this.openShareModal(url, title); });
             } else {
-                navigator.clipboard?.writeText(text);
-                this.showNotification('Link copiado!', 'success');
+                this.openShareModal(url, title);
             }
         },
 
